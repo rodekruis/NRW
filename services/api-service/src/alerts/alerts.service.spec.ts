@@ -106,7 +106,7 @@ describe('AlertsService', () => {
           provide: AlertToEventService,
           useValue: {
             matchAndStore: jest.fn(),
-            closeStaleEvents: jest.fn(),
+            closeEventsMissingFromForecast: jest.fn(),
           },
         },
         {
@@ -853,8 +853,8 @@ describe('AlertsService', () => {
     });
   });
 
-  describe('createAlerts – closeStaleEvents', () => {
-    it('should call closeStaleEvents with countryCodeIso3 from forecast', async () => {
+  describe('createAlerts – closeEventsMissingFromForecast', () => {
+    it('should call closeEventsMissingFromForecast with countryCodeIso3 from forecast', async () => {
       const alerts = [createMockValidAlert()];
       const forecast = createMockValidForecast({
         alerts,
@@ -863,7 +863,9 @@ describe('AlertsService', () => {
 
       await service.createAlerts(forecast);
 
-      expect(alertToEventService.closeStaleEvents).toHaveBeenCalledWith(
+      expect(
+        alertToEventService.closeEventsMissingFromForecast,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           countryCodeIso3: 'UGA',
           hazardType: HazardType.floods,
@@ -872,7 +874,7 @@ describe('AlertsService', () => {
       );
     });
 
-    it('should call closeStaleEvents with empty excludeEventNames for empty alerts', async () => {
+    it('should call closeEventsMissingFromForecast with empty excludeEventNames for empty alerts', async () => {
       const forecast = createMockValidForecast({
         alerts: [],
         overrides: { countryCodeIso3: 'MWI' },
@@ -880,7 +882,9 @@ describe('AlertsService', () => {
 
       await service.createAlerts(forecast);
 
-      expect(alertToEventService.closeStaleEvents).toHaveBeenCalledWith(
+      expect(
+        alertToEventService.closeEventsMissingFromForecast,
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           countryCodeIso3: 'MWI',
           excludeEventNames: [],

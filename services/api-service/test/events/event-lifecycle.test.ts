@@ -12,7 +12,10 @@ import {
   buildSeverityData,
   createAlerts,
 } from '@api-service/test/helpers/alert.helper';
-import { getActiveEvents } from '@api-service/test/helpers/event.helper';
+import {
+  getActiveEvents,
+  getEndedEvents,
+} from '@api-service/test/helpers/event.helper';
 import {
   getAccessToken,
   resetDB,
@@ -171,7 +174,7 @@ describe('GET /events - lifecycle across multiple forecasts', () => {
       .sort();
     expect(names).toEqual(['station-A', 'station-B']);
 
-    // Step 4: Create only alertB → stale event for alertA is closed
+    // Step 4: Create only alertB → event for alertA, missing from the forecast, is closed
     await createAlerts({
       forecast: buildForecast({
         alerts: [alertB],
@@ -290,6 +293,161 @@ describe('GET /events - lifecycle across multiple forecasts', () => {
       });
       expect(responseAfterEnd.status).toBe(HttpStatus.OK);
       expect(responseAfterEnd.body).toHaveLength(0);
+    });
+
+    describe('next-morning gap between forecastEndAt and the next forecast', () => {
+      // Forecast issued 24 Mar 12:00 has forecastEndAt 24 Mar 23:59, before the next forecast is due.
+      // So endAt is set to forecastStaleAt instead, for floods 26.4h after issuedAt: 25 Mar 14:24.
+      const eventName = 'station-next-morning';
+      const firstIssuedAt = new Date('2026-03-24T12:00:00Z');
+      const newerIssuedAt = new Date('2026-03-25T12:00:00Z');
+      const nextMorningViewTimestamp = '2026-03-25T06:00:00Z';
+      const justBeforeForecastStaleViewTimestamp = '2026-03-25T14:20:00Z';
+      const justAfterForecastStaleViewTimestamp = '2026-03-25T14:30:00Z';
+
+      const alertEndingToday = buildAlert({
+        eventName,
+        severity: buildSeverityData({
+          start: new Date('2026-03-24T00:00:00Z'),
+          end: new Date('2026-03-25T00:00:00Z'),
+          medianValue: 25,
+          runValues: [25, 25, 25],
+        }),
+      });
+
+      beforeEach(async () => {
+        await createAlerts({
+          forecast: buildForecast({
+            alerts: [alertEndingToday],
+            overrides: { countryCodeIso3, issuedAt: firstIssuedAt },
+          }),
+        });
+      });
+
+      it('should keep an event ongoing after forecastEndAt until forecastStaleAt, and end it after', async () => {
+        // Act
+        const activeNextMorning = await getActiveEvents({
+          accessToken,
+          countryCodesIso3: [countryCodeIso3],
+          timestamp: nextMorningViewTimestamp,
+        });
+        const endedNextMorning = await getEndedEvents({
+          accessToken,
+          countryCodesIso3: [countryCodeIso3],
+          timestamp: nextMorningViewTimestamp,
+        });
+        const activeJustBeforeForecastStale = await getActiveEvents({
+          accessToken,
+          countryCodesIso3: [countryCodeIso3],
+          timestamp: justBeforeForecastStaleViewTimestamp,
+        });
+        const activeJustAfterForecastStale = await getActiveEvents({
+          accessToken,
+          countryCodesIso3: [countryCodeIso3],
+          timestamp: justAfterForecastStaleViewTimestamp,
+        });
+        const endedJustAfterForecastStale = await getEndedEvents({
+          accessToken,
+          countryCodesIso3: [countryCodeIso3],
+          timestamp: justAfterForecastStaleViewTimestamp,
+        });
+
+        // Assert
+        expect(activeNextMorning.status).toBe(HttpStatus.OK);
+        expect(activeNextMorning.body).toHaveLength(1);
+        expect(activeNextMorning.body[0]).toMatchObject({
+          eventName,
+          endAt: '2026-03-25T14:24:00.000Z',
+          eventStatus: EventStatus.ongoing,
+        });
+        expect(endedNextMorning.body).toHaveLength(0);
+
+        expect(activeJustBeforeForecastStale.body).toHaveLength(1);
+
+        expect(activeJustAfterForecastStale.body).toHaveLength(0);
+        expect(endedJustAfterForecastStale.body).toHaveLength(1);
+        expect(endedJustAfterForecastStale.body[0]).toMatchObject({
+          eventName,
+          eventStatus: EventStatus.ended,
+        });
+      });
+
+      it('should keep it the same event when a newer forecast extends it', async () => {
+        // Arrange
+        const alertExtendedNextDay = buildAlert({
+          eventName,
+          severity: buildSeverityData({
+            start: new Date('2026-03-25T00:00:00Z'),
+            end: new Date('2026-03-26T00:00:00Z'),
+            medianValue: 25,
+            runValues: [25, 25, 25],
+          }),
+        });
+        const activeNextMorning = await getActiveEvents({
+          accessToken,
+          countryCodesIso3: [countryCodeIso3],
+          timestamp: nextMorningViewTimestamp,
+        });
+
+        // Act
+        await createAlerts({
+          forecast: buildForecast({
+            alerts: [alertExtendedNextDay],
+            overrides: { countryCodeIso3, issuedAt: newerIssuedAt },
+          }),
+        });
+        const activeAfterNewerForecast = await getActiveEvents({
+          accessToken,
+          countryCodesIso3: [countryCodeIso3],
+          timestamp: justAfterForecastStaleViewTimestamp,
+        });
+
+        // Assert
+        expect(activeAfterNewerForecast.status).toBe(HttpStatus.OK);
+        expect(activeAfterNewerForecast.body).toHaveLength(1);
+        expect(activeAfterNewerForecast.body[0]).toMatchObject({
+          eventId: activeNextMorning.body[0].eventId,
+          eventName,
+          firstIssuedAt: '2026-03-24T12:00:00.000Z',
+          lastUpdatedAt: '2026-03-25T12:00:00.000Z',
+          // The newer forecast also has forecastEndAt before forecastStaleAt, so endAt is forecastStaleAt again.
+          endAt: '2026-03-26T14:24:00.000Z',
+          eventStatus: EventStatus.ongoing,
+        });
+      });
+
+      it('should end the event as soon as a newer forecast no longer contains it, even before forecastStaleAt', async () => {
+        // Arrange
+        const viewTimestampBeforeForecastStale = '2026-03-25T13:00:00Z';
+        const noAlerts: never[] = [];
+
+        // Act
+        await createAlerts({
+          forecast: buildForecast({
+            alerts: noAlerts,
+            overrides: { countryCodeIso3, issuedAt: newerIssuedAt },
+          }),
+        });
+        const activeEvents = await getActiveEvents({
+          accessToken,
+          countryCodesIso3: [countryCodeIso3],
+          timestamp: viewTimestampBeforeForecastStale,
+        });
+        const endedEvents = await getEndedEvents({
+          accessToken,
+          countryCodesIso3: [countryCodeIso3],
+          timestamp: viewTimestampBeforeForecastStale,
+        });
+
+        // Assert
+        expect(activeEvents.status).toBe(HttpStatus.OK);
+        expect(activeEvents.body).toHaveLength(0);
+        expect(endedEvents.body).toHaveLength(1);
+        expect(endedEvents.body[0]).toMatchObject({
+          eventName,
+          eventStatus: EventStatus.ended,
+        });
+      });
     });
   });
 

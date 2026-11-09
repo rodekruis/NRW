@@ -66,7 +66,7 @@ export class AlertsService {
       }),
     );
 
-    await this.closeStaleEvents(forecast);
+    await this.closeEventsMissingFromForecast(forecast);
 
     // Store alerts at the end, so that they are not stored in case of errors on event matching/storing/closing
     return await this.alertsRepository.createAlerts({
@@ -76,8 +76,10 @@ export class AlertsService {
     });
   }
 
-  private async closeStaleEvents(forecast: ForecastCreateDto): Promise<void> {
-    await this.alertToEventService.closeStaleEvents({
+  private async closeEventsMissingFromForecast(
+    forecast: ForecastCreateDto,
+  ): Promise<void> {
+    await this.alertToEventService.closeEventsMissingFromForecast({
       hazardType: forecast.hazardType,
       countryCodeIso3: forecast.countryCodeIso3,
       excludeEventNames: forecast.alerts.map((a) => a.eventName),

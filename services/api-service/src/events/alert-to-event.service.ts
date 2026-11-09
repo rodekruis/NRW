@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Event } from '@prisma/client';
+import { max } from 'date-fns';
 
 import { AlertCreateDto } from '@api-service/src/alerts/dto/alert-create.dto';
 import { AlertClassificationService } from '@api-service/src/events/alert-classification.service';
+import { getForecastStaleAt } from '@api-service/src/events/const/forecast-staleness.const';
 import {
   EventAlertHistoryRecord,
   EventsRepository,
@@ -91,7 +93,7 @@ export class AlertToEventService {
       },
       startAt: classification.startAt,
       reachesPeakAlertClassAt: classification.reachesPeakAlertClassAt,
-      endAt: classification.endAt,
+      endAt: this.resolveEndAt({ classification, forecast }),
       firstIssuedAt: forecast.issuedAt,
       lastUpdatedAt: forecast.issuedAt,
     });
@@ -120,10 +122,27 @@ export class AlertToEventService {
         trigger: latestAlert.trigger,
         startAt,
         reachesPeakAlertClassAt: latestAlert.reachesPeakAlertClassAt,
-        endAt: latestAlert.endAt,
+        endAt: this.resolveEndAt({ classification: latestAlert, forecast }),
         lastUpdatedAt: forecast.issuedAt,
       },
     });
+  }
+
+  // An event stays visible at least until its forecast is stale, as a newer forecast may still extend it.
+  // E.g. a floods forecast issued 24 Mar 12:00, above threshold on 24 Mar only, gives endAt 25 Mar 14:24 instead of 24 Mar 23:59.
+  private resolveEndAt({
+    classification,
+    forecast,
+  }: {
+    classification: ClassificationResult;
+    forecast: ForecastMetadata;
+  }): Date {
+    const forecastEndAt = classification.endAt;
+    const forecastStaleAt = getForecastStaleAt({
+      hazardType: forecast.hazardType,
+      issuedAt: forecast.issuedAt,
+    });
+    return max([forecastEndAt, forecastStaleAt]);
   }
 
   private async resolveStartAtFromAlertHistory({
@@ -179,7 +198,7 @@ export class AlertToEventService {
     });
   }
 
-  public async closeStaleEvents({
+  public async closeEventsMissingFromForecast({
     hazardType,
     countryCodeIso3,
     excludeEventNames,
@@ -190,7 +209,7 @@ export class AlertToEventService {
     excludeEventNames: string[];
     issuedAt: Date;
   }): Promise<void> {
-    await this.eventsRepository.closeStaleOpenEvents({
+    await this.eventsRepository.closeOpenEventsMissingFromForecast({
       hazardType,
       countryCodeIso3,
       excludeEventNames,
