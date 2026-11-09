@@ -174,7 +174,7 @@ describe('GET /events - lifecycle across multiple forecasts', () => {
       .sort();
     expect(names).toEqual(['station-A', 'station-B']);
 
-    // Step 4: Create only alertB → stale event for alertA is closed
+    // Step 4: Create only alertB → event for alertA, missing from the forecast, is closed
     await createAlerts({
       forecast: buildForecast({
         alerts: [alertB],
@@ -295,9 +295,9 @@ describe('GET /events - lifecycle across multiple forecasts', () => {
       expect(responseAfterEnd.body).toHaveLength(0);
     });
 
-    describe('next-morning gap between the forecast end and the next forecast', () => {
-      // Forecast issued at 12:00 on 24 Mar predicts the event to end at the end of that day, before the next forecast is due.
-      // So endAt is set to when the forecast is stale instead, for floods 26.4h later: 25 Mar 14:24.
+    describe('next-morning gap between forecastEndAt and the next forecast', () => {
+      // Forecast issued 24 Mar 12:00 has forecastEndAt 24 Mar 23:59, before the next forecast is due.
+      // So endAt is set to forecastStaleAt instead, for floods 26.4h after issuedAt: 25 Mar 14:24.
       const eventName = 'station-next-morning';
       const firstIssuedAt = new Date('2026-03-24T12:00:00Z');
       const newerIssuedAt = new Date('2026-03-25T12:00:00Z');
@@ -324,7 +324,7 @@ describe('GET /events - lifecycle across multiple forecasts', () => {
         });
       });
 
-      it('should keep an event ongoing after the forecast end until its forecast is stale, and end it after', async () => {
+      it('should keep an event ongoing after forecastEndAt until forecastStaleAt, and end it after', async () => {
         // Act
         const activeNextMorning = await getActiveEvents({
           accessToken,
@@ -410,13 +410,13 @@ describe('GET /events - lifecycle across multiple forecasts', () => {
           eventName,
           firstIssuedAt: '2026-03-24T12:00:00.000Z',
           lastUpdatedAt: '2026-03-25T12:00:00.000Z',
-          // The newer forecast also ends before the next forecast is due, so endAt is when it is stale.
+          // The newer forecast also has forecastEndAt before forecastStaleAt, so endAt is forecastStaleAt again.
           endAt: '2026-03-26T14:24:00.000Z',
           eventStatus: EventStatus.ongoing,
         });
       });
 
-      it('should end the event as soon as a newer forecast no longer contains it, even before its forecast is stale', async () => {
+      it('should end the event as soon as a newer forecast no longer contains it, even before forecastStaleAt', async () => {
         // Arrange
         const viewTimestampBeforeForecastStale = '2026-03-25T13:00:00Z';
         const noAlerts: never[] = [];

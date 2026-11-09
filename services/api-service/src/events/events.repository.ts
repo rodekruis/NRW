@@ -353,7 +353,7 @@ export class EventsRepository {
     });
   }
 
-  public async closeStaleOpenEvents({
+  public async closeOpenEventsMissingFromForecast({
     hazardType,
     countryCodeIso3,
     excludeEventNames,

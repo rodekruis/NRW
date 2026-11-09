@@ -64,7 +64,7 @@ describe('AlertToEventService', () => {
             createEvent: jest.fn(),
             updateEvent: jest.fn(),
             closeOpenEventsByName: jest.fn(),
-            closeStaleOpenEvents: jest.fn(),
+            closeOpenEventsMissingFromForecast: jest.fn(),
           },
         },
       ],
@@ -138,7 +138,7 @@ describe('AlertToEventService', () => {
       });
     });
 
-    it('should set endAt to when the forecast is stale, if the forecast ends before that', async () => {
+    it('should set endAt to forecastStaleAt, if forecastEndAt is before that', async () => {
       // Arrange
       const classification = buildClassificationResult({
         endAt: new Date('2026-03-24T23:59:59Z'),
@@ -162,7 +162,7 @@ describe('AlertToEventService', () => {
       );
     });
 
-    it('should keep endAt as the forecast end, if the forecast ends after it is stale', async () => {
+    it('should set endAt to forecastEndAt, if that is after forecastStaleAt', async () => {
       // Arrange
       const classification = buildClassificationResult({
         endAt: new Date('2026-03-28T23:59:59Z'),

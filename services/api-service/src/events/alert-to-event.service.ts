@@ -127,8 +127,8 @@ export class AlertToEventService {
     });
   }
 
-  // endAt is when the event stops being visible, not strictly the forecast end: if the forecast ends before the next forecast is due
-  // (e.g. above threshold on lead time 0 only), keep the event until then, as the next forecast may still extend it.
+  // An event stays visible at least until its forecast is stale, as a newer forecast may still extend it.
+  // E.g. a floods forecast issued 24 Mar 12:00, above threshold on 24 Mar only, gives endAt 25 Mar 14:24 instead of 24 Mar 23:59.
   private resolveEndAt({
     classification,
     forecast,
@@ -136,13 +136,12 @@ export class AlertToEventService {
     classification: ClassificationResult;
     forecast: ForecastMetadata;
   }): Date {
+    const forecastEndAt = classification.endAt;
     const forecastStaleAt = getForecastStaleAt({
       hazardType: forecast.hazardType,
       issuedAt: forecast.issuedAt,
     });
-    return classification.endAt > forecastStaleAt
-      ? classification.endAt
-      : forecastStaleAt;
+    return forecastEndAt > forecastStaleAt ? forecastEndAt : forecastStaleAt;
   }
 
   private async resolveStartAtFromAlertHistory({
@@ -198,7 +197,7 @@ export class AlertToEventService {
     });
   }
 
-  public async closeStaleEvents({
+  public async closeEventsMissingFromForecast({
     hazardType,
     countryCodeIso3,
     excludeEventNames,
@@ -209,7 +208,7 @@ export class AlertToEventService {
     excludeEventNames: string[];
     issuedAt: Date;
   }): Promise<void> {
-    await this.eventsRepository.closeStaleOpenEvents({
+    await this.eventsRepository.closeOpenEventsMissingFromForecast({
       hazardType,
       countryCodeIso3,
       excludeEventNames,
