@@ -1,6 +1,7 @@
+import { addHours } from 'date-fns';
+
 import { HazardType } from '@api-service/src/shared-enums';
 
-const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
 const HOURS_PER_DAY = 24;
 
 // Expected time between two forecasts of the same hazard type.
@@ -24,5 +25,5 @@ export function getForecastStaleAt({
 }): Date {
   const staleAfterHours =
     FORECAST_INTERVAL_HOURS[hazardType] * FORECAST_INTERVAL_TOLERANCE_FACTOR;
-  return new Date(issuedAt.getTime() + staleAfterHours * MILLISECONDS_PER_HOUR);
+  return addHours(issuedAt, staleAfterHours);
 }

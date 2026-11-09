@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Event } from '@prisma/client';
+import { max } from 'date-fns';
 
 import { AlertCreateDto } from '@api-service/src/alerts/dto/alert-create.dto';
 import { AlertClassificationService } from '@api-service/src/events/alert-classification.service';
@@ -141,7 +142,7 @@ export class AlertToEventService {
       hazardType: forecast.hazardType,
       issuedAt: forecast.issuedAt,
     });
-    return forecastEndAt > forecastStaleAt ? forecastEndAt : forecastStaleAt;
+    return max([forecastEndAt, forecastStaleAt]);
   }
 
   private async resolveStartAtFromAlertHistory({
