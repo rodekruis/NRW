@@ -31,5 +31,5 @@ ECMWF_PERTURBED_MEMBER_NUMBERS  # unused variable (pipelines/tropical_cyclone/co
 ECMWF_TRACK_CONTROL_MEMBER_NUMBER  # unused variable (pipelines/tropical_cyclone/constants.py)
 ECMWF_ENSEMBLE_COUNT  # unused variable (pipelines/tropical_cyclone/constants.py)
 ECMWF_TRACK_FIX_INTERVAL_HOURS  # unused variable (pipelines/tropical_cyclone/constants.py)
-load_ecmwf_track_fixes  # unused function, kept as starting point for ECMWF multi-storm support (pipelines/tropical_cyclone/extract_track.py)
+_load_ecmwf_track_fixes  # unused function, kept as starting point for ECMWF multi-storm support (pipelines/tropical_cyclone/extract_track.py)
 colorize_image_from_file  # unused function (shared/image_helpers.py)
