@@ -114,7 +114,7 @@ def extract_track(
             f"Multi-storm track extraction is implemented for {ForecastSource.GEFS_TROPICAL_CYCLONE} only, "
             f"got '{forecast_source}'. Notes for whoever picks up ECMWF: its BUFR file already "
             f"holds one message per storm, so grouping needs no interleaved-row parsing - one "
-            f"message maps to one StormTrack. _load_ecmwf_track_fixes/_read_ecmwf_track_fixes are "
+            f"message maps to one StormTrack. load_ecmwf_track_fixes/_read_ecmwf_track_fixes are "
             f"left in place as the starting point, but they pool every message into a single "
             f"{{lead_hour: [TrackFix, ...]}} map with no storm dimension. Feed "
             f"ECMWF_TRACK_FIX_INTERVAL_HOURS to _build_time_interval_track_fixes as before. Also "
@@ -370,7 +370,7 @@ def _parse_ecmwf_track_path(path: str) -> _ParsedEcmwfTrackPath | None:
     return _ParsedEcmwfTrackPath(cycle_datetime=cycle_datetime)
 
 
-def _load_ecmwf_track_fixes(
+def load_ecmwf_track_fixes(
     ecmwf_track_paths: list[str],
     bounds: BoundingBox,
 ) -> tuple[dict[int, list[TrackFix]], datetime | None]:

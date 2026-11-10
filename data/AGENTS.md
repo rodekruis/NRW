@@ -21,6 +21,11 @@ Keep the two execution paths distinct:
 - Enum member names: UPPER_SNAKE_CASE (standard Python convention)
 - Use type annotations everywhere; avoid `Any`
 - No abbreviations — same principle as the TypeScript codebase
+- Prefix module-private helpers with `_` (keeps dead code detectable)
+
+### Dead code detection
+
+- Add intentionally unused names to `vulture_whitelist.py` with a justification.
 
 ## Infra vs Hazard Code Separation
 

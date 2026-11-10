@@ -72,6 +72,27 @@ known_first_party = ["pipelines", "data_management", "shared"]
 exclude = ["^pipelines/deploy/", "^\\.venv", "^\\.git", "^\\.direnv", "^\\.eggs", "^\\.hg", "^\\.mypy_cache", "^\\.nox", "^\\.pants\\.d", "^\\.svn", "^\\.tox", "^__pypackages__", "^_build", "^buck-out", "^build", "^dist", "^node_modules", "^venv"]
 per_rule_ignores = { DEP002 = ["cfgrib", "netCDF4", "scipy", "rasterstats", "shapely", "xarray"], DEP004 = ["pytest"] }
 
+[tool.vulture]
+# The paths we want vulture to check for dead code.
+paths = ["pipelines", "data_management", "shared", "python-knip.py", "vulture_whitelist.py"]
+min_confidence = 60
+# ISO country code enums: members are looked up dynamically, never referenced by name
+exclude = ["shared/country_data.py"]
+# Azure Functions entry points are registered via decorators, never called by name
+ignore_decorators = ["@app.*"]
+ignore_names = [
+    # Used to set return values for mock objects. Somewhat unlikely to match non-test code.
+    "return_value",
+    # Used to set side effects in tests. Somewhat unlikely to match non-test code.
+    "side_effect",
+    # Property fields for GeoJSON, used as string.
+    "ADM?_EN",
+    "ADM?_PCODE",
+]
+
 [tool.ruff.lint]
 # Import sorting is already handled (differently) by ufmt
 ignore = ["I001"]
+
+[tool.ruff.lint.per-file-ignores]
+"vulture_whitelist.py" = ["F821", "B018"]
