@@ -14,12 +14,10 @@ from rasterio.io import MemoryFile
 from rasterio.transform import array_bounds
 from rasterio.warp import calculate_default_transform, reproject
 
-Image.MAX_IMAGE_PIXELS = None
-
 CRS = rasterio.crs.CRS
 
 # Allow PIL to open large images
-Image.MAX_IMAGE_PIXELS = None
+Image.MAX_IMAGE_PIXELS = None  # noqa: V101
 
 
 def colorize_image_from_file(

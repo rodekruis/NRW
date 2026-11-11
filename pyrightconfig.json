@@ -21,5 +21,8 @@
   "reportOptionalMemberAccess": "error",
   "reportOperatorIssue": "error",
   "reportIndexIssue": "error",
+  "reportUnusedFunction": "error",
+  "reportUnusedClass": "error",
+  "reportUnusedVariable": "error",
   "extraPaths": ["data"]
 }

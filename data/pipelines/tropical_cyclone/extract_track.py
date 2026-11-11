@@ -370,7 +370,7 @@ def _parse_ecmwf_track_path(path: str) -> _ParsedEcmwfTrackPath | None:
     return _ParsedEcmwfTrackPath(cycle_datetime=cycle_datetime)
 
 
-def _load_ecmwf_track_fixes(
+def _load_ecmwf_track_fixes(  # pyright: ignore[reportUnusedFunction]
     ecmwf_track_paths: list[str],
     bounds: BoundingBox,
 ) -> tuple[dict[int, list[TrackFix]], datetime | None]:

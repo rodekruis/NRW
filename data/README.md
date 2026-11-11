@@ -169,4 +169,10 @@ Add `--fix` to auto-fix what can be auto-fixed: `uv run python python-knip.py --
 
 - `deptry` for dependency usage checks
 - `ruff check` for lint and unused imports/variables
-- `vulture` for likely dead code
+- `vulture` for likely dead code (configured in `[tool.vulture]` in `pyproject.toml`; known false positives live in `vulture_whitelist.py`)
+- `pyright` for type checking and unused private functions/classes/variables
+
+### Dead code conventions
+
+- Prefix module-private helpers with `_` (e.g. `_parse_track_path`).
+- To flag something as intentionally unused add it to `vulture_whitelist.py` with a justification.
