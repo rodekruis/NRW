@@ -179,9 +179,13 @@ function resolveFixedScaleColor({
 export function colorizeGrayscalePng({
   base64Grayscale,
   config,
+  extent,
 }: {
   base64Grayscale: string;
   config: ColorizationConfig;
+  // Extent of the raster in EPSG:4326. When set, the rows of the coloured PNG
+  // are in EPSG:3857.
+  extent?: { xmin: number; ymin: number; xmax: number; ymax: number };
 }): string {
   if (!base64Grayscale) {
     return '';
@@ -212,10 +216,13 @@ export function colorizeGrayscalePng({
   }
 
   // Pass 2: colorize directly into output PNG without intermediate arrays
-  const outputPng = new PNG({ width, height });
-  for (let i = 0; i < pixelCount; i++) {
+  const sourceRows = getSourceRows({ height, extent });
+  const outputPng = new PNG({ width, height: sourceRows.length });
+  const outputPixelCount = width * sourceRows.length;
+  for (let i = 0; i < outputPixelCount; i++) {
     const idx = i * 4;
-    const raw = data[i * 4];
+    const sourceRow = sourceRows[Math.floor(i / width)];
+    const raw = data[(sourceRow * width + (i % width)) * 4];
 
     if (raw === 0 && zeroIsTransparent) {
       outputPng.data[idx] = 0;
@@ -240,6 +247,32 @@ export function colorizeGrayscalePng({
 
   const outputBuffer = PNG.sync.write(outputPng);
   return outputBuffer.toString('base64');
+}
+
+// A row remap moves cell edges by whole output rows. Rasters with fewer rows
+// (e.g. wind speed, 0.25° cells) get more rows, so that a warp of less than one
+// cell is corrected too. A whole multiple gives adjacent cells a similar height.
+const MINIMUM_WEB_MERCATOR_ROWS = 1024;
+
+// Returns the greyscale row to draw in each row of the coloured PNG.
+function getSourceRows({
+  height,
+  extent,
+}: {
+  height: number;
+  extent?: { xmin: number; ymin: number; xmax: number; ymax: number };
+}): number[] {
+  if (!extent || extent.ymax <= extent.ymin) {
+    return Array.from({ length: height }, (_, row) => row);
+  }
+
+  const rowMultiplier = Math.ceil(MINIMUM_WEB_MERCATOR_ROWS / height);
+  return getSourceRows4326To3857({
+    sourceHeight: height,
+    outputHeight: height * rowMultiplier,
+    ymin: extent.ymin,
+    ymax: extent.ymax,
+  });
 }
 
 interface RasterMetadata {
@@ -670,28 +703,56 @@ export function reprojectPng4326To3857({
   const png = PNG.sync.read(Buffer.from(base64Png, 'base64'));
   const { width, height, data } = png;
 
-  const mercatorTop = latitudeToMercatorY(ymax);
-  const mercatorBottom = latitudeToMercatorY(ymin);
   const outputPng = new PNG({ width, height });
   const rowBytes = width * 4;
 
-  for (let outputRow = 0; outputRow < height; outputRow++) {
-    const mercatorY =
-      mercatorTop +
-      ((outputRow + 0.5) / height) * (mercatorBottom - mercatorTop);
-    const latitude = mercatorYToLatitude(mercatorY);
-    const sourceRow = Math.min(
-      height - 1,
-      Math.max(0, Math.floor(((ymax - latitude) / (ymax - ymin)) * height)),
-    );
-
+  getSourceRows4326To3857({
+    sourceHeight: height,
+    outputHeight: height,
+    ymin,
+    ymax,
+  }).forEach((sourceRow, outputRow) => {
     data.copy(
       outputPng.data,
       outputRow * rowBytes,
       sourceRow * rowBytes,
       sourceRow * rowBytes + rowBytes,
     );
-  }
+  });
 
   return PNG.sync.write(outputPng).toString('base64');
+}
+
+// Rows of an EPSG:4326 raster have equal steps in latitude. Rows of an EPSG:3857
+// raster have equal steps in Web Mercator y. Returns the EPSG:4326 row that
+// holds the centre of each EPSG:3857 row. Columns need no remap: Web Mercator x
+// is linear in longitude.
+function getSourceRows4326To3857({
+  sourceHeight,
+  outputHeight,
+  ymin,
+  ymax,
+}: {
+  sourceHeight: number;
+  outputHeight: number;
+  ymin: number;
+  ymax: number;
+}): number[] {
+  const mercatorTop = latitudeToMercatorY(ymax);
+  const mercatorBottom = latitudeToMercatorY(ymin);
+
+  return Array.from({ length: outputHeight }, (_, outputRow) => {
+    const mercatorY =
+      mercatorTop +
+      ((outputRow + 0.5) / outputHeight) * (mercatorBottom - mercatorTop);
+    const latitude = mercatorYToLatitude(mercatorY);
+
+    return Math.min(
+      sourceHeight - 1,
+      Math.max(
+        0,
+        Math.floor(((ymax - latitude) / (ymax - ymin)) * sourceHeight),
+      ),
+    );
+  });
 }

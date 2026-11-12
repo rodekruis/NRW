@@ -446,6 +446,121 @@ describe('raster-colorization.helper', () => {
     });
   });
 
+  describe('colorizeGrayscalePng (extent)', () => {
+    // One flag per row of one column of a coloured PNG.
+    function readVisibleRows({
+      base64,
+      column = 0,
+    }: {
+      base64: string;
+      column?: number;
+    }): boolean[] {
+      const png = PNG.sync.read(Buffer.from(base64, 'base64'));
+      return Array.from(
+        { length: png.height },
+        (_, row) => png.data[(row * png.width + column) * 4 + 3] > 0,
+      );
+    }
+
+    it('should draw each row at its Web Mercator position', () => {
+      // Arrange
+      // The north half has data, so the data ends at latitude 30.
+      const height = 1024;
+      const input = createGrayscalePng({
+        width: 1,
+        height,
+        values: Array.from({ length: height / 2 }, () => 100),
+      });
+
+      // Act
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config: FLOOD_DEPTH_CONFIG,
+        extent: { xmin: 0, ymin: 0, xmax: 1, ymax: 60 },
+      });
+
+      // Assert
+      // Latitude 30 is at 58.29 % of the Web Mercator height from latitude 60 to 0.
+      const visibleRows = readVisibleRows({ base64: result });
+      expect(visibleRows).toHaveLength(height);
+      expect(visibleRows.indexOf(false)).toBe(597);
+    });
+
+    it('should add rows to a coarse raster to move an edge by less than one cell', () => {
+      // Arrange
+      // Two columns of 4 cells. West: only the northern cell has data, so the
+      // data ends at latitude 30. East: only the southern cell has data, so the
+      // data starts at latitude 10.
+      const input = createGrayscalePng({
+        width: 2,
+        height: 4,
+        values: [100, 0, 0, 0, 0, 0, 0, 100],
+      });
+
+      // Act
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config: FLOOD_DEPTH_CONFIG,
+        extent: { xmin: 0, ymin: 0, xmax: 1, ymax: 40 },
+      });
+
+      // Assert
+      // Latitude 30 and 10 are at 28.00 % and 77.01 % of the Web Mercator height
+      // from latitude 40 to 0. Without the remap, they are at 25 % and 75 %.
+      const westRows = readVisibleRows({ base64: result, column: 0 });
+      const eastRows = readVisibleRows({ base64: result, column: 1 });
+      expect(westRows).toHaveLength(1024);
+      expect(westRows.indexOf(false)).toBe(287);
+      expect(eastRows.indexOf(true)).toBe(789);
+    });
+
+    it('should stretch the cell nearest to the pole in the southern hemisphere', () => {
+      // Arrange
+      // Only the southern cell has data, so the data starts at latitude -30.
+      const input = createGrayscalePng({
+        width: 1,
+        height: 4,
+        values: [0, 0, 0, 100],
+      });
+
+      // Act
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config: FLOOD_DEPTH_CONFIG,
+        extent: { xmin: 0, ymin: -40, xmax: 1, ymax: 0 },
+      });
+
+      // Assert
+      const visibleRows = readVisibleRows({ base64: result });
+      expect(visibleRows).toHaveLength(1024);
+      expect(visibleRows.indexOf(true)).toBe(1024 - 287);
+    });
+
+    it('should keep the rows in place for a degenerate extent', () => {
+      // Arrange
+      const input = createGrayscalePng({
+        width: 1,
+        height: 4,
+        values: [100, 0, 0, 0],
+      });
+
+      // Act
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config: FLOOD_DEPTH_CONFIG,
+        extent: { xmin: 0, ymin: 5, xmax: 1, ymax: 5 },
+      });
+
+      // Assert
+      expect(readVisibleRows({ base64: result })).toEqual([
+        true,
+        false,
+        false,
+        false,
+      ]);
+    });
+  });
+
   describe('getColorizationConfig', () => {
     it('should return a distinct config for windSpeed vs floodDepth', () => {
       const floodConfig = getColorizationConfig(LayerName.floodDepth);
