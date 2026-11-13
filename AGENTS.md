@@ -27,7 +27,6 @@ The handover design file for NRW is the "🗺️ NRW official" Figma file. Use i
 - Use type annotations everywhere
 - Do not include "Enum" suffix for enum names (e.g., `HazardType`, not `HazardTypeEnum`)
 - Follow existing code patterns — prioritize readability over cleverness
-- Always include Azure DevOps reference `AB#XXXXX` in PR body
 - Be conservative with adding comments to new generated code, but do not remove existing comments for no reason. They can be edited or removed if relevant.
 - Prefer fewer and shorter comments — only comment what the code cannot express on its own
 - Avoid hardcoded values; prefer configuration. Avoid "magic" numbers or strings.
@@ -58,25 +57,9 @@ Do not use `--no-verify`, `eslint-disable`, `@ts-ignore`, or `@ts-expect-error` 
 
 When adding or updating npm packages, use the Node version specified in `.node-version` and the npm version that is bundled with that Node version.
 
-### Commit Conventions
+### Commits, Branches and Pull Requests
 
-Conventional Commits with Angular format (enforced by CI):
-
-```
-feat: Add alert raster upload endpoint
-
-See AB#12345
-```
-
-Prefixes: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`, `chore:`
-Use imperative mood ("Add feature", not "Added feature").
-
-### Pull Request Guidelines
-
-- Keep PRs small, single-responsibility
-- Include AB# task reference
-- Add label for release notes: `enhancement`, `bugfix`, `other`, `chore`
-- Author merges after approval
+Read and follow [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) before committing, creating a branch, or creating/updating a PR. Use [the PR template](./docs/pull_request_template.md) for PR descriptions.
 
 ---
 
