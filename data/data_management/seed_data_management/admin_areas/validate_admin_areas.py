@@ -45,13 +45,6 @@ def load_feature_collection(filepath: Path) -> list[dict]:
     return features
 
 
-def load_processed_file(country: str, level: int) -> list[dict] | None:
-    filepath = PROCESSED_DIR / f"{country}_adm{level}.json"
-    if not filepath.exists():
-        return None
-    return load_feature_collection(filepath)
-
-
 def get_pcode_key(level: int) -> str:
     return f"ADM{level}_PCODE"
 

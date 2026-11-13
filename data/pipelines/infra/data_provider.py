@@ -121,9 +121,7 @@ if __name__ == "__main__":
         for container in provider.loaded_data.values():
             if container.data_type == DataType.ADMIN_AREA_SET:
                 if isinstance(container.data, AdminAreasSet):
-                    first_pcode, first_item = next(
-                        iter(container.data.admin_areas.items())
-                    )
+                    first_item = next(iter(container.data.admin_areas.values()))
                     print(
                         f"  [{container.data_source}]: ",
                         f"{first_item.properties.name}, {first_item.properties.pcode}, "

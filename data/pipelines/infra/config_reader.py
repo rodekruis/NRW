@@ -74,25 +74,6 @@ class ConfigReader:
 
         return self._parse_config(config_raw, hazard_type)
 
-    def get_country_config(
-        self, country_name: CountryCodeIso3
-    ) -> CountryRunConfig | None:
-        """
-        Get the parsed config for a specific country, or None if not found.
-        """
-        if self.config is None:
-            log_error(logger, LogTag.INFRA, "Config not loaded")
-            return None
-
-        country_config = self.config.country_configs.get(country_name)
-        if not country_config:
-            log_error(
-                logger, LogTag.INFRA, f"Country '{country_name}' not found in config"
-            )
-            return None
-
-        return country_config
-
     def _parse_config(self, config_raw: dict, hazard_type: HazardType) -> bool:
         """Parse the hazard-country config to populate self.config."""
         success = True

@@ -8,7 +8,6 @@ import numpy as np
 
 from pipelines.flood.constants import MINIMUM_RETURN_PERIOD
 from pipelines.flood.extract_forecast import TimeIntervalDischarge
-from pipelines.infra.data_types.location_point import LocationPoint
 from pipelines.infra.utils import nrw_logger
 
 logger = logging.getLogger(__name__)
@@ -20,13 +19,6 @@ class TimeIntervalReturnPeriodSeverity:
     time_interval_end: str
     median_return_period: float
     ensemble_return_periods: list[float]
-
-
-@dataclass
-class AlertStation:
-    station_code: str
-    station: LocationPoint
-    time_interval_severities: list[TimeIntervalReturnPeriodSeverity]
 
 
 class ReturnPeriodThresholdValue(TypedDict):

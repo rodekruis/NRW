@@ -20,17 +20,6 @@ CRS = rasterio.crs.CRS
 Image.MAX_IMAGE_PIXELS = None  # noqa: V101
 
 
-def colorize_image_from_file(
-    png_in_bytes: bytes, color1: tuple, color2: tuple, steps: int, log_scale: bool
-):
-    """
-    Wrapper for colorize_image_array that takes in PNG bytes instead of an array.
-    """
-    img = Image.open(io.BytesIO(png_in_bytes))
-    img_bw = np.array(img, dtype=np.float32)
-    return colorize_image_array(img_bw, color1, color2, steps, log_scale)
-
-
 def colorize_image_array(
     img_bw: np.ndarray, color1: tuple, color2: tuple, steps: int, log_scale: bool
 ):

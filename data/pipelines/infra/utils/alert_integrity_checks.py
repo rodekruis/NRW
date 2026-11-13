@@ -13,8 +13,6 @@ from pipelines.infra.data_types.dtos import (
     WaterDischargeTimeSeriesEntry,
 )
 
-ENTRY_START = "start"
-ENTRY_END = "end"
 LOW = "low"
 MEDIAN = "median"
 HIGH = "high"
