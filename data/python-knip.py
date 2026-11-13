@@ -25,7 +25,7 @@ def build_checks(fix: bool) -> list[list[str]]:
     return [
         ["deptry", "."],
         ruff_command,
-        ["vulture"],
+        ["vulture", *PYTHON_SOURCES, "vulture_whitelist.py"],
         ["pyright", "--project", "../pyrightconfig.json"],
     ]
 

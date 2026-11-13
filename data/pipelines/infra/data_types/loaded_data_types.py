@@ -47,8 +47,6 @@ class DataType(StrEnum):
     LOCATION_POINT_DICT = "location_point_dict"
 
     # Generic types
-    BINARY = "binary"
-    JSON_LIST = "json_list"
     PATH_LIST = "path_list"
 
     # Default value until the type is set by the loader
