@@ -2,11 +2,13 @@
 
 Thanks for helping out!
 
-## Committing
+## Commits and PR titles
 
-We try to follow the "[Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)" convention, combined with the "[Angular Commit Message format](https://github.com/angular/angular/blob/main/CONTRIBUTING.md#-commit-message-format)".
+We follow "[Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)", combined with the "[Angular Commit Message format](https://github.com/angular/angular/blob/main/CONTRIBUTING.md#-commit-message-format)".
 
-When committing your changes, provide a commit message(-subject) that starts with an appropriate keyword:
+PRs are squash-merged, so the **PR title** becomes the commit on `main`. That's where this convention matters most, but please use it for individual commits too.
+
+Start the title with one of these keywords:
 
 - `feat`: new feature for the user
 - `fix`: bug fix for the user
@@ -16,8 +18,8 @@ When committing your changes, provide a commit message(-subject) that starts wit
 - `test`: adding missing tests, refactoring tests; no production code change
 - `chore`: cleanups, version updates etc; no production code change
 
-Let the message be an _*imperative*_ description of the changes. (Don't tell what _you did_, but what this commit will **do** when applied to the code.)  
-So in your head, finish the sentence: "**This commit will... `<verb> <subject> ...`**".
+Write an _imperative_ description of the change. Don't describe what _you did_; describe what the commit will **do** when it is applied.
+In your head, finish the sentence: "**This commit will... `<verb> <subject> ...`**".
 
 Some examples:
 
@@ -26,33 +28,19 @@ Some examples:
 - `refactor:` (This commit will) `Load the program-list fast again`
 - `fix:` (This commit will) `Prevent the user from submitting an empty form`
 
-Also add an Azure DevOps task-ID in the body(after the first line) of the commit message. This will make it a clickable link on GitHub. A mention in the title only gives a one-way link from DevOps to GitHub, not vice-versa.
-
-For example:
-
-```txt
-feat: Add transaction-history to the profile page
-
-See AB#123456
-```
-
 Some additional reading:
 
 - [Commit Often, Perfect Later, Publish Once: Git Best Practices](https://sethrobertson.github.io/GitBestPractices/)
 
 ## Branches
 
-We use the convention of using `username/branch-description` to name our branches. This helps reinforce the paradigm outlined in [Submitting changes](#submitting-changes) that one branch has one author.
+Name branches `username/branch-description`, e.g. `aberonni/ignore-duplicates`. This reflects that each branch has one owner (see [Pull Request Guidelines](#pull-request-guidelines)).
 
-As an example, a branch created by the user `aberonni` that introduces the new feature of ignoring duplicates might be called: `aberonni/ignore-duplicates`.
-
-While this naming convention is not strictly enforced, we strongly encourage contributors to follow it to maintain consistency and clarity in the repository.
-
-## Pull Requests
-
-Please submit changes through [pull requests](http://help.github.com/pull-requests/). When sending a PR, follow the pre-populated description template.
+This is not strictly enforced, but we strongly encourage it for consistency.
 
 ## Pull Request Guidelines
+
+Submit changes through [pull requests](https://docs.github.com/en/pull-requests) and follow the pre-populated description template.
 
 - **Draft PRs**: Ignore unless the author explicitly requests attention.
 - **Ownership**: Each branch has one owner/maintainer who is also the PR author.
@@ -72,11 +60,10 @@ Please submit changes through [pull requests](http://help.github.com/pull-reques
   - Keep PRs small and merge quickly to minimize maintenance overhead.
   - Prioritize reviewing code over writing new code.
   - Split large changes into smaller, independently mergeable units.
-- **PR targeting main**:
-  - Include one of the [labels we use for auto-generating release notes](../.github/release.yml)
-  - Follow the naming conventions from the [Committing section](#committing):
-    - Title with keyword (e.g., `feat: ignore duplicates`)
-    - Description with DevOps-item reference
+- **PRs targeting main**:
+  - A title following the [convention above](#commits-and-pr-titles) (e.g., `feat: Ignore duplicates`)
+  - An Azure DevOps reference (`AB#12345`) in the description (checked by CI). This links the PR and the DevOps item both ways.
+  - One of the [labels we use for auto-generating release notes](../.github/release.yml) (checked by CI)
 - **PRs targeting non-main branches**:
   - If the target branch is under review, keep the PR in draft until the target branch merges to main.
 
@@ -97,19 +84,16 @@ We avoid "feature branches" (long-lived branches with multiple/no owners). For P
 - **Prefer non-breaking changes**:
   - Example: Add unused backend endpoints or remove frontend elements without removing related endpoints.
   - Separate changes reduce risk and simplify review (though context for both sides is still needed).
-- **Separate frontend and backend changes** when possible:
-  - Frontend code lives in the [go-web-app](https://github.com/rodekruis/go-web-app/tree/nrw-develop) repo; backend code lives here. So they are separate by definition.
-  - When a change spans both repos, prepare sibling PRs and follow the merge order below.
 
 #### Cross-repo changes
 
-When a change spans both repos (e.g. a new or changed API contract), create "sibling PRs"
+Frontend code lives in the [go-web-app](https://github.com/rodekruis/go-web-app/tree/nrw-develop) repo; backend code lives here. When a change spans both repos (e.g. a new or changed API contract), create "sibling PRs":
 
 1. Try to minimize the "shared" parts, and postpone other changes on both sides to follow-up PRs.
-2. Prepare sibling PRs in both repos as ready-to-merge. Only expect the e2e test on NRW-repo to potentially fail. (as it uses nrw-develop, and not the sibling feature branch.)
-3. Merge the **front-end PR first** (go-web-app → nrw-develop)
+2. Prepare sibling PRs in both repos as ready-to-merge, but expect the e2e test on NRW-repo to potentially fail. (as it uses nrw-develop, and not the feature branch.)
+3. Merge the **front-end PR first**
 4. Re-run any failing e2e tests on the back-end PR (NRW) — they clone `nrw-develop` HEAD and should now pick up the updated FE.
-5. Merge the back-end PR if e2e passes
+5. Merge the back-end PR if e2e passes.
 6. If e2e still fails: fix the back-end PR or create a follow-up front-end PR and repeat this process.
 
 ---
