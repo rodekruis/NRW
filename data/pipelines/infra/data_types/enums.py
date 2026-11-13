@@ -48,8 +48,3 @@ class SeverityKey(StrEnum):
     RETURN_PERIOD = "returnPeriod"
     PERCENTILE = "percentile"
     WIND_SPEED = "windSpeed"
-
-
-class EPSG(StrEnum):
-    WGS84 = "EPSG:4326"
-    WEB_MERCATOR = "EPSG:3857"
