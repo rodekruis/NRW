@@ -183,9 +183,9 @@ export function colorizeGrayscalePng({
 }: {
   base64Grayscale: string;
   config: ColorizationConfig;
-  // Extent of the raster in EPSG:4326. When set, the rows of the coloured PNG
-  // are in EPSG:3857.
-  extent?: { xmin: number; ymin: number; xmax: number; ymax: number };
+  // Extent of the raster in EPSG:4326. The rows of the coloured PNG are in
+  // EPSG:3857.
+  extent: { xmin: number; ymin: number; xmax: number; ymax: number };
 }): string {
   if (!base64Grayscale) {
     return '';
@@ -216,7 +216,7 @@ export function colorizeGrayscalePng({
   }
 
   // Pass 2: colorize directly into output PNG without intermediate arrays
-  const sourceRows = getSourceRows({ height, extent });
+  const sourceRows = getSourceRowsOrThrow({ height, extent });
   const outputPng = new PNG({ width, height: sourceRows.length });
   const outputPixelCount = width * sourceRows.length;
   for (let i = 0; i < outputPixelCount; i++) {
@@ -250,20 +250,23 @@ export function colorizeGrayscalePng({
 }
 
 // A row remap moves cell edges by whole output rows. Rasters with fewer rows
-// (e.g. wind speed, 0.25° cells) get more rows, so that a warp of less than one
-// cell is corrected too. A whole multiple gives adjacent cells a similar height.
+// (e.g. wind speed with 0.25° cells, or a small downsampled population raster)
+// get more rows, so that a warp of less than one cell is corrected too. A whole
+// multiple gives adjacent cells a similar height.
 const MINIMUM_WEB_MERCATOR_ROWS = 1024;
 
-// Returns the greyscale row to draw in each row of the coloured PNG.
-function getSourceRows({
+// Returns the EPSG:4326 row to draw in each row of the EPSG:3857 PNG.
+function getSourceRowsOrThrow({
   height,
   extent,
 }: {
   height: number;
-  extent?: { xmin: number; ymin: number; xmax: number; ymax: number };
+  extent: { ymin: number; ymax: number };
 }): number[] {
-  if (!extent || extent.ymax <= extent.ymin) {
-    return Array.from({ length: height }, (_, row) => row);
+  if (extent.ymax <= extent.ymin) {
+    throw new Error(
+      `Raster extent ymax (${extent.ymax}) must be greater than ymin (${extent.ymin})`,
+    );
   }
 
   const rowMultiplier = Math.ceil(MINIMUM_WEB_MERCATOR_ROWS / height);
@@ -696,22 +699,14 @@ export function reprojectPng4326To3857({
   ymin: number;
   ymax: number;
 }): string {
-  if (ymax <= ymin) {
-    return base64Png;
-  }
-
   const png = PNG.sync.read(Buffer.from(base64Png, 'base64'));
   const { width, height, data } = png;
 
-  const outputPng = new PNG({ width, height });
+  const sourceRows = getSourceRowsOrThrow({ height, extent: { ymin, ymax } });
+  const outputPng = new PNG({ width, height: sourceRows.length });
   const rowBytes = width * 4;
 
-  getSourceRows4326To3857({
-    sourceHeight: height,
-    outputHeight: height,
-    ymin,
-    ymax,
-  }).forEach((sourceRow, outputRow) => {
+  sourceRows.forEach((sourceRow, outputRow) => {
     data.copy(
       outputPng.data,
       outputRow * rowBytes,
