@@ -2,7 +2,6 @@
 // When adding enums here, follow the full updating flow.
 // See `Updating Shared Enums` in the README for details.
 
-export { EPSG } from './shared/enum/epsg.enum';
 export { LayerLabel } from './shared/enum/layer-label.enum';
 export {
   AlertClass,
