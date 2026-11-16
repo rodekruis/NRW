@@ -170,6 +170,7 @@ export class AlertsRepository {
           valueColoured: colorizeGrayscalePng({
             base64Grayscale: entry.valueGreyscale,
             config: getColorizationConfig(entry.layer),
+            extent: entry.extent,
           }),
           metadata: {
             data: {

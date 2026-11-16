@@ -161,6 +161,10 @@ function readOutputPixel({
   };
 }
 
+// Colour tests use rasters of one row, so each row of the coloured PNG is a copy
+// of that row.
+const EQUATOR_EXTENT = { xmin: 0, ymin: 0, xmax: 1, ymax: 1 };
+
 describe('raster-colorization.helper', () => {
   describe('colorizeGrayscalePng (gradient/steps mode)', () => {
     it('should return empty string for empty input', () => {
@@ -168,19 +172,21 @@ describe('raster-colorization.helper', () => {
         colorizeGrayscalePng({
           base64Grayscale: '',
           config: FLOOD_DEPTH_CONFIG,
+          extent: EQUATOR_EXTENT,
         }),
       ).toBe('');
     });
 
     it('should make zero pixels transparent with default config', () => {
       const input = createGrayscalePng({
-        width: 2,
-        height: 2,
+        width: 4,
+        height: 1,
         values: [0, 100, 200, 0],
       });
       const result = colorizeGrayscalePng({
         base64Grayscale: input,
         config: FLOOD_DEPTH_CONFIG,
+        extent: EQUATOR_EXTENT,
       });
 
       const pixel0 = readOutputPixel({ base64: result, pixelIndex: 0 });
@@ -195,6 +201,7 @@ describe('raster-colorization.helper', () => {
       const result = colorizeGrayscalePng({
         base64Grayscale: input,
         config: FLOOD_DEPTH_CONFIG,
+        extent: EQUATOR_EXTENT,
       });
 
       const pixel = readOutputPixel({ base64: result, pixelIndex: 0 });
@@ -212,7 +219,11 @@ describe('raster-colorization.helper', () => {
         useLogScale: false,
       };
       const input = createGrayscalePng({ width: 1, height: 1, values: [0] });
-      const result = colorizeGrayscalePng({ base64Grayscale: input, config });
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config,
+        extent: EQUATOR_EXTENT,
+      });
 
       const pixel = readOutputPixel({ base64: result, pixelIndex: 0 });
       expect(pixel.r).toBe(255);
@@ -231,11 +242,15 @@ describe('raster-colorization.helper', () => {
         useLogScale: false,
       };
       const input = createGrayscalePng({
-        width: 1,
-        height: 2,
+        width: 2,
+        height: 1,
         values: [0, 200],
       });
-      const result = colorizeGrayscalePng({ base64Grayscale: input, config });
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config,
+        extent: EQUATOR_EXTENT,
+      });
 
       const pixel = readOutputPixel({ base64: result, pixelIndex: 1 });
       expect(pixel.r).toBe(0);
@@ -253,11 +268,15 @@ describe('raster-colorization.helper', () => {
         useLogScale: false,
       };
       const input = createGrayscalePng({
-        width: 1,
-        height: 3,
+        width: 3,
+        height: 1,
         values: [0, 100, 200],
       });
-      const result = colorizeGrayscalePng({ base64Grayscale: input, config });
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config,
+        extent: EQUATOR_EXTENT,
+      });
 
       const pixelMid = readOutputPixel({ base64: result, pixelIndex: 1 });
       const pixelHigh = readOutputPixel({ base64: result, pixelIndex: 2 });
@@ -277,18 +296,20 @@ describe('raster-colorization.helper', () => {
       const configLog = { ...configLinear, useLogScale: true };
 
       const input = createGrayscalePng({
-        width: 1,
-        height: 3,
+        width: 3,
+        height: 1,
         values: [0, 10, 200],
       });
 
       const resultLinear = colorizeGrayscalePng({
         base64Grayscale: input,
         config: configLinear,
+        extent: EQUATOR_EXTENT,
       });
       const resultLog = colorizeGrayscalePng({
         base64Grayscale: input,
         config: configLog,
+        extent: EQUATOR_EXTENT,
       });
 
       const linearMid = readOutputPixel({
@@ -310,11 +331,15 @@ describe('raster-colorization.helper', () => {
         useLogScale: false,
       };
       const input = createGrayscalePng({
-        width: 1,
-        height: 5,
+        width: 5,
+        height: 1,
         values: [0, 50, 100, 150, 200],
       });
-      const result = colorizeGrayscalePng({ base64Grayscale: input, config });
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config,
+        extent: EQUATOR_EXTENT,
+      });
 
       const colors = new Set<number>();
       for (let i = 1; i < 5; i++) {
@@ -325,13 +350,14 @@ describe('raster-colorization.helper', () => {
 
     it('should handle all-zero image', () => {
       const input = createGrayscalePng({
-        width: 2,
-        height: 2,
+        width: 4,
+        height: 1,
         values: [0, 0, 0, 0],
       });
       const result = colorizeGrayscalePng({
         base64Grayscale: input,
         config: FLOOD_DEPTH_CONFIG,
+        extent: EQUATOR_EXTENT,
       });
 
       for (let i = 0; i < 4; i++) {
@@ -350,11 +376,15 @@ describe('raster-colorization.helper', () => {
         useLogScale: false,
       };
       const input = createGrayscalePng({
-        width: 2,
-        height: 2,
+        width: 4,
+        height: 1,
         values: [50, 50, 50, 50],
       });
-      const result = colorizeGrayscalePng({ base64Grayscale: input, config });
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config,
+        extent: EQUATOR_EXTENT,
+      });
 
       const pixel0 = readOutputPixel({ base64: result, pixelIndex: 0 });
       const pixel3 = readOutputPixel({ base64: result, pixelIndex: 3 });
@@ -379,13 +409,17 @@ describe('raster-colorization.helper', () => {
         ] as [number, number, number, number][],
       };
       const input = createGrayscalePng({
-        width: 1,
-        height: 3,
+        width: 3,
+        height: 1,
         values: [0, 1, 100],
       });
 
       // Act
-      const result = colorizeGrayscalePng({ base64Grayscale: input, config });
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config,
+        extent: EQUATOR_EXTENT,
+      });
 
       // Assert
       const pixelLow = readOutputPixel({ base64: result, pixelIndex: 1 });
@@ -410,7 +444,11 @@ describe('raster-colorization.helper', () => {
       const input = createGrayscalePng({ width: 1, height: 1, values: [200] });
 
       // Act
-      const result = colorizeGrayscalePng({ base64Grayscale: input, config });
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config,
+        extent: EQUATOR_EXTENT,
+      });
 
       // Assert
       const pixel = readOutputPixel({ base64: result, pixelIndex: 0 });
@@ -423,8 +461,8 @@ describe('raster-colorization.helper', () => {
       // Arrange
       // Grey levels for 0.1 m, 1 m and 3 m on the pipeline's 0-10 m scale (depth / 10 * 254 + 1).
       const input = createGrayscalePng({
-        width: 1,
-        height: 3,
+        width: 3,
+        height: 1,
         values: [4, 26, 77],
       });
 
@@ -432,6 +470,7 @@ describe('raster-colorization.helper', () => {
       const result = colorizeGrayscalePng({
         base64Grayscale: input,
         config: FLOOD_DEPTH_CONFIG,
+        extent: EQUATOR_EXTENT,
       });
 
       // Assert
@@ -443,6 +482,119 @@ describe('raster-colorization.helper', () => {
       expect(readRgba(0)).toEqual(palette[0]);
       expect(readRgba(1)).toEqual(palette[2]);
       expect(readRgba(2)).toEqual(palette[4]);
+    });
+  });
+
+  describe('colorizeGrayscalePng (extent)', () => {
+    // One flag per row of one column of a coloured PNG.
+    function readVisibleRows({
+      base64,
+      column = 0,
+    }: {
+      base64: string;
+      column?: number;
+    }): boolean[] {
+      const png = PNG.sync.read(Buffer.from(base64, 'base64'));
+      return Array.from(
+        { length: png.height },
+        (_, row) => png.data[(row * png.width + column) * 4 + 3] > 0,
+      );
+    }
+
+    it('should draw each row at its Web Mercator position', () => {
+      // Arrange
+      // The north half has data, so the data ends at latitude 30.
+      const height = 1024;
+      const input = createGrayscalePng({
+        width: 1,
+        height,
+        values: Array.from({ length: height / 2 }, () => 100),
+      });
+
+      // Act
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config: FLOOD_DEPTH_CONFIG,
+        extent: { xmin: 0, ymin: 0, xmax: 1, ymax: 60 },
+      });
+
+      // Assert
+      // Latitude 30 is at 58.29 % of the Web Mercator height from latitude 60 to 0.
+      const visibleRows = readVisibleRows({ base64: result });
+      expect(visibleRows).toHaveLength(height);
+      expect(visibleRows.indexOf(false)).toBe(597);
+    });
+
+    it('should add rows to a coarse raster to move an edge by less than one cell', () => {
+      // Arrange
+      // Two columns of 4 cells. West: only the northern cell has data, so the
+      // data ends at latitude 30. East: only the southern cell has data, so the
+      // data starts at latitude 10.
+      const input = createGrayscalePng({
+        width: 2,
+        height: 4,
+        values: [100, 0, 0, 0, 0, 0, 0, 100],
+      });
+
+      // Act
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config: FLOOD_DEPTH_CONFIG,
+        extent: { xmin: 0, ymin: 0, xmax: 1, ymax: 40 },
+      });
+
+      // Assert
+      // Latitude 30 and 10 are at 28.00 % and 77.01 % of the Web Mercator height
+      // from latitude 40 to 0. Without the remap, they are at 25 % and 75 %.
+      const westRows = readVisibleRows({ base64: result, column: 0 });
+      const eastRows = readVisibleRows({ base64: result, column: 1 });
+      expect(westRows).toHaveLength(1024);
+      expect(westRows.indexOf(false)).toBe(287);
+      expect(eastRows.indexOf(true)).toBe(789);
+    });
+
+    it('should stretch the cell nearest to the pole in the southern hemisphere', () => {
+      // Arrange
+      // Only the southern cell has data, so the data starts at latitude -30.
+      const input = createGrayscalePng({
+        width: 1,
+        height: 4,
+        values: [0, 0, 0, 100],
+      });
+
+      // Act
+      const result = colorizeGrayscalePng({
+        base64Grayscale: input,
+        config: FLOOD_DEPTH_CONFIG,
+        extent: { xmin: 0, ymin: -40, xmax: 1, ymax: 0 },
+      });
+
+      // Assert
+      const visibleRows = readVisibleRows({ base64: result });
+      expect(visibleRows).toHaveLength(1024);
+      expect(visibleRows.indexOf(true)).toBe(1024 - 287);
+    });
+
+    it('should throw for a degenerate extent', () => {
+      // Arrange
+      const input = createGrayscalePng({
+        width: 1,
+        height: 4,
+        values: [100, 0, 0, 0],
+      });
+
+      // Act
+      const act = () =>
+        colorizeGrayscalePng({
+          base64Grayscale: input,
+          config: FLOOD_DEPTH_CONFIG,
+          extent: { xmin: 0, ymin: 5, xmax: 1, ymax: 5 },
+        });
+
+      // Assert
+      expect(act).toThrow(
+        'Raster extent ymax (5) must be greater than ymin (5)',
+      );
     });
   });
 
@@ -637,7 +789,7 @@ describe('raster-colorization.helper', () => {
       expect(decoded[3]).toBe(pngSignature[3]);
     });
 
-    it('should downsample a 20x20 input to 2x2', async () => {
+    it('should downsample a 20x20 input to 2 columns', async () => {
       const pngBuffer = createTestPngBuffer({ width: 20, height: 20 });
       const result = await processPopulationRaster({
         dataPngBuffer: pngBuffer,
@@ -647,10 +799,11 @@ describe('raster-colorization.helper', () => {
         },
       });
 
+      // The 2 downsampled rows are remapped to the minimum Web Mercator row count.
       const decoded = Buffer.from(result.colouredBase64, 'base64');
       const outputPng = PNG.sync.read(decoded);
       expect(outputPng.width).toBe(2);
-      expect(outputPng.height).toBe(2);
+      expect(outputPng.height).toBe(1024);
     });
 
     it('should not downsample when input is smaller than the factor', async () => {
@@ -666,7 +819,6 @@ describe('raster-colorization.helper', () => {
       const decoded = Buffer.from(result.colouredBase64, 'base64');
       const outputPng = PNG.sync.read(decoded);
       expect(outputPng.width).toBe(4);
-      expect(outputPng.height).toBe(4);
     });
 
     it('should decode RGBA-encoded population values into palette bands', async () => {
@@ -1221,24 +1373,11 @@ describe('raster-colorization.helper', () => {
     });
 
     function readRows(base64: string): number[] {
-      return [0, 1, 2, 3].map(
-        (pixelIndex) => readOutputPixel({ base64, pixelIndex }).r,
-      );
+      const png = PNG.sync.read(Buffer.from(base64, 'base64'));
+      return Array.from({ length: png.height }, (_, row) => png.data[row * 4]);
     }
 
-    it('should leave rows in place for a bbox straddling the equator', () => {
-      // Act
-      const result = reprojectPng4326To3857({
-        base64Png: input,
-        ymin: -10,
-        ymax: 10,
-      });
-
-      // Assert
-      expect(readRows(result)).toEqual([10, 20, 30, 40]);
-    });
-
-    it('should pull rows towards the pole for a high-latitude bbox', () => {
+    it('should draw each row at its Web Mercator position with the minimum row count', () => {
       // Act
       const result = reprojectPng4326To3857({
         base64Png: input,
@@ -1247,21 +1386,29 @@ describe('raster-colorization.helper', () => {
       });
 
       // Assert
-      // Mercator stretches high latitudes, so the northernmost row spans two
-      // output rows and one southern row is dropped.
-      expect(readRows(result)).toEqual([10, 10, 20, 40]);
+      // Latitude 60, 40 and 20 are at 45.9 %, 68.6 % and 85.3 % of the Web
+      // Mercator height from latitude 80 to 0. Without the remap, they are at
+      // 25 %, 50 % and 75 %.
+      const rows = readRows(result);
+      expect(rows).toHaveLength(1024);
+      expect(rows.indexOf(20)).toBe(470);
+      expect(rows.indexOf(30)).toBe(703);
+      expect(rows.indexOf(40)).toBe(874);
     });
 
-    it('should return the input unchanged for a degenerate extent', () => {
+    it('should throw for a degenerate extent', () => {
       // Act
-      const result = reprojectPng4326To3857({
-        base64Png: input,
-        ymin: 5,
-        ymax: 5,
-      });
+      const act = () =>
+        reprojectPng4326To3857({
+          base64Png: input,
+          ymin: 5,
+          ymax: 5,
+        });
 
       // Assert
-      expect(result).toBe(input);
+      expect(act).toThrow(
+        'Raster extent ymax (5) must be greater than ymin (5)',
+      );
     });
   });
 });
