@@ -3,7 +3,6 @@ Helper functions for the coordinate reference system (CRS) of geodata.
 
 All geodata in the pipelines and in the seed data is in DEFAULT_CRS. Geodata in a
 different CRS is rejected where it enters, it is not reprojected.
-See docs/coordinate-reference-system.md.
 """
 
 from pipelines.constants import DEFAULT_CRS
@@ -15,12 +14,16 @@ MAX_LATITUDE = 90
 def validate_crs(crs: object, source: str) -> None:
     """
     Raise when the CRS that the source gives for its geodata is not DEFAULT_CRS.
-    The CRS can be a string or a CRS object of rasterio or fiona, or None when the
-    source gives no CRS.
+    The CRS can be a string (it must be DEFAULT_CRS exactly), a CRS object of rasterio
+    or fiona, or None when the source gives no CRS.
     """
-    if crs != DEFAULT_CRS:
+    # str() of a CRS object of rasterio or fiona gives the code that the library
+    # identifies for the CRS, also for a different form of that CRS (e.g. Esri WKT).
+    # The != operator of rasterio rejects such a form.
+    crs_text = str(crs)
+    if crs_text != DEFAULT_CRS:
         raise ValueError(
-            f"{source} has CRS '{crs}', but only {DEFAULT_CRS} is supported"
+            f"{source} has CRS '{crs_text}', but only {DEFAULT_CRS} is supported"
         )
 
 
