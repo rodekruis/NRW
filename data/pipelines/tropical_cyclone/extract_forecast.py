@@ -11,6 +11,7 @@ import numpy as np
 import xarray as xr
 from rasterio.transform import Affine
 
+from pipelines.constants import DEFAULT_CRS
 from pipelines.infra.data_types.enums import ForecastSource
 from pipelines.infra.data_types.loaded_data_types import RasterData
 from pipelines.infra.utils import nrw_logger
@@ -382,6 +383,7 @@ def _read_wind_speed_raster(path: str, bounds: BoundingBox) -> RasterData:
         },
     ) as dataset:
         sliced = _slice_to_bounds(dataset, bounds)
+        _validate_grid_type(sliced["u10"], path)
         nodata = float(sliced["u10"].attrs["GRIB_missingValue"])
         u_wind = sliced["u10"].to_numpy().astype(np.float32)
         v_wind = sliced["v10"].to_numpy().astype(np.float32)
@@ -389,6 +391,20 @@ def _read_wind_speed_raster(path: str, bounds: BoundingBox) -> RasterData:
         longitudes = sliced["longitude"].to_numpy()
 
     return _build_wind_speed_raster(u_wind, v_wind, nodata, latitudes, longitudes)
+
+
+# A GRIB file gives no CRS. Only the cells of this grid type (equal steps in latitude and in
+# longitude) are the cells of a raster in DEFAULT_CRS, which _build_wind_speed_raster makes.
+_REGULAR_LATITUDE_LONGITUDE_GRID_TYPE = "regular_ll"
+
+
+def _validate_grid_type(wind_component: xr.DataArray, path: str) -> None:
+    grid_type = wind_component.attrs.get("GRIB_gridType")
+    if grid_type != _REGULAR_LATITUDE_LONGITUDE_GRID_TYPE:
+        raise ValueError(
+            f"Wind file {path} has GRIB grid type '{grid_type}', but only "
+            f"'{_REGULAR_LATITUDE_LONGITUDE_GRID_TYPE}' is supported"
+        )
 
 
 def _build_wind_speed_raster(
@@ -425,7 +441,7 @@ def _build_wind_speed_raster(
     return RasterData(
         array=wind_speed,
         transform=transform,
-        crs="EPSG:4326",
+        crs=DEFAULT_CRS,
         nodata=nodata,
     )
 
@@ -553,6 +569,7 @@ def _read_ecmwf_wind_speed_rasters(
         },
     ) as dataset:
         sliced = _slice_to_bounds(dataset, bounds)
+        _validate_grid_type(sliced["u10"], path)
         nodata = float(sliced["u10"].attrs["GRIB_missingValue"])
         latitudes = sliced["latitude"].to_numpy()
         longitudes = sliced["longitude"].to_numpy()
