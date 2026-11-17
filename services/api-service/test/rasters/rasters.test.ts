@@ -200,6 +200,22 @@ describe('/rasters/static', () => {
     });
   });
 
+  describe('PUT /rasters/static – extent outside the EPSG:4326 range', () => {
+    it('should return 400 for a transform in metres', async () => {
+      // Act
+      const response = await createStaticRaster({
+        accessToken,
+        countryCodeIso3: country,
+        layer,
+        transform: [1000, 0, 3636800, 0, -1000, -1049300],
+      });
+
+      // Assert
+      expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+      expect(response.body.message).toContain('outside the EPSG:4326 range');
+    });
+  });
+
   describe('PUT /rasters/static – unsupported layer', () => {
     it('should return 400 for a layer without static raster colouring', async () => {
       // Act

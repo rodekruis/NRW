@@ -10,10 +10,12 @@ export function createStaticRaster({
   accessToken,
   countryCodeIso3,
   layer,
+  transform = [1, 0, 33.0, 0, -1, 15.0, 0, 0, 1],
 }: {
   accessToken: string;
   countryCodeIso3: string;
   layer: LayerName;
+  transform?: number[];
 }) {
   return getServer()
     .put('/rasters/static')
@@ -25,7 +27,7 @@ export function createStaticRaster({
       'metadata',
       Buffer.from(
         JSON.stringify({
-          transform: [1, 0, 33.0, 0, -1, 15.0, 0, 0, 1],
+          transform,
           crs: EPSG.WGS84,
           width: 1,
           height: 1,

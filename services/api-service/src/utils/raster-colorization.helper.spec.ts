@@ -9,6 +9,7 @@ import {
   FLOOD_DEPTH_CONFIG,
   getColorizationConfig,
   processPopulationRaster,
+  RasterGeoreferenceError,
   reprojectExtents4326To3857,
   reprojectPng4326To3857,
 } from '@api-service/src/utils/raster-colorization.helper';
@@ -767,6 +768,28 @@ describe('raster-colorization.helper', () => {
       // Assert
       await expect(act).rejects.toThrow(
         'Only WGS84 population rasters are supported',
+      );
+    });
+
+    it('should throw when the extent is outside the EPSG:4326 range', async () => {
+      // Arrange
+      const pngBuffer = createTestPngBuffer({ width: 4, height: 4 });
+
+      // Act
+      // A transform in metres with an EPSG:4326 label
+      const act = processPopulationRaster({
+        dataPngBuffer: pngBuffer,
+        metadata: {
+          transform: [1000, 0, 500000, 0, -1000, 600000],
+          crs: EPSG.WGS84,
+        },
+      });
+
+      // Assert
+      await expect(act).rejects.toThrow(
+        new RasterGeoreferenceError(
+          'Raster extent is outside the EPSG:4326 range (xmin=500000, ymin=596000, xmax=504000, ymax=600000)',
+        ),
       );
     });
 
