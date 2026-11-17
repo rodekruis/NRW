@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import type { Feature, FeatureCollection } from 'geojson';
 
 import { AdminAreasRepository } from '@api-service/src/admin-areas/admin-areas.repository';
 import { AdminAreaCreateDto } from '@api-service/src/admin-areas/dto/admin-area-create.dto';
 import { AdminAreaUpdateDto } from '@api-service/src/admin-areas/dto/admin-area-update.dto';
+import { getWgs84GeometryError } from '@api-service/src/utils/wgs84.helper';
 
 @Injectable()
 export class AdminAreasService {
@@ -18,6 +19,13 @@ export class AdminAreasService {
   }
 
   public async createAdminAreas(dtos: AdminAreaCreateDto[]): Promise<void> {
+    // Check all geometries first: the repository inserts in batches without a transaction
+    for (const dto of dtos) {
+      this.validateGeometryOrThrow({
+        geometry: dto.geometry,
+        placeCode: dto.placeCode,
+      });
+    }
     return this.adminAreasRepository.createAdminAreas(dtos);
   }
 
@@ -28,6 +36,12 @@ export class AdminAreasService {
     placeCode: string;
     adminAreaUpdateDto: AdminAreaUpdateDto;
   }): Promise<Feature> {
+    if (adminAreaUpdateDto.geometry !== undefined) {
+      this.validateGeometryOrThrow({
+        geometry: adminAreaUpdateDto.geometry,
+        placeCode,
+      });
+    }
     return this.adminAreasRepository.updateAdminAreaOrThrow({
       placeCode,
       adminAreaUpdateDto,
@@ -36,5 +50,20 @@ export class AdminAreasService {
 
   public async deleteAdminAreaOrThrow(placeCode: string): Promise<void> {
     return this.adminAreasRepository.deleteAdminAreaOrThrow(placeCode);
+  }
+
+  private validateGeometryOrThrow({
+    geometry,
+    placeCode,
+  }: {
+    geometry: Record<string, unknown>;
+    placeCode: string;
+  }): void {
+    const error = getWgs84GeometryError(geometry);
+    if (error) {
+      throw new BadRequestException(
+        `Invalid geometry for admin area '${placeCode}': ${error}`,
+      );
+    }
   }
 }
