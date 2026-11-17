@@ -1,0 +1,14 @@
+scope,season_count,drought_count,mean_share_after_of_droughts,mean_share_after_of_other_seasons,roc_area_of_share_after,roc_area_of_share_after_probability_by_chance,mean_change_of_droughts,mean_change_of_other_seasons,roc_area_of_change,roc_area_of_change_probability_by_chance
+Pooled FEWS NET region-seasons,145,39,0.44,0.273,0.74,,0.165,-0.07,0.758,
+ETH Meher JAS,15,5,0.039,0.048,0.49,0.5488,-0.001,-0.016,0.56,0.3839
+ETH Belg JAS,15,5,0.239,0.166,0.58,0.3393,-0.001,-0.091,0.58,0.3393
+ETH Belg MAM,15,5,0.393,0.219,0.88,0.0097,0.274,0.001,1.0,0.0003
+ETH Northern JAS,15,3,0.605,0.371,0.75,0.1165,0.124,-0.161,0.639,0.2681
+ETH Northern MAM,15,4,0.597,0.374,0.773,0.0689,0.14,-0.052,0.682,0.1714
+ETH Southern OND,13,2,0.855,0.5,0.864,0.0769,0.533,-0.114,1.0,0.0128
+ETH Southern MAM,15,4,0.626,0.529,0.614,0.2857,0.098,-0.049,0.682,0.1714
+KEN National OND,13,1,0.357,0.219,0.833,0.2308,0.357,-0.045,1.0,0.0769
+KEN National MAM,16,6,0.457,0.181,0.833,0.0156,0.188,-0.098,0.95,0.0009
+ZWE National Oct-Mar,13,4,0.573,0.034,1.0,0.001,0.3,-0.067,0.778,0.0616
+ZWE National OND,13,5,0.387,0.176,0.762,0.0689,0.168,0.063,0.613,0.2763
+ZWE National JFM,14,5,0.394,0.069,0.756,0.0437,0.079,-0.205,0.822,0.0295

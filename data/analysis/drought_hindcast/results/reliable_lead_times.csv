@@ -1,0 +1,16 @@
+region_season,is_in_pooled_results,reliable_from_months_before_season,reliable_from_run_month,hit_rate,false_alarm_ratio,drought_count
+ETH Meher JAS,True,2,4,0.438,0.364,16
+ETH Belg JAS,True,4,2,0.75,0.294,16
+ETH Belg MAM,True,0,2,0.625,0.412,16
+ETH Northern JAS,True,4,3,0.688,0.267,16
+ETH Northern MAM,True,1,2,0.625,0.375,16
+ETH Southern OND,True,,,0.6,0.526,15
+ETH Southern MAM,True,0,3,0.562,0.471,16
+KEN National OND,True,0,10,0.733,0.353,15
+KEN National MAM,True,0,3,0.688,0.353,16
+ZWE National Oct-Mar,True,0,10,0.667,0.333,15
+ZWE National OND,False,0,10,0.467,0.417,15
+ZWE National JFM,False,2,11,0.625,0.444,16
+LSO National Oct-Mar,True,2,8,0.533,0.467,15
+LSO National OND,False,1,9,0.533,0.429,15
+LSO National JFM,False,0,1,0.562,0.4,16
