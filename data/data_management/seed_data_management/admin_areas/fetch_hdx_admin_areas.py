@@ -20,6 +20,7 @@ from data_management.seed_data_management.admin_areas.admin_area_source_config i
     get_countries_for_source,
     HDX_DATASET_IDS,
 )
+from shared.crs_helpers import validate_crs
 from shared.data_helpers import get_seed_data_repo_path
 
 HDX_API_BASE = "https://data.humdata.org/api/3/action/package_show"
@@ -117,6 +118,8 @@ def extract_shp_levels(
         for level, shp_path in matching_files.items():
             features = []
             with fiona.open(shp_path) as src:
+                # The GeoJSON output has no CRS, thus it must be in the CRS of all admin areas
+                validate_crs(src.crs, shp_path.name)
                 for feat in src:
                     features.append(
                         {

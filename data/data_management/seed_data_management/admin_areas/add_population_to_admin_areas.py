@@ -20,6 +20,7 @@ from data_management.seed_data_management.admin_areas.admin_area_source_config i
 )
 from rasterio.transform import Affine
 from rasterstats import zonal_stats
+from shared.crs_helpers import validate_crs
 from shared.data_helpers import get_seed_data_repo_path
 from shared.image_helpers import rgba_png_to_float_array
 
@@ -53,6 +54,8 @@ def load_population_raster(country: str) -> tuple[np.ndarray, Affine]:
 
     with open(metadata_path, encoding="utf-8") as f:
         metadata = json.load(f)
+    # The admin areas are used with the transform, thus both must be in the same CRS
+    validate_crs(metadata["crs"], metadata_path.name)
 
     # Create an affine transform from the metadata.
     # Only the first 6 numbers are needed.
