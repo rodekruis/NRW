@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 @dataclass
 class LocationPoint:
     """
-    A generic class used for point locations
+    A generic class used for point locations, in DEFAULT_CRS (degrees)
     """
 
     name: str

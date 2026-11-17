@@ -181,6 +181,28 @@ class TestFloodDepthProviderGetRaster:
         assert raster1 is raster2
         assert mock_download.call_count == 1
 
+    def test_raises_when_metadata_gives_a_different_crs(self):
+        # Arrange
+        png_bytes = _make_rgba_png_bytes(np.array([[1.0]], dtype=np.float64))
+        metadata = _make_metadata(1, 1) | {"crs": "EPSG:3857"}
+        provider = FloodDepthProvider(
+            available_return_periods=[10],
+            base_url=MOCK_FLOOD_DEPTH_BASE_URL,
+            country="KEN",
+        )
+
+        # Act, Assert
+        with patch(
+            "pipelines.infra.data_types.flood_depth_provider.download_object",
+            return_value=png_bytes,
+        ), patch(
+            "pipelines.infra.data_types.flood_depth_provider.download_json_source",
+            return_value=metadata,
+        ), pytest.raises(
+            ValueError, match="has CRS 'EPSG:3857', but only EPSG:4326 is supported"
+        ):
+            provider.get_raster(10)
+
     def test_raises_when_png_download_fails(self):
         provider = FloodDepthProvider(
             available_return_periods=[10],

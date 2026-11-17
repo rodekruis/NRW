@@ -9,6 +9,7 @@ import os
 import numpy as np
 import xarray as xr
 from PIL import Image
+from pipelines.constants import DEFAULT_CRS
 from pipelines.infra.data_types.admin_area_types import AdminAreasSet
 from pipelines.infra.data_types.loaded_data_types import RasterData
 from pipelines.infra.data_types.location_point import LocationPoint
@@ -79,6 +80,10 @@ def slice_netcdf_to_bounds(
 
     Returns the path to the sliced file. If output_path is None, a temporary
     file is created in the same directory as the input file.
+
+    The CRS of the file cannot be checked: GloFAS NetCDF files give no CRS, only
+    `lat` and `lon` coordinates. A grid without cells in the bounds is rejected,
+    which finds most grids that are not in DEFAULT_CRS.
     """
     min_lon, min_lat, max_lon, max_lat = bounds
 
@@ -87,6 +92,11 @@ def slice_netcdf_to_bounds(
             lon=slice(min_lon, max_lon),
             lat=slice(max_lat, min_lat),
         )
+        if sliced.sizes["lon"] == 0 or sliced.sizes["lat"] == 0:
+            raise ValueError(
+                f"NetCDF {input_path} has no cells in bounds {bounds}: "
+                f"its grid must be in {DEFAULT_CRS}, with a descending latitude"
+            )
 
         try:
             if output_path is None:
@@ -107,7 +117,7 @@ def slice_netcdf_to_bounds(
 
 
 def get_raster_extent(raster: RasterData) -> dict[str, float]:
-    """Return raster bounds as an extent dict expected by the API layer."""
+    """Return raster bounds as an extent dict expected by the API layer, in DEFAULT_CRS."""
     t = raster.transform
     rows, cols = raster.array.shape
     corners = [

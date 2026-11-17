@@ -25,7 +25,8 @@ class AdminAreaProperties:
 @dataclass
 class AdminArea:
     """
-    This represents a single admin area, with coordinates being a list of points for the area
+    This represents a single admin area, with coordinates being a list of points for the area.
+    The coordinates are in DEFAULT_CRS (longitude, latitude), as the NRW API gives them.
     """
 
     properties: AdminAreaProperties
