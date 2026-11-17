@@ -15,7 +15,8 @@ export class GeoJsonGeometryDto implements GeoJsonObject {
   public readonly type: SupportedGeometryTypes;
 
   @ApiPropertyOptional({
-    description: 'Coordinates array; structure depends on geometry type.',
+    description:
+      'Coordinates array in EPSG:4326, as [longitude, latitude]; structure depends on geometry type.',
     example: [
       [
         [102.0, 0.0],

@@ -6,7 +6,7 @@ import { EPSG } from '@api-service/src/shared/enum/epsg.enum';
 export class StaticRasterSourceMetadataDto {
   @ApiProperty({
     description:
-      'Affine geotransform of the data PNG: [xResolution, 0, xmin, 0, -yResolution, ymax]',
+      'Affine geotransform of the data PNG in EPSG:4326 (degrees): [xResolution, 0, xmin, 0, -yResolution, ymax]',
     example: [0.00083333333, 0, 29.573332495, 0, -0.00083333333, 4.219166986],
   })
   @IsArray()

@@ -49,7 +49,23 @@ export class AdminAreaCreateDto {
   @IsObject()
   public readonly attributes?: Record<string, unknown>;
 
-  @ApiProperty({ example: { type: 'Feature', geometry: {}, properties: {} } })
+  @ApiProperty({
+    description:
+      "GeoJSON MultiPolygon geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member",
+    example: {
+      type: 'MultiPolygon',
+      coordinates: [
+        [
+          [
+            [36.7, -1.4],
+            [37.1, -1.4],
+            [37.1, -1.2],
+            [36.7, -1.4],
+          ],
+        ],
+      ],
+    },
+  })
   @IsObject()
   public readonly geometry: Record<string, unknown>;
 }

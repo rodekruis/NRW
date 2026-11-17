@@ -3,6 +3,7 @@ import { IsNumber } from 'class-validator';
 
 // The data pipelines also use this definition.
 // If you make changes here, also update the data class in data/pipelines/infra/data_types/dtos.py
+// The CRS of the extent is given where this class is used.
 export class RasterExtentDto {
   @ApiProperty({ example: 33.5 })
   @IsNumber()

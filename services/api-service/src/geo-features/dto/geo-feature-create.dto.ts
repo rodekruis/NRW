@@ -22,6 +22,8 @@ export class GeoFeatureCreateDto {
   public readonly referenceId: string;
 
   @ApiProperty({
+    description:
+      "GeoJSON geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member",
     example: { type: 'Point', coordinates: [37.194, -1.095] },
   })
   @IsObject()

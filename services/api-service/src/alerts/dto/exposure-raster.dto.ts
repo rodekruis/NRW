@@ -16,7 +16,10 @@ export class ExposureRasterDto {
   @IsString()
   public readonly valueGreyscale: string;
 
-  @ApiProperty({ type: RasterExtentDto })
+  @ApiProperty({
+    type: RasterExtentDto,
+    description: 'Extent of the raster in EPSG:4326 (degrees)',
+  })
   @ValidateNested()
   @Type(() => RasterExtentDto)
   public readonly extent: RasterExtentDto;
