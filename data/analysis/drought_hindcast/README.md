@@ -30,6 +30,8 @@ uv run python -m analysis.drought_hindcast.plot_skill
 uv run python -m analysis.drought_hindcast.plot_alert_rules
 uv run python -m analysis.drought_hindcast.plot_thresholds
 uv run python -m analysis.drought_hindcast.plot_threshold_steps
+uv run python -m analysis.drought_hindcast.plot_threshold_choices
+uv run python -m analysis.drought_hindcast.plot_in_season
 uv run python -m analysis.drought_hindcast.check_skill
 uv run python -m analysis.drought_hindcast.compare_with_earlier_matrix
 uv run python -m analysis.drought_hindcast.compare_with_skill_review
@@ -57,8 +59,8 @@ Definitions, all set in `definitions.py`:
 - **Run months:** from 4 months before the season to its last month (`months_until_season_start` from 4 down to negative values within the season).
 - **Forecast value:** per member, the region-average rainfall summed over the season months that the run can see. SEAS5 reaches 6 months, so early runs miss the end of the season; `forecast_month_count` shows how many months are included.
 - **Reference:** the same value for the same run month in the hindcast years (up to 2016, 25 members), leaving out the year itself.
-- **Alert (region rule):** the share of members below the lower tercile of the reference is at least 0.3, 0.4, 0.5 or 0.6. Results are reported for 0.4 unless stated otherwise. This is the rule proposed in the spike.
-- **Area rule (IBF v1):** per grid cell, the share of members below that cell's own lower tercile; alert when cells with a share of at least 0.4 cover at least 40% of the region.
+- **Alert (region-average rule):** the share of members below the lower tercile of the reference is at least 0.3, 0.4, 0.5 or 0.6. Results are reported for 0.4 unless stated otherwise. This is the rule proposed in the spike. In the tables it is `probability_0.3` to `probability_0.6`.
+- **Grid-cell rule (IBF v1):** `area_rule` in the code and tables. Per grid cell, the share of members below that cell's own lower tercile; alert when cells with a share of at least 0.4 cover at least 40% of the region.
 - **Pooled results:** Zimbabwe and Lesotho are scored on three season definitions: the whole rainy season (Oct-Mar) and its two halves (OND, JFM). Only Oct-Mar counts towards results for all region-seasons together, so that each country counts once: 11 region-seasons.
 - **Variants within the season:** `rest_of_season` uses the remaining months only; `earlier_forecast_for_past_months` adds each past month from the forecast that started in that month; `observed_for_past_months` adds the observed rainfall of the past months.
 
@@ -68,13 +70,21 @@ Definitions, all set in `definitions.py`:
 
 Per region-season, `probability_by_chance` is the probability of at least as many hits if the same number of alerts were spread at random over the seasons (one-sided Fisher exact test). `calculate_skill` prints how many region-seasons stay below 5%.
 
-`plot_skill` draws the same chart in several breakdowns into `results/charts/`. `plot_alert_rules` draws one forecast under the region rule and under the area rule, and prints how often the two agree. `plot_thresholds` sweeps the share of members that must be dry from 30% to 70% and draws both measures against it, for three lead times.
+`plot_skill` draws the same chart in several breakdowns into `results/charts/`. `plot_alert_rules` draws one forecast under the region-average rule and under the grid-cell rule, and prints how often the two agree. `plot_thresholds` sweeps the share of members that must be dry from 30% to 70% and draws both measures against it, for three lead times.
 
-`plot_threshold_steps` splits the forecasts of the pooled region-seasons, per lead time, by the highest alert threshold they reach: 60% or more, 50-60%, 40-50%, 30-40% and below 30%. `results/threshold_steps.csv` gives per band the forecasts, how many were followed by a drought, and the share of all seasons with a drought. A band is what one step down in the threshold adds, so its share shows whether those added alerts are better than alerts unrelated to droughts. The chart `threshold_steps` shows it one month before the season and at its start.
+`plot_threshold_steps` splits the forecasts of the pooled region-seasons, per lead time, by the highest alert threshold they reach: 60% or more, 50-60%, 40-50%, 30-40% and below 30%. `results/threshold_steps.csv` gives per band the forecasts, how many were not followed by a drought, and that false-alarm ratio next to the ratio of alerts unrelated to droughts. A band is what one step down in the threshold adds, so its ratio shows whether those added alerts are better than random ones. The chart `threshold_steps` shows it one month before the season and at its start.
+
+`plot_threshold_choices` shows what the threshold changes per region-season. It gives every combination of region-season, threshold and lead time one of three evidence levels, as `rule_level` in the comparison with the skill review: the alerts beat chance, the hit rate is above the level without skill but could be luck, or neither.
+
+- `results/threshold_choices.csv`: per region-season and threshold, the longest lead time from which the alerts beat chance at that forecast and every later one (`alert_from_months_before_season`), and the longest from which the hit rate stays above the level without skill (`advisory_from_months_before_season`), with the scores at the first of these, or else at the season start.
+- The chart `evidence_by_threshold` shows the hit rate and false-alarm ratio per region-season and lead time, one grid per threshold, coloured by evidence level. `evidence_at_default_threshold` is the grid of the 40% rule on its own, for the summary deck: region-seasons ordered from the earliest reliable alert, and the legend in that deck's words.
+- The charts `skill_short_rains_by_threshold` and `cases_short_rains_by_threshold` show the two OND region-seasons of East Africa at each threshold: both measures per lead time, and the years behind them one month before the season.
+
+`plot_in_season` scores the forecasts issued within the season, for each way to account for the season months that have passed (the variants above). `results/skill_in_season.csv` holds the scores of the 40% rule per variant and lead time, down to the last season month, for all region-seasons together and per region-season; up to the season start the variants are the same forecast. Within the season `full_season_share` counts the past months as covered for the two variants that fill them in. The chart `skill_in_season` shows all region-seasons together from four months before the season to two months into it.
 
 `plot_countries` draws, per country, the skill of each region-season ordered by season (for Zimbabwe and Lesotho all three season definitions) and the cases behind it. In the cases chart a season after the new year sits in the column of the rainy season it belongs to, so JFM 2024 is shown with Oct-Mar 2023. It also writes `results/reliable_lead_times.csv`: per region-season, the longest lead time from which the alerts of the 40% rule beat chance at that forecast and at every later one, with the scores at that forecast.
 
-`results/drought_hindcast_slides.md` is a [Marp](https://marp.app) slide deck built on the charts, for SEAS5, IOD and FEWS NET together; the takeaway texts and tables in it are written by hand, so check them after the numbers change. Four charts are drawn but not in the deck: `skill_by_threshold`, `skill_with_shuffled_years`, `indicator_combinations` and `iod_skill_by_region_season`.
+`results/drought_hindcast_slides.md` is a [Marp](https://marp.app) slide deck built on the charts, for SEAS5, IOD and FEWS NET together; the takeaway texts and tables in it are written by hand, so check them after the numbers change. `results/drought_hindcast_summary.md` is a second, short deck for product decisions: the preliminary conclusions, the choices that are open and who makes them, and one slide per country. It takes its numbers from the first deck, so change the two together. Four charts are drawn but not in the first deck: `skill_by_threshold`, `skill_with_shuffled_years`, `indicator_combinations` and `iod_skill_by_region_season`.
 
 ## Comparisons
 
@@ -82,7 +92,7 @@ Per region-season, `probability_by_chance` is the probability of at least as man
 
 - `inputs/earlier_matrix_cells.csv` holds the 24 counted cells of that matrix, copied by hand, each with the region-season and season year it maps to here. The mapping is a judgement: two Belg areas share one forecast, Kenya ASAL maps to the whole country, and the Kenya JAS cells have no forecast.
 - `results/earlier_matrix_cases.csv` adds to each cell whether each rule alerts, one month before the season or at any of the five forecasts before it, the outcome against the reported drought, and the observed rainfall with its rank. `counts_once` marks the first cell of each forecast, for scoring against observed droughts.
-- The charts `matrix_*` show the 2x2 matrix step by step: the earlier matrix, our closest version of it (area rule, an alert at any lead time) with one change at a time, an alert at any lead time against one month before, the region rule one month before from the 24 cells to all years, and all years at each threshold. The hit rate and the false-alarm ratio are written in the cells.
+- The charts `matrix_*` show the 2x2 matrix step by step: the earlier matrix, our closest version of it (grid-cell rule, an alert at any lead time) with one change at a time, an alert at any lead time against one month before, the region-average rule one month before from the 24 cells to all years, and all years at each threshold. The hit rate and the false-alarm ratio are written in the cells.
 - It also prints in how many cells each version has an alert where the earlier matrix has one.
 
 `compare_with_skill_review` relates it to the SEAS5 grades of the skill review (`NRW_drought_indicator_skill_IFRC_Africa.xlsx`, sheet Climate decisions).
@@ -94,7 +104,7 @@ Per region-season, `probability_by_chance` is the probability of at least as man
 
 ## Checks
 
-`check_against_raw_data` recalculates the observed seasons and the pre-season forecasts from the raw files along a separate route, and prints how far they are from the result tables. It shares the definitions with `calculate_alerts` but not its code: it cuts out regions by exact overlap, and averages over the region before adding up the months. It takes about two minutes. It does not cover the area rule or the runs within the season.
+`check_against_raw_data` recalculates the observed seasons and the pre-season forecasts from the raw files along a separate route, and prints how far they are from the result tables. It shares the definitions with `calculate_alerts` but not its code: it cuts out regions by exact overlap, and averages over the region before adding up the months. It takes about two minutes. It does not cover the grid-cell rule or the runs within the season.
 
 `check_skill` draws three charts and prints the numbers behind them:
 

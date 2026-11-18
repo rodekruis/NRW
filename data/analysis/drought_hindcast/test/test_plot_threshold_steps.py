@@ -40,7 +40,7 @@ def test_each_forecast_counts_in_the_band_of_the_highest_threshold_it_reaches() 
         )
     ] == ["60% or more", "50–60%", "40–50%", "30–40%", "Below 30%"]
     assert bands["forecast_count"].tolist() == [1, 0, 2, 2, 2]
-    assert bands["drought_count"].tolist() == [1, 0, 1, 1, 0]
-    assert bands["drought_share"].iloc[2] == 0.5
-    assert pd.isna(bands["drought_share"].iloc[1])
-    assert bands["drought_frequency"].unique().tolist() == [0.429]
+    assert bands["false_alarm_count"].tolist() == [0, 0, 1, 1, 2]
+    assert bands["false_alarm_ratio"].iloc[2] == 0.5
+    assert pd.isna(bands["false_alarm_ratio"].iloc[1])
+    assert bands["false_alarm_ratio_without_skill"].unique().tolist() == [0.571]

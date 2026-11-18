@@ -1,5 +1,6 @@
-"""Split the forecasts by the highest alert threshold they reach, and count how often each
-band was followed by a drought. That shows what one step down in the threshold adds."""
+"""Split the forecasts by the highest alert threshold they reach, and count how many in
+each band were not followed by a drought. That is the false-alarm ratio of the alerts
+that one step down in the threshold adds."""
 
 import numpy as np
 import pandas as pd
@@ -15,12 +16,13 @@ from analysis.drought_hindcast.definitions import (
     PROBABILITY_THRESHOLDS,
 )
 from analysis.drought_hindcast.indicator_charts import add_legend, create_panels
+from analysis.drought_hindcast.indicator_data import THRESHOLD_STEPS_FILE
 from analysis.drought_hindcast.plot_skill import (
     capitalise,
     DEFAULT_DROUGHT_DEFINITION,
     DROUGHT_DEFINITION_LABELS,
+    FALSE_ALARM_RATIO_COLOUR,
     GRID_COLOUR,
-    HIT_RATE_COLOUR,
     NEUTRAL_COLOUR,
     NO_SKILL_LINE_STYLE,
     POOLED_LABEL,
@@ -31,18 +33,16 @@ from analysis.drought_hindcast.plot_thresholds import (
     count_dry_members,
     get_minimum_dry_member_counts,
 )
-from analysis.drought_hindcast.study_area import RESULTS_DIRECTORY
 from matplotlib.axes import Axes
 from matplotlib.lines import Line2D
 
-THRESHOLD_STEPS_FILE = RESULTS_DIRECTORY / "threshold_steps.csv"
 STEP_MONTHS_BEFORE_SEASON = (1, 0)
 STEP_FIGURE_WIDTH_INCHES = 10.5
 STEP_PANEL_HEIGHT_INCHES = 3.3
 ADDED_BY_ONE_STEP_DOWN_OPACITY = 0.45
 BAR_WIDTH = 0.7
 BAR_LABEL_OFFSET = 0.02
-# Keeps the line of all seasons from running through a label.
+# Keeps the line of the level without skill from running through a label.
 BAR_LABEL_BACKGROUND = {"facecolor": "white", "edgecolor": "none", "pad": 1}
 BAND_AXIS_LABEL = "Share of members that are dry"
 
@@ -56,7 +56,7 @@ def main() -> None:
 
 def summarise_threshold_bands(cases: pd.DataFrame) -> pd.DataFrame:
     """Per lead time and band between two thresholds: the forecasts in it, and how many
-    were followed by a drought. Bands run from the highest threshold down.
+    were not followed by a drought. Bands run from the highest threshold down.
     """
     thresholds = sorted(PROBABILITY_THRESHOLDS)
     is_drought = to_booleans(
@@ -73,7 +73,7 @@ def summarise_threshold_bands(cases: pd.DataFrame) -> pd.DataFrame:
         for reached_count in range(len(thresholds), -1, -1):
             is_in_band = is_lead_time & (thresholds_reached == reached_count)
             forecast_count = int(is_in_band.sum())
-            drought_count = int((is_in_band & is_drought).sum())
+            false_alarm_count = int((is_in_band & ~is_drought).sum())
             rows.append(
                 {
                     "months_until_season_start": months_before_season,
@@ -86,14 +86,14 @@ def summarise_threshold_bands(cases: pd.DataFrame) -> pd.DataFrame:
                         else None
                     ),
                     "forecast_count": forecast_count,
-                    "drought_count": drought_count,
-                    "drought_share": (
-                        round(drought_count / forecast_count, SCORE_DECIMALS)
+                    "false_alarm_count": false_alarm_count,
+                    "false_alarm_ratio": (
+                        round(false_alarm_count / forecast_count, SCORE_DECIMALS)
                         if forecast_count > 0
                         else None
                     ),
-                    "drought_frequency": round(
-                        float(is_drought[is_lead_time].mean()), SCORE_DECIMALS
+                    "false_alarm_ratio_without_skill": round(
+                        float((~is_drought[is_lead_time]).mean()), SCORE_DECIMALS
                     ),
                 }
             )
@@ -115,8 +115,8 @@ def count_thresholds_reached(
 
 
 def _plot_threshold_steps(bands: pd.DataFrame) -> None:
-    """One bar per band: the share of its forecasts that was followed by a drought,
-    against the share of all seasons with a drought.
+    """One bar per band: the false-alarm ratio of its forecasts as alerts, against the
+    ratio of alerts unrelated to droughts.
     """
     figure, axes = create_panels(
         row_count=1,
@@ -137,7 +137,7 @@ def _plot_threshold_steps(bands: pd.DataFrame) -> None:
                 else f"{months_before_season} month before the season"
             ),
         )
-    axes[0][0].set_ylabel("Forecasts followed by a drought")
+    axes[0][0].set_ylabel("False-alarm ratio in the band")
     one_step_down = max(
         threshold
         for threshold in PROBABILITY_THRESHOLDS
@@ -157,14 +157,14 @@ def _plot_threshold_steps(bands: pd.DataFrame) -> None:
                 linestyle="",
                 marker="s",
                 color=GRID_COLOUR,
-                label=f"No alert at {one_step_down:.0%}",
+                label=f"No alert at {one_step_down:.0%}: seasons without a drought",
             ),
             Line2D(
                 [],
                 [],
                 color=NEUTRAL_COLOUR,
                 linestyle=NO_SKILL_LINE_STYLE,
-                label="All seasons followed by a drought",
+                label="Level without skill",
             ),
         ],
         f"{capitalise(POOLED_LABEL)}; "
@@ -180,16 +180,16 @@ def _draw_bands(axis: Axes, bands: pd.DataFrame, title: str) -> None:
         colour, opacity = _get_band_style(band)
         axis.bar(
             position,
-            band["drought_share"],
+            band["false_alarm_ratio"],
             width=BAR_WIDTH,
             color=colour,
             alpha=opacity,
         )
         axis.text(
             position,
-            band["drought_share"] + BAR_LABEL_OFFSET,
-            f"{band['drought_share']:.0%}\n"
-            f"{band['drought_count']:.0f} of {band['forecast_count']:.0f}",
+            band["false_alarm_ratio"] + BAR_LABEL_OFFSET,
+            f"{band['false_alarm_ratio']:.0%}\n"
+            f"{band['false_alarm_count']:.0f} of {band['forecast_count']:.0f}",
             horizontalalignment="center",
             verticalalignment="bottom",
             fontsize="small",
@@ -197,7 +197,7 @@ def _draw_bands(axis: Axes, bands: pd.DataFrame, title: str) -> None:
             zorder=3,
         )
     axis.axhline(
-        bands["drought_frequency"].iloc[0],
+        bands["false_alarm_ratio_without_skill"].iloc[0],
         color=NEUTRAL_COLOUR,
         linestyle=NO_SKILL_LINE_STYLE,
     )
@@ -213,9 +213,9 @@ def _draw_bands(axis: Axes, bands: pd.DataFrame, title: str) -> None:
 
 def _get_band_style(band: pd.Series) -> tuple[str, float]:
     if band["lower_threshold"] >= DEFAULT_PROBABILITY_THRESHOLD:
-        return HIT_RATE_COLOUR, 1
+        return FALSE_ALARM_RATIO_COLOUR, 1
     if band["upper_threshold"] == DEFAULT_PROBABILITY_THRESHOLD:
-        return HIT_RATE_COLOUR, ADDED_BY_ONE_STEP_DOWN_OPACITY
+        return FALSE_ALARM_RATIO_COLOUR, ADDED_BY_ONE_STEP_DOWN_OPACITY
     return GRID_COLOUR, 1
 
 
@@ -233,7 +233,7 @@ def _create_legend_square(opacity: float, label: str) -> Line2D:
         [],
         linestyle="",
         marker="s",
-        color=HIT_RATE_COLOUR,
+        color=FALSE_ALARM_RATIO_COLOUR,
         alpha=opacity,
         label=label,
     )

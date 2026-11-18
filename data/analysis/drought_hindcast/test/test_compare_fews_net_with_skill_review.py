@@ -46,17 +46,15 @@ def _build_phase(
 
 def _build_region_phases(season_count: int) -> pd.DataFrame:
     """An August report before each season and a February report after it. The share of
-    the August projection into the season rises by a tenth per year.
+    the near-term projection in August rises by a tenth per year.
     """
     phases = []
     for index in range(season_count):
         year = FIRST_SEASON_YEAR + index
         phases += [
             _build_phase(f"{year}-08", "CS", f"{year}-08", f"{year}-08", 0.5),
-            _build_phase(f"{year}-08", "ML1", f"{year}-08", f"{year}-09", 0.5),
-            _build_phase(
-                f"{year}-08", "ML2", f"{year}-10", f"{year + 1}-01", index / 10
-            ),
+            _build_phase(f"{year}-08", "ML1", f"{year}-08", f"{year}-09", index / 10),
+            _build_phase(f"{year}-08", "ML2", f"{year}-10", f"{year + 1}-01", 0.5),
             _build_phase(
                 f"{year + 1}-02",
                 "ML1",
@@ -78,9 +76,7 @@ def _build_observed_seasons(season_count: int) -> pd.DataFrame:
     )
 
 
-def test_an_issue_month_uses_the_projection_into_the_impact_window_of_the_latest_report() -> (
-    None
-):
+def test_an_issue_month_uses_the_near_term_projection_of_the_latest_report() -> None:
     # Arrange
     season_count = FEWS_NET_MINIMUM_SEASON_COUNT
 

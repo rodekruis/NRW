@@ -93,6 +93,8 @@ def plot_cases_by_year(
     region_season_names: list[str],
     file_name: str,
     year_axis_label: str = SEASON_YEAR_AXIS_LABEL,
+    description: str = DESCRIPTION,
+    shows_counts: bool = True,
 ) -> None:
     """Every scored season of the region-seasons, marked by its outcome one month ahead."""
     cases = _select_lead_time(cases, CHIP_MONTHS_BEFORE_SEASON)
@@ -139,7 +141,7 @@ def plot_cases_by_year(
             marker="s",
             s=CASE_MARKER_SIZE,
             linewidth=1.5,
-            label=f"{label}: {is_outcome.sum()}",
+            label=f"{label}: {is_outcome.sum()}" if shows_counts else label,
             **colours,
         )
     years = cases["season_year"]
@@ -159,7 +161,7 @@ def plot_cases_by_year(
     month_word = "month" if CHIP_MONTHS_BEFORE_SEASON == 1 else "months"
     figure.legend(
         title=(
-            f"{DESCRIPTION}; forecast {CHIP_MONTHS_BEFORE_SEASON} {month_word} "
+            f"{description}; forecast {CHIP_MONTHS_BEFORE_SEASON} {month_word} "
             "before the season"
         ),
         alignment="left",

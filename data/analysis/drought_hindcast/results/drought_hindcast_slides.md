@@ -29,12 +29,12 @@ Working version of 17 November 2026: long on purpose, to be trimmed. The definit
 ## In short
 
 - **SEAS5 alerts have skill.** One month before the season, alerting when at least 40% of forecast members are dry (the 40% rule) catches 59% of droughts, and 45% of those alerts are false. Without skill that would be 36% and 66%.
-- **FEWS NET is not a drought indicator: leave it out.** Before and during the season its alerts score as random alerts would. It shows a drought two to three months after the season.
+- **FEWS NET forecasts food insecurity, not dry seasons.** It reflects a dry season two to three months after it, and about half of the rises in food insecurity follow a season that was not dry. It is a different alert, for a later slice.
 - **IOD adds little on top of SEAS5.** Combining the two does no better than SEAS5 at another threshold. Only in Zimbabwe does it keep a role: there it scores like SEAS5 from October, and it alerts a month earlier for Jan–Mar.
 - **On the 24 known cases of 2025–26, the rule catches 9 of the 11 reported droughts, where IBF v1 caught 4.** Those years flatter the rule: over all years it catches 59% of droughts, not 82%. Why v1 did worse is not explained yet.
-- **The threshold is a trade-off without a sweet spot.** One month before, 30% catches 76% of droughts with 50% false alarms, 40% catches 59% with 45%, and 50% catches 33% with 31%.
-- **The skill review holds up for SEAS5, and is on the careful side.** Of its 16 Include months, 14 pass its own bar here and 10 beat chance with the 40% rule. So do 14 of the 39 months it grades lower. Its Include months for FEWS NET do not hold up, and for the short rains IOD comes later than it expects.
-- **How early an alert can be relied on differs by season.** JAS in northern Ethiopia from four months before; MAM, Kenya OND and Zimbabwe only at the season start; southern Ethiopia OND not at all at 40%.
+- **The threshold is a trade-off without a sweet spot.** One month before, 30% catches 76% of droughts with 50% false alarms, 40% catches 59% with 45%, and 50% catches 33% with 31%. 40% gives the most region-seasons a reliable alert.
+- **The skill review holds up for SEAS5, and is on the careful side.** Of its 16 Include months, 14 pass its own bar here and 10 beat chance with the 40% rule. So do 14 of the 39 months it grades lower. Its FEWS NET grades are calendar grades, not skill grades, and for the short rains IOD comes later than it expects.
+- **How early an alert can be relied on differs by season.** JAS in northern Ethiopia from four months before; MAM, Kenya OND and Zimbabwe only at the season start; southern Ethiopia OND only a month into the season. Within the season the alert keeps improving.
 
 ---
 
@@ -45,7 +45,7 @@ Working version of 17 November 2026: long on purpose, to be trimmed. The definit
 3. **From 24 cases to 46 years:** the same matrix on our drought definition and all years, then per lead time.
 4. **Thresholds:** what a higher or lower threshold does.
 5. **By region-season, against the skill review:** where the skill of SEAS5 sits, next to the grades from literature.
-6. **Other indicators:** do FEWS NET and IOD add to SEAS5? FEWS NET drops out there, IOD stays only for Zimbabwe.
+6. **Other indicators:** FEWS NET is a different alert, about food insecurity, for later. IOD stays only for Zimbabwe.
 7. **Country deep dives:** Ethiopia, Kenya, Zimbabwe, Lesotho. From when an alert can be relied on, and what follows.
 8. **Caveats and next steps.**
 
@@ -83,11 +83,11 @@ Most charts show both measures against the months left until the season starts, 
 
 <!-- _class: chart -->
 
-## Two alert rules: the region rule averages first, the area rule counts cells first
+## Two alert rules: average over the region first, or count dry grid cells first
 
 ![h:430](charts/alert_rules_example.png)
 
-The area rule follows IBF v1. The region rule is a proposal of this analysis, still to be confirmed. One month ahead they agree on 93% of forecasts (469 of 506) and score alike over all years: 59% hits and 45% false alarms for the region rule, 62% and 45% for the area rule.
+The grid-cell rule follows IBF v1. The region-average rule is a proposal of this analysis, still to be confirmed. One month ahead they agree on 93% of forecasts (469 of 506) and score alike over all years: 59% hits and 45% false alarms for the region-average rule, 62% and 45% for the grid-cell rule.
 
 ---
 
@@ -128,7 +128,7 @@ IBF v1 alerts against reported droughts in 2025–26, and how we get from there 
 
 ![w:1170](charts/matrix_one_change_each.png)
 
-IBF v1 used the area rule, and its alerts count at any date. The second matrix is our calculation with those two choices. The third and fourth each change one of them. Our forecasts are matched to the 24 cases by hand (appendix).
+IBF v1 used the grid-cell rule, and its alerts count at any date. The second matrix is our calculation with those two choices. The third and fourth each change one of them. Our forecasts are matched to the 24 cases by hand (appendix).
 
 ---
 
@@ -142,14 +142,14 @@ IBF v1 used the area rule, and its alerts count at any date. The second matrix i
 
 ---
 
-## From here on, the alert uses the region rule
+## From here on, the alert uses the region-average rule
 
-- **The two rules score alike.** Over all years, one month before: 59% hits and 45% false alarms for the region rule, 62% and 45% for the area rule. So the choice rests on simplicity, not on skill.
-- **Same quantity as the drought.** The drought is defined on the region's average season rainfall, and so is the region rule.
+- **The two rules score alike.** Over all years, one month before: 59% hits and 45% false alarms for the region-average rule, 62% and 45% for the grid-cell rule. So the choice rests on simplicity, not on skill.
+- **Same quantity as the drought.** The drought is defined on the region's average season rainfall, and so is the region-average rule.
 - **One threshold to explain and to tune,** instead of two.
-- **Checked.** The second calculation from the raw files covers the region rule, not the area rule.
+- **Checked.** The second calculation from the raw files covers the region-average rule, not the grid-cell rule.
 
-The area rule is what IBF v1 runs. If NRW is to carry over v1's logic unchanged, this choice needs revisiting.
+The grid-cell rule is what IBF v1 runs. If NRW is to carry over v1's logic unchanged, this choice needs revisiting.
 
 ---
 
@@ -166,7 +166,7 @@ The area rule is what IBF v1 runs. If NRW is to carry over v1's logic unchanged,
 
 ## The definition this deck continues with
 
-- **Alert:** region rule. At least 40% of members forecast the region's season rainfall in the driest third of the hindcast. Section 4 looks at the threshold.
+- **Alert:** region-average rule. At least 40% of members forecast the region's season rainfall in the driest third of the hindcast. Section 4 looks at the threshold.
 - **Scoring:** per lead time, from 4 to 0 months before the season. One month before is the headline number.
 - **Drought:** CHIRPS season rainfall of the region in the driest third of years.
 - **Status:** still to be confirmed.
@@ -183,7 +183,7 @@ On the 24 cases this gives 9 hits, 2 false alarms, 2 misses and 11 neither. That
 
 # 3. From 24 cases to 46 years
 
-The same matrix on our drought definition and all years, then per lead time
+The same matrix on our drought definition and all years, then per lead time, up to two months into the season
 
 ---
 
@@ -193,7 +193,7 @@ The same matrix on our drought definition and all years, then per lead time
 
 ![w:1000](charts/matrix_towards_all_years.png)
 
-The same alert definition in every step: region rule at 40%, one month before the season. Step 2 changes the drought to observed rainfall, step 3 adds all years. In 2025–26 the rule caught 82 to 88% of droughts with 12 to 18% false alarms; over all years that is 59% and 45%.
+The same alert definition in every step: the region-average rule at 40%, one month before the season. Step 2 changes the drought to observed rainfall, step 3 adds all years. In 2025–26 the rule caught 82 to 88% of droughts with 12 to 18% false alarms; over all years that is 59% and 45%.
 
 ---
 
@@ -205,6 +205,20 @@ The same alert definition in every step: region rule at 40%, one month before th
 - False-alarm ratio falls from 53% to 38%.
 - Without skill these would sit near 35% and 66%.
 - From 4 to 1 months ahead, some forecasts cover only part of the season.
+
+---
+
+<!-- _class: chart small -->
+
+## Within the season the alert keeps improving, once the rain so far is counted
+
+![h:300](charts/skill_in_season.png)
+
+- **Three ways to treat the season months that have passed:** leave them out, take them from the forecasts made at the time, or take the observed rainfall.
+- **With the observed rainfall,** one month into the season the alert catches 78% of droughts with 31% false alarms, and two months in 84% with 19%. At the season start that is 65% and 38%.
+- **Leaving the past months out loses ground:** two months in, 62% with 45%.
+- **By region-season:** one month in, 10 of 11 beat chance. Southern Ethiopia OND goes from 60% with 53% false alarms at the start to 93% with 12%. Zimbabwe Oct–Mar does not gain: its droughts sit in Jan–Mar.
+- **Limits:** part of the outcome is then already observed, and last month's rainfall must be known at the forecast date.
 
 ---
 
@@ -223,7 +237,7 @@ What a higher or lower threshold does
 
 ![w:1160](charts/skill_by_alert_rule.png)
 
-The region rule at four thresholds. One month before, 52% of seasons get an alert at 30%, 36% at 40%, 17% at 50% and 10% at 60%.
+The alert at four thresholds. One month before, 52% of seasons get an alert at 30%, 36% at 40%, 17% at 50% and 10% at 60%.
 
 ---
 
@@ -233,10 +247,33 @@ The region rule at four thresholds. One month before, 52% of seasons get an aler
 
 ![h:335](charts/threshold_steps.png)
 
-- **How to read it:** every forecast is in one bar. The bar shows how often a drought followed; the dashed line is any season.
-- **From 40% to 30%:** 80 more alerts one month before, 30 of them droughts. That is 38%, against 34% for any season.
+- **How to read it:** every forecast is in one bar. The bar shows how many of them were false alarms; the dashed line is alerts without skill.
+- **From 40% to 30%:** 80 more alerts one month before, 50 of them false. That is 62%, against 66% without skill.
 - **Why the overall numbers hide this:** averaged with the 183 stronger alerts, the false-alarm ratio only goes from 45 to 50%.
 - **By region-season:** at 30% the alerts beat chance in 22 of 55 combinations of region-season and lead time, at 40% in 24.
+
+---
+
+<!-- _class: chart small -->
+
+## By region-season no threshold wins everywhere; 40% gives the most reliable alerts
+
+![h:405](charts/evidence_by_threshold.png)
+
+**Reliable alert,** green at that forecast and every later one: 10 of 11 region-seasons at 40%, 7 at 30% and at 50%, 6 at 60%. A lower threshold catches more droughts and alerts more often; whether that pays differs per region-season. Kenya OND gains a month at 30%, while Lesotho and Belg MAM lose their reliable alert. Each cell rests on 15 or 16 droughts.
+
+---
+
+<!-- _class: chart small -->
+
+## Short rains: a lower threshold catches more droughts, with an alert in most years
+
+![h:300](charts/skill_short_rains_by_threshold.png)
+
+- **Kenya OND, one month before:** 30% catches 12 of 15 droughts with 54% false alarms and beats chance; 40% catches 10 with 56% and does not. At 30% there is an alert in 58% of years.
+- **Southern Ethiopia OND:** 30% catches 14 of 15 one month before, with 46% false alarms, but falls back to 10 of 15 with 56% at the season start. So no threshold gives a reliable alert before the season.
+- **So the threshold is a choice between misses and false alarms:** a setting per region-season, or two alert levels. For Kenya, 60% at the season start gives few alerts that are mostly right: 7 of 15 droughts with 22% false alarms.
+- **Limits:** 15 droughts each, and the best of four thresholds flatters. Kenya's drought EAP triggers at 33% for OND, on another forecast and a stricter drought measure. The years are in the appendix.
 
 ---
 
@@ -252,14 +289,12 @@ The region rule at four thresholds. One month before, 52% of seasons get an aler
 
 <!-- _class: small -->
 
-## Recommendation: keep one threshold for now, and choose it on cost
+## Recommendation: 40% as the default, and the threshold as a choice per region-season
 
-- **Do not fit a threshold per region-season yet.** Each has 15 or 16 droughts, so one drought moves its hit rate by 6 points. A fitted threshold would mostly fit noise, and would first need a test on years left out.
-- **There is no sweet spot.** Every step down costs more false alarms per extra drought caught: 0.7 from 60% to 50%, 1.3 from 50% to 40%, and 1.7 from 40% to 30%. The choice is about which error costs more, a missed drought or a false alarm. That is a decision, not a statistic.
-- **What each threshold gives, one month before:**
-  - 30% catches three of four droughts, but alerts in half of all seasons, and half of those alerts are false. Against 40% it catches 30 more droughts for 50 more false alarms.
-  - 40% catches 59%, with 45% false.
-  - 50% and 60% catch a third or less.
+- **40% is the best single default.** It gives 10 of 11 region-seasons a reliable alert; every other threshold gives 7 or fewer.
+- **The threshold is a choice, not a statistic.** Every step down costs more false alarms per extra drought caught: 0.7 from 60% to 50%, 1.3 from 50% to 40%, and 1.7 from 40% to 30%. Which error costs more, a missed drought or a false alarm, is for the user to say.
+- **Offer it per region-season, with these numbers.** Do not fit it for them: each region-season has 15 or 16 droughts, so a fitted threshold would mostly fit noise.
+- **One month before, all together:** 30% catches 76% of droughts with 50% false alarms and alerts in half of all seasons; 40% catches 59% with 45%; 50% and 60% catch a third or less.
 - **A yardstick from practice, not like for like:** WFP's drought system in Mozambique asks for at least 55% of droughts caught and under 35% of actions in vain. It counts more severe droughts, counts false alarms more leniently, and tunes its triggers per district. On our stricter counting, 40% at the season start comes closest: 65% and 38%.
 - **Worth discussing:** two levels, an early notice at 40% and action at a higher threshold or a later forecast.
 
@@ -281,6 +316,27 @@ Where the skill sits, next to the grades from literature (NRW_drought_indicator_
 ![h:450](charts/skill_by_region_season_probability_0.4.png)
 
 Each region-season has 15 or 16 droughts, so one drought moves its hit rate by 6 points. Two patterns repeat: Northern JAS and Belg JAS beat chance at every lead time, and the MAM seasons do so reliably only in the last month or at the season start.
+
+---
+
+<!-- _class: small -->
+
+## Three levels of evidence instead of pass or fail
+
+Each of the 55 forecast months (11 region-seasons, five months each) gets a level by how its alerts scored.
+
+| Level  | How its alerts scored, with the 40% rule           | Forecast months | Droughts caught | False alarms | Proposed use      |
+| ------ | -------------------------------------------------- | --------------- | --------------- | ------------ | ----------------- |
+| Green  | Better than random alerts; under 5% chance of luck | 24              | 64%             | 35%          | Alert             |
+| Yellow | Better than random alerts, but it could be luck    | 25              | 50%             | 55%          | Advisory, or none |
+| Grey   | No better than random alerts                       | 6               | 26%             | 70%          | No alert          |
+|        | Random alerts, for comparison                      |                 | about 35%       | about 66%    |                   |
+
+Colours as in the charts. Set and scored on the same seasons, which flatters green and penalises grey.
+
+- **Now only green counts as reliable,** and the 5% line is sharp. Lesotho in August is just inside it, at just under 5%. Kenya OND in September is outside, at 12%.
+- **A line at 10% instead of 5%** would move 8 of the 25 yellow forecast months to green.
+- **To decide:** show yellow as an alert with an advisory label, or not at all. A product choice, to make with the National Societies.
 
 ---
 
@@ -315,8 +371,8 @@ Each region-season has 15 or 16 droughts, so one drought moves its hit rate by 6
 ## What to take from the region-season view
 
 - **Keep the review's Include months.** 14 of 16 pass its own bar here, and the other two are just short. With the 40% rule, 10 of 16 beat chance; the six that do not are five short-rains months and Zimbabwe in September.
-- **Three candidates for an upgrade, to discuss:** Belg JAS from February, Northern JAS from March, and Lesotho from August. On the review's own measure nothing needs a downgrade.
-- **Short rains:** the forecast tells drought years apart, but 40% gives too many false alarms. That is a threshold question, not a reason to distrust SEAS5.
+- **Three candidates for an upgrade, to discuss:** Belg JAS from February, Northern JAS from March, and Lesotho from August, though only just. On the review's own measure nothing needs a downgrade.
+- **Short rains:** the forecast tells drought years apart, but before the season the 40% rule does not beat chance. That is a threshold question (section 4), not a reason to distrust SEAS5.
 - **Do not act on single cells.** Each rests on 15 or 16 droughts. Only patterns that repeat count.
 - **Scope:** SEAS5 only, and one rainfall source. Section 6 does the same for IOD and FEWS NET. ENSO is not measured.
 
@@ -329,36 +385,27 @@ Where the review quotes a number, ours is in the same range: for Kiremt, the May
 
 # 6. Other indicators: FEWS NET and IOD
 
-Do they add to SEAS5? FEWS NET does not, and drops out here. IOD does only in Zimbabwe, which the deep dive takes up.
+Do they add to SEAS5? FEWS NET is about something else, food insecurity, and is for a later slice. IOD adds only in Zimbabwe, which the deep dive takes up.
 
 ---
 
 <!-- _class: small -->
 
-## FEWS NET: leave it out as a drought indicator
+## FEWS NET forecasts food insecurity, not dry seasons: a different alert, for later
 
-- **What was scored:** the share of a region's area that FEWS NET projects in Phase 3 (Crisis) or worse for the season. Alert: that share is in the upper third for that region and month. On 10 region-seasons from 2011 to 2026, with 40 droughts.
-- **Before the season, no skill.** One month before, the alert catches 14 of 40 droughts with 74% false alarms. That is what random alerts would score. SEAS5 on the same seasons catches 23 of 40 with 52%.
-- **Not within the season either.** FEWS NET shows a drought two to three months after the season, when the area in Phase 3 or worse is 17 to 18 points above usual.
-- **The skill review grades FEWS NET Include in the months up to the season end.** That grade rests on its publication calendar, not on measured skill. None of those 50 months beats chance here.
-- **What follows:** FEWS NET raises no alert, alone or next to SEAS5, and the review's Include grade for it is not carried over. It does not return in the country deep dives.
-- **Limits:** tested in Ethiopia, Kenya and Zimbabwe only, on 15 years with one to six droughts per region-season.
-
----
-
-<!-- _class: chart -->
-
-## Before the season, FEWS NET alerts score as random alerts would
-
-![w:1170](charts/fews_net_skill.png)
-
-One month before: FEWS NET catches 14 of 40 droughts with 74% false alarms, projected worsening 16 of 40 with 68%, SEAS5 23 of 40 with 52%. In none of the 60 combinations of region-season and lead time do FEWS NET alerts beat chance; SEAS5 does in 13. Alerting on either adds 37 alerts and 7 hits to SEAS5.
+- **What it gives:** an outlook on food insecurity, whatever the cause. Scored here: the share of a region's area that it projects in Phase 3 (Crisis) or worse, on 10 region-seasons from 2011 to 2026.
+- **It does not announce a dry season.** Before and during the season, alerts on its projections catch rainfall droughts as often as random alerts would. It reflects a dry season two to three months after it.
+- **The two overlap in part.** Of the dry seasons, 64% are followed by a clear rise in food insecurity; of the other seasons, 22%. About half of all rises follow a season that was not dry.
+- **So it is not a second vote on the SEAS5 alert.** Added to the same alert, it brings 37 more alerts for 7 more droughts caught, of 40.
+- **The skill review's Include for FEWS NET is a calendar grade,** not a skill grade as for SEAS5. Confirmed with the review's author.
+- **What follows:** the first slice is SEAS5 only. FEWS NET can become a separate alert about food insecurity in a later slice. That is a product decision, and it needs a check against an independent outcome first.
+- **Limits:** Ethiopia, Kenya and Zimbabwe only, on 15 years with one to six droughts per region-season.
 
 ---
 
 <!-- _class: chart small -->
 
-## FEWS NET shows a drought two to three months after the season, not before
+## FEWS NET reflects a dry season two to three months after it, not before
 
 ![h:340](charts/fews_net_around_season_end.png)
 
@@ -367,13 +414,33 @@ One month before: FEWS NET catches 14 of 40 droughts with 74% false alarms, proj
 
 ---
 
+<!-- _class: small -->
+
+## Dry seasons and rises in food insecurity overlap only in part
+
+| 145 seasons, 2011 to 2026 | Followed by a clear rise | No clear rise | Total |
+| ------------------------- | ------------------------ | ------------- | ----- |
+| Dry season                | 25                       | 14            | 39    |
+| Other season              | 23                       | 83            | 106   |
+| Total                     | 48                       | 97            | 145   |
+
+A clear rise: the area in Phase 3 or worse in the six months after the season is above the level before it, by an amount in the upper third for that region-season.
+
+- **A rise follows a dry season three times as often:** 64% (25 of 39), against 22% (23 of 106) after other seasons.
+- **About half of the rises follow a season that was not dry:** 23 of 48. Food insecurity also follows conflict, prices and the season before.
+- **SEAS5 catches the dry seasons with a rise as often as all dry seasons:** 56%, one month before.
+- **So an alert on rainfall and an alert on food insecurity are different alerts.** Which of the two a drought alert should be is a product question.
+- **Limits:** the rise is measured with FEWS NET's own classification, on 15 years in three countries.
+
+---
+
 <!-- _class: chart small -->
 
-## Where the review grades FEWS NET Include, we measure no skill against rainfall
+## The review's Include for FEWS NET is a calendar grade, not a skill grade
 
 ![h:425](charts/skill_review_fews_net_comparison.png)
 
-**Left:** the review grades a month Include when that month's projection reaches the months in which the impact shows. That follows from the publication calendar, not from measured skill. **Right:** the alert on that projection, scored on rainfall droughts. Up to the season end none of the 50 Include months beats chance: the alert catches 30 to 41% of droughts while it is on in 35% of seasons. After the season 8 of 40 months do. Each cell rests on one to six droughts.
+**Left:** the review grades a month Include when that month's near-term projection reaches the months in which the impact shows. That follows from the publication calendar, not from measured skill. **Right:** an alert on that near-term projection, scored on rainfall droughts. Up to the season end none of the 50 Include months beats chance: the alert catches 28 to 38% of droughts while it is on in 33 to 35% of seasons. After the season 8 of 40 months do. Each cell rests on one to six droughts.
 
 ---
 
@@ -412,6 +479,24 @@ One month before: FEWS NET catches 14 of 40 droughts with 74% false alarms, proj
 - **Not taken further:** that is one month in one region-season, at the season start.
 - **The review expects more.** It grades IOD Include from July and SEAS5 from August. Its July to September grades rest on a forecast of the index. Here it is last month's observed index, and in July that says little about the autumn peak.
 - **Not tested:** a forecast of the IOD. If an earlier signal for the short rains exists, that is where it would come from.
+
+---
+
+<!-- _class: small -->
+
+## The choice of indicator is a choice of what the alert is about
+
+| Indicator          | What it tells                                   | How early                                                     | Evidence here                                                             |
+| ------------------ | ----------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| SEAS5              | A dry season is likely                          | Up to four months before; differs by season                   | 45 years. One month before: 59% of droughts caught, 45% false alarms      |
+| IOD, Zimbabwe only | A dry Jan–Mar is likely                         | From October                                                  | 15 or 16 droughts. Scores like SEAS5                                      |
+| FEWS NET           | Food insecurity is expected, whatever the cause | Any month; reflects a dry season two to three months after it | Does not announce dry seasons. Not checked against an independent outcome |
+
+- **First slice:** SEAS5 only, as an alert about rainfall. IOD for Zimbabwe is open (section 7).
+- **A menu per National Society:** choose the indicator at configuration, and with it what the alert is about. One meaning per alert.
+- **Both next to each other:** separate alerts per indicator. That is a larger feature, not planned now.
+- **Not advised:** mixing them in one alert. That changes what the alert means, and against rainfall it adds mostly false alarms.
+- **To find out with users:** do they need to know that the rains are likely to fail, or that food insecurity is expected?
 
 ---
 
@@ -460,11 +545,11 @@ The El Niño year 2015 is a hit in all three JAS seasons, as is 2026. Meher JAS 
 | Northern MAM  | February, 1 month before      | 62% / 38%                         |
 | Belg MAM      | February, at the season start | 62% / 41%                         |
 | Southern MAM  | March, at the season start    | 56% / 47%                         |
-| Southern OND  | never at 40%                  | 60% / 53% at the season start     |
+| Southern OND  | not before the season         | 60% / 53% at the season start     |
 
 - **JAS:** alerts can be acted on early, from February or March in the north and the Belg area.
-- **MAM:** an alert is only reliable when the season is about to start. Whether that is still useful is a decision.
-- **Southern OND:** test a higher threshold together with Kenya OND. IOD gives no earlier alert there (section 6).
+- **MAM:** an alert is only reliable when the season is about to start.
+- **Southern OND:** no threshold gives a reliable alert before the season, and IOD does not either (section 6). One month into the season, with October's rain counted, the alert catches 14 of 15 droughts with 12% false alarms.
 - **No region-season is dropped and no threshold is fitted:** each has 15 or 16 droughts.
 
 ---
@@ -521,8 +606,8 @@ Rank of the season rainfall among 45 seasons, from the driest. Bold: in the drie
 | MAM    | March, at the season start   | 69% / 35%                         |
 | OND    | October, at the season start | 73% / 35%                         |
 
-- **Both seasons:** with the 40% rule an alert is reliable only at the season start. Whether that is still useful is a decision.
-- **OND is the candidate for a higher threshold.** At the season start, 60% gives 45% hits with 18% false alarms. To be tested on years left out, together with southern Ethiopia OND.
+- **Both seasons:** with the 40% rule an alert is reliable only at the season start.
+- **For OND the threshold is a choice.** 30% is reliable from September, with 80% hits, 54% false alarms and an alert in 58% of years. 60% at the season start gives 47% hits with 22% false alarms.
 - **MAM months ahead:** the forecast itself is weak there, so no threshold will help.
 - **Open:** OND 2020 and 2021. The region does not explain them; a second rainfall source is the next check.
 
@@ -567,19 +652,19 @@ Oct–Mar and OND beat chance only with the October forecast: 67% hits and 33% f
 
 ## Zimbabwe: IOD scores like SEAS5 from October, and a month earlier for Jan–Mar
 
-| Forecast month | SEAS5 for Oct–Mar       | SEAS5 for Jan–Mar       | IOD for Jan–Mar, last month's index | IOD for Jan–Mar, last four months |
-| -------------- | ----------------------- | ----------------------- | ----------------------------------- | --------------------------------- |
-| September      | 8 of 14, 50% false      | 5 of 15, 64% false      | 8 of 15, 47% false                  | 8 of 15, 47% false                |
-| October        | **10 of 15, 33% false** | 9 of 16, 50% false      | **9 of 16, 36% false**              | **8 of 15, 43% false**            |
-| November       |                         | **10 of 16, 44% false** | 8 of 16, 47% false                  | **9 of 15, 40% false**            |
-| December       |                         | **10 of 16, 44% false** | **10 of 16, 33% false**             | **9 of 15, 40% false**            |
-| January        |                         | **10 of 16, 47% false** | 5 of 16, 67% false                  | **10 of 16, 33% false**           |
+| Forecast month | SEAS5, Oct–Mar           | SEAS5, Jan–Mar           | IOD, month before        | IOD, four months before  |
+| -------------- | ------------------------ | ------------------------ | ------------------------ | ------------------------ |
+| September      | 57% / 50% (8 of 14)      | 33% / 64% (5 of 15)      | 53% / 47% (8 of 15)      | 53% / 47% (8 of 15)      |
+| October        | **67% / 33% (10 of 15)** | 56% / 50% (9 of 16)      | **56% / 36% (9 of 16)**  | **53% / 43% (8 of 15)**  |
+| November       |                          | **62% / 44% (10 of 16)** | 50% / 47% (8 of 16)      | **60% / 40% (9 of 15)**  |
+| December       |                          | **62% / 44% (10 of 16)** | **62% / 33% (10 of 16)** | **60% / 40% (9 of 15)**  |
+| January        |                          | **62% / 47% (10 of 16)** | 31% / 67% (5 of 16)      | **62% / 33% (10 of 16)** |
 
-Droughts caught, and the share of alerts that were false. Bold: the alerts beat chance.
+Hit rate / false-alarm ratio, with the droughts caught in brackets. Bold: the alerts beat chance. IOD is scored for Jan–Mar: the index of the month before the forecast, or its average over the four months before (June to September in October).
 
 - **Whole season:** IOD adds nothing to the October SEAS5 alert: alerting on either adds three false alarms and no hit. In September no alert beats chance.
-- **Jan–Mar,** which holds 13 of the 15 whole-season droughts: the IOD alert beats chance in October, the SEAS5 alert from November. Averaged over four months, IOD does so at every forecast from October.
-- **In line with the trigger in use:** Zimbabwe's drought Early Action Protocol uses the observed index as its pre-season trigger. The skill review quotes its technical annex at 70% of droughts caught and 42% false alarms for the June to September index, on 2000 to 2024 and another drought measure. Here: 53% and 43% on the 44 seasons up to 2026.
+- **Jan–Mar,** which holds 13 of the 15 whole-season droughts: the IOD alert beats chance in October, the SEAS5 alert from November. With the four-month average, IOD does so at every forecast from October.
+- **In line with the EAP's trigger,** which uses the observed index. The skill review quotes its annex at 70% of droughts caught and 42% false alarms for the June to September index, on 2000 to 2024 and another drought measure. Here: 53% and 43% on 44 seasons.
 - **Limits:** 15 or 16 droughts, and the review grades IOD for Zimbabwe Readiness only.
 
 ---
@@ -633,7 +718,7 @@ Oct–Mar: 53% hits from August to October, with 43 to 47% false alarms. OND bea
 | OND     | September, 1 month before    | 53% / 43%                         |
 | JFM     | January, at the season start | 56% / 40%                         |
 
-- **A first measurement, and a thin one.** The review had no verification for Lesotho and grades it Readiness only. Here the alerts beat chance from August, but only just, and they catch about half of the droughts.
+- **A first measurement, and a thin one.** The review had no verification for Lesotho and grades it Readiness only. Here the alerts beat chance from August, but only just: one hit fewer and they would not. They catch about half of the droughts.
 - **Candidate for an upgrade from August,** to discuss. Lesotho is about average among the region-seasons, not strong.
 - **2024–25 was missed entirely.** Check it against a second rainfall source before relying on either.
 - **Keep Oct–Mar as the season.** No threshold is fitted: 15 droughts are too few.
@@ -643,25 +728,34 @@ Oct–Mar: 53% hits from August to October, with 43 to 47% false alarms. OND bea
 <!-- _class: small dense -->
 <!-- header: 7. Country deep dives: overview -->
 
-## From when can an alert be relied on? Three decisions follow
+## From when can an alert be relied on?
 
-| Region-season    | Alerts reliable from | Hit rate / false-alarm ratio then |
-| ---------------- | -------------------- | --------------------------------- |
-| ETH Northern JAS | 4 months before      | 69% / 27%                         |
-| ETH Belg JAS     | 4 months before      | 75% / 29%                         |
-| ETH Meher JAS    | 2 months before      | 44% / 36%                         |
-| LSO Oct–Mar      | 2 months before      | 53% / 47%                         |
-| ETH Northern MAM | 1 month before       | 62% / 38%                         |
-| ETH Belg MAM     | season start         | 62% / 41%                         |
-| ETH Southern MAM | season start         | 56% / 47%                         |
-| KEN MAM          | season start         | 69% / 35%                         |
-| KEN OND          | season start         | 73% / 35%                         |
-| ZWE Oct–Mar      | season start         | 67% / 33%                         |
-| ETH Southern OND | never at 40%         | 60% / 53% at the season start     |
+| Region-season    | Alerts reliable from  | Hit rate / false-alarm ratio then | Weaker evidence from | One month into the season |
+| ---------------- | --------------------- | --------------------------------- | -------------------- | ------------------------- |
+| ETH Northern JAS | 4 months before       | 69% / 27%                         |                      | 88% / 26%                 |
+| ETH Belg JAS     | 4 months before       | 75% / 29%                         |                      | 88% / 18%                 |
+| ETH Meher JAS    | 2 months before       | 44% / 36%                         | 4 months before      | 75% / 37%                 |
+| LSO Oct–Mar      | 2 months before       | 53% / 47%                         | 4 months before      | 87% / 28%                 |
+| ETH Northern MAM | 1 month before        | 62% / 38%                         | 3 months before      | 88% / 30%                 |
+| ETH Belg MAM     | season start          | 62% / 41%                         | 4 months before      | 75% / 29%                 |
+| ETH Southern MAM | season start          | 56% / 47%                         | 2 months before      | 69% / 42%                 |
+| KEN MAM          | season start          | 69% / 35%                         | 2 months before      | 75% / 29%                 |
+| KEN OND          | season start          | 73% / 35%                         | 4 months before      | 73% / 35%                 |
+| ZWE Oct–Mar      | season start          | 67% / 33%                         | 3 months before      | 53% / 53%                 |
+| ETH Southern OND | not before the season | 60% / 53% at the season start     | 4 months before      | 93% / 12%                 |
 
-1. **Is an alert at the season start still useful?** If not, five region-seasons drop out for SEAS5 on its own, and southern Ethiopia OND with them.
-2. **Test a higher threshold for the short rains** (Kenya and southern Ethiopia OND). IOD does not close that gap.
-3. **Zimbabwe and Lesotho:** keep Oct–Mar as the season, and consider JFM as a second alert moment. For Zimbabwe, IOD is a candidate second indicator from October.
+The 40% rule. **Reliable:** the alerts beat chance at that forecast and every later one before the season. **Weaker evidence:** the hit rate is above the level without skill from then on, but could be luck. **One month in:** with the observed rainfall of the first season month counted.
+
+---
+
+<!-- _class: small -->
+
+## What follows from the overview: four decisions
+
+1. **Alerts at and after the season start: yes, as a preliminary conclusion.** Without them five region-seasons have no reliable alert. One month into the season 10 of 11 do, southern Ethiopia OND among them.
+2. **The threshold is a setting per region-season,** to choose with the user. 40% is the default. For Kenya OND 30% gains a month, at the price of an alert in most years. IOD does not close the short-rains gap.
+3. **Alerting earlier on weaker evidence,** with an advisory label, is a product choice. About half of those alerts were false.
+4. **Zimbabwe and Lesotho:** keep Oct–Mar as the season, and consider JFM as a second alert moment. For Zimbabwe, IOD is a candidate second indicator from October.
 
 ---
 
@@ -677,9 +771,9 @@ Oct–Mar: 53% hits from August to October, with 43 to 47% false alarms. OND bea
 ## Caveats
 
 - **Definitions are not agreed yet:** the period from 1981, the reference years, the partial-season forecasts and Oct–Mar for Zimbabwe and Lesotho are still to be confirmed.
-- **Drought is rainfall, not impact.** Kenya's OND 2020 to 2022 and Lesotho's 2024–25 show the two can disagree in both directions. As a check: since 2011, 25 of 39 dry seasons are followed by a clear rise in the area that FEWS NET puts in Phase 3 or worse, and SEAS5 catches those as often as all dry seasons (appendix).
+- **Drought is rainfall, not impact.** Kenya's OND 2020 to 2022 and Lesotho's 2024–25 show the two can disagree in both directions. As a check: since 2011, 25 of 39 dry seasons are followed by a clear rise in the area that FEWS NET puts in Phase 3 or worse, and SEAS5 catches those as often as all dry seasons (section 6).
 - **One rainfall source.** CHIRPS is the only truth here; a second source would test cases like Lesotho 2024–25.
-- **IBF v1 is not rerun.** The gap between its posted alerts and our area rule is unexplained.
+- **IBF v1 is not rerun.** The gap between its posted alerts and our grid-cell rule is unexplained.
 - **The mapping of the 24 cases is by hand,** and one forecast sometimes fills two cases (appendix).
 - **Small samples below the pooled level:** 15 or 16 droughts per region-season, 8 to 11 in 2025–26.
 - **Limits of the pooled scores:** the hit rate is known to about 10 points either way, and 42 of 183 alerts hang on one member.
@@ -692,13 +786,13 @@ Oct–Mar: 53% hits from August to October, with 43 to 47% false alarms. OND bea
 
 ## Next steps and questions
 
-- **Decisions for the team:** is an alert at the season start still useful? Is a two-level alert an option? Is JFM a second alert moment for Zimbabwe and Lesotho? Does IOD stay as a second indicator for Zimbabwe?
+- **Decisions for the team:** alerts at and after the season start (preliminary: yes). An advisory level on weaker evidence? A two-level alert? JFM as a second alert moment for Zimbabwe and Lesotho? IOD as a second indicator for Zimbabwe? Is a drought alert about rainfall or about food insecurity?
 - **To confirm and discuss:** the definitions; the three upgrade candidates; Kenya OND 2020–2022; Lesotho 2024–25.
 - **Explain the v1 gap:** rerun v1's logic on the 24 cases, starting with the suspected threshold flaw.
-- **Thresholds:** a higher threshold for the short rains first, tested on years left out.
-- **Other indicators:** leave FEWS NET out of the alert logic, also where the skill review grades it Include. A forecast of the IOD is the untested route to an earlier signal for the short rains. ENSO is not measured.
+- **Thresholds:** offer the threshold as a setting per region-season, and test the short-rains choice on years left out.
+- **Other indicators:** FEWS NET as a separate alert about food insecurity, in a later slice; first test it against an independent outcome, such as crop yields or food prices. A forecast of the IOD is the untested route to an earlier signal for the short rains. ENSO is not measured.
 - **Steadier grades per region-season:** count a month only if all later months pass too, or pool similar seasons (the MAM seasons, the JAS seasons).
-- **Not yet shown:** forecasts issued within the season.
+- **Within the season:** check that last month's rainfall is available at the forecast date.
 - **Trim this deck** once the storyline is agreed.
 
 ---
@@ -735,6 +829,16 @@ The 24 cases come from 18 different forecasts. Every case, with its forecast and
 ![w:1170](charts/matrix_all_years_by_threshold.png)
 
 The same four thresholds as a 2×2 matrix: all years, the forecast one month before the season.
+
+---
+
+<!-- _class: chart -->
+
+## Appendix: short rains, the years behind each threshold
+
+![w:1170](charts/cases_short_rains_by_threshold.png)
+
+One month before the season. From 40% to 30%, southern Ethiopia gains five hits and three false alarms; Kenya gains two hits and one false alarm.
 
 ---
 
@@ -818,13 +922,23 @@ Whatever the threshold, the index tells drought years apart earlier than its ale
 
 ---
 
+<!-- _class: chart -->
+
+## Appendix: against rainfall droughts, FEWS NET alerts score as random alerts would
+
+![w:1170](charts/fews_net_skill.png)
+
+One month before: FEWS NET catches 14 of 40 droughts with 74% false alarms, projected worsening 16 of 40 with 68%, SEAS5 23 of 40 with 52%. In none of the 60 combinations of region-season and lead time do FEWS NET alerts beat chance; SEAS5 does in 13. Alerting on either adds 37 alerts and 7 hits to SEAS5.
+
+---
+
 <!-- _class: small -->
 
 ## Appendix: FEWS NET method, the projected area in Phase 3 or worse
 
 - **Data:** FEWS NET classifications per area, 2011 to 2026: the current situation three times a year, plus a near-term and a medium-term projection, monthly from 2019–20. There are no reports from the end of 2024 to August–October 2025.
 - **Value:** the share of the region's area in Phase 3 (Crisis) or worse. An area counts towards the region that holds its centre.
-- **At a run:** the latest report from before the run month, and of that report the projection that covers most of the season.
+- **At a run:** the latest report from before the run month, and of that report the projection that covers most of the season. Before the season that is nearly always the medium-term projection.
 - **Alert:** the share is in the upper third of the region's own shares for that run month. A fixed share does not work: in southern Ethiopia about 70% is in Phase 3 or worse in a usual year.
 - **Second rule, projected worsening:** the projection is above the latest current situation, by more than is usual for that month.
 - **Scored as SEAS5:** the same droughts and measures, on 10 region-seasons in Ethiopia, Kenya and Zimbabwe. About 150 seasons with 40 droughts: 26% of seasons, so random alerts would be false 74% of the time.
@@ -849,7 +963,7 @@ Shaded: the seasons in the driest third. In several regions the area rises after
 
 - **What the review graded:** a month is Include when its near-term projection reaches the impact window: the last two months of the season to three months after. That follows from the publication calendar.
 - **Its evidence** is how often projections match FEWS NET's own later classification: 78% for the near-term projection, 84% overall in the studies it cites. Our check agrees: 79% of projected changes point the right way.
-- **What we measured:** whether that projection is higher in the seasons that turn out dry. It is not, until the season has ended.
+- **What we measured:** whether that near-term projection is higher in the seasons that turn out dry. It is not, until the season has ended.
 - **Both hold.** A projection can be right about food insecurity and still say nothing about the rain. Most of it is the usual state of the region and what earlier seasons left behind.
 - **For an event defined on rainfall,** FEWS NET should not raise an alert on its own in the Include months. The months after the season, which the review grades Readiness as confirmation, are where it does show the drought.
 - **The review points the same way:** it notes that FEWS NET projections assume the seasonal outlook, so they are an impact gate, not an independent vote.

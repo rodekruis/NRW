@@ -73,11 +73,11 @@ SEASON_KEYS = ["region_season", "season_year"]
 CELL_SEASON_KEYS = ["our_region_season", "our_season_year"]
 RULE_SHORT_LABELS = {
     **{
-        rule_name: f"Region rule at {rule_name.split('_')[-1].replace('0.', '')}0%"
+        rule_name: f"Region-average rule at {rule_name.split('_')[-1].replace('0.', '')}0%"
         for rule_name in ALERT_COLUMN_BY_RULE
         if rule_name != AREA_RULE_NAME
     },
-    AREA_RULE_NAME: "Area rule",
+    AREA_RULE_NAME: "Grid-cell rule",
 }
 TIMING_LABELS = {
     AlertTiming.ONE_MONTH_BEFORE: "one month before",
@@ -275,7 +275,7 @@ def _plot_one_change_each(
     panels = [
         (EARLIER_MATRIX_TITLE, earlier_counts),
         (
-            "Closest on paper: area rule,\nany lead time",
+            "Closest on paper: grid-cell\nrule, any lead time",
             _count(
                 cell_cases,
                 AREA_RULE_NAME,
@@ -284,13 +284,13 @@ def _plot_one_change_each(
             ),
         ),
         (
-            "Rule changed: region rule\nat 40%, any lead time",
+            "Rule changed: region-average\nrule at 40%, any lead time",
             _count(
                 cell_cases, DEFAULT_RULE, AlertTiming.ANY_LEAD_TIME, "reported_drought"
             ),
         ),
         (
-            "Timing changed: area rule,\none month before",
+            "Timing changed: grid-cell\nrule, one month before",
             _count(
                 cell_cases,
                 AREA_RULE_NAME,

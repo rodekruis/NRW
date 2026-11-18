@@ -134,7 +134,7 @@ def _draw_region_rule(axis: Axes, region: BaseGeometry, forecast: pd.Series) -> 
     _style_map(
         axis,
         region,
-        title="Region rule",
+        title="Region-average rule",
         explanation=(
             "1. Average the rainfall over the region\n2. Count the dry members"
         ),
@@ -186,7 +186,7 @@ def _draw_area_rule(
     _style_map(
         axis,
         region,
-        title="Area rule (IBF v1 style)",
+        title="Grid-cell rule (IBF v1 style)",
         explanation=(
             "1. Count the dry members per grid cell\n"
             "2. Add up the area of the dry cells"

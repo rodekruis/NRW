@@ -30,6 +30,9 @@ FEWS_NET_AROUND_SEASON_END_FILE = RESULTS_DIRECTORY / "fews_net_around_season_en
 FEWS_NET_SEASON_OUTCOMES_FILE = RESULTS_DIRECTORY / "fews_net_season_outcomes.csv"
 OUTCOME_SKILL_FILE = RESULTS_DIRECTORY / "outcome_skill_by_lead_time.csv"
 KENYA_REGION_CHECK_FILE = RESULTS_DIRECTORY / "kenya_region_check.csv"
+THRESHOLD_STEPS_FILE = RESULTS_DIRECTORY / "threshold_steps.csv"
+THRESHOLD_CHOICES_FILE = RESULTS_DIRECTORY / "threshold_choices.csv"
+IN_SEASON_SKILL_FILE = RESULTS_DIRECTORY / "skill_in_season.csv"
 SKILL_REVIEW_FEWS_NET_GRADES_FILE = (
     INPUTS_DIRECTORY / "skill_review_fews_net_grades.csv"
 )

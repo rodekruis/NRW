@@ -3,11 +3,9 @@ region-season and issue month.
 
 The review grades an issue month Include when the near-term projection of that month
 reaches the impact window of the season: its last two months and the three months after.
-Here the projection that covers most of that window is scored on whether it tells the
-seasons with a rainfall drought apart.
+Here that near-term projection is scored on whether it tells the seasons with a rainfall
+drought apart.
 """
-
-from collections.abc import Callable
 
 import numpy as np
 import pandas as pd
@@ -16,29 +14,29 @@ from analysis.drought_hindcast.calculate_fews_net_alerts import (
     calculate_rank_among_others,
     load_region_phases,
     REPORT_MONTH_COLUMN,
-    select_projection,
 )
 from analysis.drought_hindcast.calculate_skill import BOOTSTRAP_SEED, to_booleans
+from analysis.drought_hindcast.check_fews_net import NEAR_TERM_SCENARIO
 from analysis.drought_hindcast.compare_with_skill_review import (
     DARK_TEXT_COLOUR,
     get_measured_level,
     get_rule_level,
     INCLUDE_MINIMUM_ROC_AREA,
     LEGEND_PLACEMENT,
-    LEVEL_COLOURS,
-    LEVEL_TEXT_COLOURS,
     MONTH_ABBREVIATIONS,
-    NO_ALERTS_TEXT,
     REVIEW_LEGEND_LABELS,
     RULE_LEGEND_LABELS,
-    RULE_MARKER_OFFSET,
-    RULE_MARKER_SIZE,
     SkillLevel,
 )
 from analysis.drought_hindcast.definitions import (
     get_observed_drought_column,
     POOLED_REGION_SEASONS,
     RegionSeason,
+)
+from analysis.drought_hindcast.indicator_charts import (
+    create_level_patches,
+    draw_level_grid,
+    format_scores,
 )
 from analysis.drought_hindcast.indicator_data import (
     SKILL_REVIEW_FEWS_NET_COMPARISON_FILE,
@@ -55,26 +53,18 @@ from analysis.drought_hindcast.indicator_scoring import (
 )
 from analysis.drought_hindcast.plot_skill import (
     DEFAULT_DROUGHT_DEFINITION,
-    GRID_COLOUR,
     NEUTRAL_COLOUR,
     save_figure,
 )
 from analysis.drought_hindcast.prepare_fews_net import CRISIS_OR_WORSE_COLUMN
 from analysis.drought_hindcast.prepare_iod import MONTH_FREQUENCY
 from analysis.drought_hindcast.study_area import OBSERVED_SEASONS_FILE
-from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
-from matplotlib.patches import Patch, Rectangle
 
-CURRENT_SITUATION_SCENARIO = "CS"
 # Issue months, counted from the last month of the season; negative is before it.
 ISSUE_MONTHS_AFTER_SEASON_END = range(-5, 5)
-# The impact window of the review: the last two season months and the three months after.
-IMPACT_WINDOW_MONTHS_BEFORE_SEASON_END = 1
-IMPACT_WINDOW_MONTH_COUNT = 5
 OFFSET_COLUMN = "months_after_season_end"
-CELL_FONT_SIZE = "x-small"
 
 
 def main() -> None:
@@ -127,15 +117,13 @@ def build_issue_month_cases(
     region_season: RegionSeason,
 ) -> pd.DataFrame:
     """Per observed season and issue month around its end: the share in Phase 3 or worse
-    in the projection that covers most of the impact window, in the latest report up to
-    that month; its rank among the other seasons; and whether it gives an alert.
+    in the near-term projection of the latest report up to that month, its rank among
+    the other seasons, and whether it gives an alert.
 
     Empty for a region-season with too few seasons.
     """
-    projections = region_phases.loc[
-        region_phases["scenario"] != CURRENT_SITUATION_SCENARIO
-    ]
-    report_months = projections[REPORT_MONTH_COLUMN]
+    near_term = region_phases.loc[region_phases["scenario"] == NEAR_TERM_SCENARIO]
+    report_months = near_term[REPORT_MONTH_COLUMN]
     month_tables = []
     for months_after_season_end in ISSUE_MONTHS_AFTER_SEASON_END:
         rows = []
@@ -156,11 +144,9 @@ def build_issue_month_cases(
             )
             if not is_usable.any():
                 continue
-            projection = select_projection(
-                projections.loc[report_months == report_months[is_usable].max()],
-                season_end - IMPACT_WINDOW_MONTHS_BEFORE_SEASON_END,
-                IMPACT_WINDOW_MONTH_COUNT,
-            )
+            latest_report = near_term.loc[
+                report_months == report_months[is_usable].max()
+            ]
             rows.append(
                 {
                     "region_season": region_season.name,
@@ -170,7 +156,7 @@ def build_issue_month_cases(
                     "is_drought": season[
                         get_observed_drought_column(DEFAULT_DROUGHT_DEFINITION)
                     ],
-                    "share": projection[CRISIS_OR_WORSE_COLUMN],
+                    "share": latest_report[CRISIS_OR_WORSE_COLUMN].iloc[0],
                 }
             )
         month_cases = pd.DataFrame(rows)
@@ -239,27 +225,41 @@ def _plot_comparison(comparison: pd.DataFrame) -> None:
     """Two grids of region-season by issue month: the review's grade, and what we measure."""
     figure = Figure(figsize=(13.5, 6), layout="constrained")
     review_axis, measured_axis = figure.subplots(1, 2, sharey=True)
-    _draw_grid(
+    region_season_names = list(dict.fromkeys(comparison["region_season"]))
+    offsets = list(ISSUE_MONTHS_AFTER_SEASON_END)
+    draw_level_grid(
         review_axis,
         comparison,
-        get_text=lambda row: MONTH_ABBREVIATIONS[int(row["issue_month"]) - 1],
+        region_season_names,
+        OFFSET_COLUMN,
+        offsets,
+        get_text=lambda cell: MONTH_ABBREVIATIONS[int(cell["issue_month"]) - 1],
         level_column="grade",
         title="Skill review: grade of FEWS NET per issue month",
+        format_column=_format_offset,
     )
     review_axis.legend(
-        handles=_create_level_patches(REVIEW_LEGEND_LABELS), **LEGEND_PLACEMENT
+        handles=create_level_patches(REVIEW_LEGEND_LABELS), **LEGEND_PLACEMENT
     )
-    _draw_grid(
+    draw_level_grid(
         measured_axis,
         comparison,
-        get_text=_format_scores,
+        region_season_names,
+        OFFSET_COLUMN,
+        offsets,
+        get_text=format_scores,
         level_column="rule_level",
-        title="This analysis: hit rate / false-alarm ratio (%) of the FEWS NET alert",
+        title="This analysis: hit rate / false-alarm ratio (%), near-term projection",
         has_marker_column="roc_level",
+        format_column=_format_offset,
     )
+    for axis in (review_axis, measured_axis):
+        axis.axvline(
+            offsets.index(0) + 0.5, color=NEUTRAL_COLOUR, linestyle="--", linewidth=1.5
+        )
     measured_axis.legend(
         handles=[
-            *_create_level_patches(RULE_LEGEND_LABELS),
+            *create_level_patches(RULE_LEGEND_LABELS),
             Line2D(
                 [],
                 [],
@@ -283,80 +283,8 @@ def _plot_comparison(comparison: pd.DataFrame) -> None:
     save_figure(figure, "skill_review_fews_net_comparison")
 
 
-def _format_scores(row: pd.Series) -> str:
-    """Hit rate and false-alarm ratio in percent; the ratio is undefined without alerts."""
-    false_alarm_ratio = (
-        NO_ALERTS_TEXT
-        if pd.isna(row["false_alarm_ratio"])
-        else f"{row['false_alarm_ratio'] * 100:.0f}"
-    )
-    return f"{row['hit_rate'] * 100:.0f}/{false_alarm_ratio}"
-
-
-def _create_level_patches(legend_labels: dict[SkillLevel, str]) -> list[Patch]:
-    return [
-        Patch(facecolor=LEVEL_COLOURS[level], label=label)
-        for level, label in legend_labels.items()
-    ]
-
-
-def _draw_grid(
-    axis: Axes,
-    comparison: pd.DataFrame,
-    get_text: Callable[[pd.Series], str],
-    level_column: str,
-    title: str,
-    has_marker_column: str | None = None,
-) -> None:
-    region_season_names = list(dict.fromkeys(comparison["region_season"]))
-    offsets = list(ISSUE_MONTHS_AFTER_SEASON_END)
-    for _, row in comparison.iterrows():
-        level = SkillLevel(row[level_column])
-        column = offsets.index(row[OFFSET_COLUMN])
-        row_position = region_season_names.index(row["region_season"])
-        axis.add_patch(
-            Rectangle(
-                (column - 0.5, row_position - 0.5),
-                1,
-                1,
-                facecolor=LEVEL_COLOURS[level],
-                edgecolor="white",
-                linewidth=2,
-            )
-        )
-        axis.text(
-            column,
-            row_position,
-            get_text(row),
-            horizontalalignment="center",
-            verticalalignment="center",
-            fontsize=CELL_FONT_SIZE,
-            color=LEVEL_TEXT_COLOURS[level],
-        )
-        if (
-            has_marker_column is not None
-            and row[has_marker_column] == SkillLevel.INCLUDE.value
-        ):
-            marker_column_offset, marker_row_offset = RULE_MARKER_OFFSET
-            axis.scatter(
-                column + marker_column_offset,
-                row_position + marker_row_offset,
-                s=RULE_MARKER_SIZE,
-                color=DARK_TEXT_COLOUR,
-                edgecolor="white",
-                linewidth=0.8,
-                zorder=3,
-            )
-    axis.axvline(
-        offsets.index(0) + 0.5, color=NEUTRAL_COLOUR, linestyle="--", linewidth=1.5
-    )
-    axis.set_xlim(-0.5, len(offsets) - 0.5)
-    axis.set_ylim(len(region_season_names) - 0.5, -0.5)
-    axis.set_xticks(range(len(offsets)), [f"{offset:+d}" for offset in offsets])
-    axis.set_yticks(range(len(region_season_names)), region_season_names)
-    axis.tick_params(length=0)
-    axis.spines[:].set_color(GRID_COLOUR)
-    axis.set_title(title, loc="left", fontsize="medium", fontweight="bold")
+def _format_offset(months_after_season_end: int) -> str:
+    return f"{months_after_season_end:+d}"
 
 
 if __name__ == "__main__":

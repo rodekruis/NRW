@@ -1,10 +1,23 @@
 """Chart parts shared by the charts of the indicators that are set next to SEAS5."""
 
-from analysis.drought_hindcast.compare_with_skill_review import MONTH_ABBREVIATIONS
-from analysis.drought_hindcast.plot_skill import LEAD_TIME_AXIS_LABEL
+from collections.abc import Callable
+
+import pandas as pd
+from analysis.drought_hindcast.compare_with_skill_review import (
+    DARK_TEXT_COLOUR,
+    LEVEL_COLOURS,
+    LEVEL_TEXT_COLOURS,
+    MONTH_ABBREVIATIONS,
+    NO_ALERTS_TEXT,
+    RULE_MARKER_OFFSET,
+    RULE_MARKER_SIZE,
+    SkillLevel,
+)
+from analysis.drought_hindcast.plot_skill import GRID_COLOUR, LEAD_TIME_AXIS_LABEL
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch, Rectangle
 
 SEAS5_COLOUR = "#111827"
 PANEL_SIZE_INCHES = (3.4, 2.9)
@@ -13,6 +26,7 @@ MINIMUM_FIGURE_WIDTH_INCHES = 12
 LEGEND_HEIGHT_INCHES = 0.9
 LEGEND_COLUMN_COUNT = 4
 MONTHS_PER_YEAR = 12
+GRID_CELL_FONT_SIZE = "x-small"
 
 
 def create_panels(
@@ -72,3 +86,83 @@ def add_legend(
         frameon=False,
         fontsize="small",
     )
+
+
+def draw_level_grid(
+    axis: Axes,
+    cells: pd.DataFrame,
+    row_names: list[str],
+    column_name: str,
+    column_values: list[int],
+    get_text: Callable[[pd.Series], str],
+    level_column: str,
+    title: str,
+    has_marker_column: str | None = None,
+    format_column: Callable[[int], str] = str,
+) -> None:
+    """A grid of region-season by `column_name`. Each cell is coloured by its level, and
+    carries a dot where `has_marker_column` is Include.
+    """
+    for _, cell in cells.iterrows():
+        level = SkillLevel(cell[level_column])
+        column = column_values.index(cell[column_name])
+        row = row_names.index(cell["region_season"])
+        axis.add_patch(
+            Rectangle(
+                (column - 0.5, row - 0.5),
+                1,
+                1,
+                facecolor=LEVEL_COLOURS[level],
+                edgecolor="white",
+                linewidth=2,
+            )
+        )
+        axis.text(
+            column,
+            row,
+            get_text(cell),
+            horizontalalignment="center",
+            verticalalignment="center",
+            fontsize=GRID_CELL_FONT_SIZE,
+            color=LEVEL_TEXT_COLOURS[level],
+        )
+        if (
+            has_marker_column is not None
+            and cell[has_marker_column] == SkillLevel.INCLUDE.value
+        ):
+            marker_column_offset, marker_row_offset = RULE_MARKER_OFFSET
+            axis.scatter(
+                column + marker_column_offset,
+                row + marker_row_offset,
+                s=RULE_MARKER_SIZE,
+                color=DARK_TEXT_COLOUR,
+                edgecolor="white",
+                linewidth=0.8,
+                zorder=3,
+            )
+    axis.set_xlim(-0.5, len(column_values) - 0.5)
+    axis.set_ylim(len(row_names) - 0.5, -0.5)
+    axis.set_xticks(
+        range(len(column_values)), [format_column(value) for value in column_values]
+    )
+    axis.set_yticks(range(len(row_names)), row_names)
+    axis.tick_params(length=0)
+    axis.spines[:].set_color(GRID_COLOUR)
+    axis.set_title(title, loc="left", fontsize="medium", fontweight="bold")
+
+
+def format_scores(cell: pd.Series) -> str:
+    """Hit rate and false-alarm ratio in percent; the ratio is undefined without alerts."""
+    false_alarm_ratio = (
+        NO_ALERTS_TEXT
+        if pd.isna(cell["false_alarm_ratio"])
+        else f"{cell['false_alarm_ratio'] * 100:.0f}"
+    )
+    return f"{cell['hit_rate'] * 100:.0f}/{false_alarm_ratio}"
+
+
+def create_level_patches(legend_labels: dict[SkillLevel, str]) -> list[Patch]:
+    return [
+        Patch(facecolor=LEVEL_COLOURS[level], label=label)
+        for level, label in legend_labels.items()
+    ]
