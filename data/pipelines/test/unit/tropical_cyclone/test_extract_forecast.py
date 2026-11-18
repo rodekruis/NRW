@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+import xarray as xr
 from pipelines.infra.data_types.enums import ForecastSource
 from pipelines.infra.data_types.loaded_data_types import RasterData
 from pipelines.tropical_cyclone.constants import (
@@ -20,6 +21,7 @@ from pipelines.tropical_cyclone.extract_forecast import (
     _resolve_configured_interval_hours,
     _resolve_conversion_factor,
     _scale_excluding_nodata,
+    _validate_grid_type,
 )
 from rasterio.transform import from_origin
 
@@ -272,3 +274,20 @@ class TestScaleExcludingNodata:
         np.testing.assert_allclose(result[0], 47.25, rtol=1e-5)
         assert result[1] == _NODATA
         np.testing.assert_allclose(result[2], 31.5, rtol=1e-5)
+
+
+class TestValidateGridType:
+    def test_accepts_a_regular_latitude_longitude_grid(self):
+        # Arrange
+        wind_component = xr.DataArray(attrs={"GRIB_gridType": "regular_ll"})
+
+        # Act
+        _validate_grid_type(wind_component, "wind.grib2")
+
+    def test_raises_for_a_grid_with_cells_that_are_not_in_the_default_crs(self):
+        # Arrange
+        wind_component = xr.DataArray(attrs={"GRIB_gridType": "lambert"})
+
+        # Act, Assert
+        with pytest.raises(ValueError, match="has GRIB grid type 'lambert'"):
+            _validate_grid_type(wind_component, "wind.grib2")

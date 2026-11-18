@@ -483,6 +483,51 @@ describe('AlertsService', () => {
       );
     });
 
+    it('should reject raster with an extent outside the EPSG:4326 range', async () => {
+      // Arrange
+      const alerts = [
+        createMockValidAlert({
+          exposure: {
+            adminAreas: [
+              {
+                placeCode: 'A',
+                adminLevel: 3,
+                layer: LayerName.exposedPopulation,
+                value: 1,
+              },
+            ],
+            rasters: [
+              {
+                layer: LayerName.floodDepth,
+                valueGreyscale: TEST_RASTER_BASE64,
+                // Malawi in EPSG:3857
+                extent: {
+                  xmin: 3636800,
+                  ymin: -1938000,
+                  xmax: 3998600,
+                  ymax: -1049300,
+                },
+              },
+            ],
+          },
+        }),
+      ];
+
+      // Act
+      const error = await service
+        .createAlerts(createMockValidForecast({ alerts }))
+        .catch((e: unknown) => e);
+
+      // Assert
+      expect(error).toBeInstanceOf(HttpException);
+      const response = (error as HttpException).getResponse() as {
+        errors: string[];
+      };
+      expect(response.errors).toEqual([
+        "Alert 'station-A' raster 'floodDepth': extent is outside the EPSG:4326 range (xmin=3636800, ymin=-1938000, xmax=3998600, ymax=-1049300)",
+      ]);
+    });
+
     it('should reject raster with invalid base64 characters', async () => {
       const alerts = [
         createMockValidAlert({

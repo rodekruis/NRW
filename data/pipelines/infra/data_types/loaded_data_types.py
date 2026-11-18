@@ -5,7 +5,8 @@ from enum import StrEnum
 
 import numpy as np
 from pipelines.infra.data_types.data_config_types import DataSource
-from rasterio.transform import Affine
+from rasterio.transform import Affine, xy
+from shared.crs_helpers import is_in_longitude_latitude_range, validate_crs
 
 
 @dataclass
@@ -55,10 +56,39 @@ class DataType(StrEnum):
 
 @dataclass
 class RasterData:
+    """
+    A raster in DEFAULT_CRS. Geometries in DEFAULT_CRS can thus be used with the
+    transform without a check of the CRS.
+    """
+
     array: np.ndarray
     transform: Affine
-    crs: str
+    crs: str  # the CRS that the source gives for the raster
     nodata: float  # sentinel for missing cells; sign/magnitude varies by source
+
+    def __post_init__(self) -> None:
+        validate_crs(self.crs, "Raster")
+
+        # Finds a transform in a different CRS (e.g. metres) that has the label DEFAULT_CRS.
+        # The centres of the four corner cells are used, not the cell edges: the outer
+        # cells of a global grid extend half a cell out of the range.
+        rows, columns = self.array.shape
+        longitudes, latitudes = xy(
+            self.transform,
+            [0, 0, rows - 1, rows - 1],
+            [0, columns - 1, 0, columns - 1],
+        )
+        cell_centre_bounds = (
+            float(min(longitudes)),
+            float(min(latitudes)),
+            float(max(longitudes)),
+            float(max(latitudes)),
+        )
+        if not is_in_longitude_latitude_range(cell_centre_bounds):
+            raise ValueError(
+                f"Raster cell centres {cell_centre_bounds} are outside the range of "
+                f"longitudes and latitudes: the transform is not in {self.crs}"
+            )
 
 
 @dataclass

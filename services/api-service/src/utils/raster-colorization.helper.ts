@@ -5,6 +5,7 @@ import { PNG } from 'pngjs';
 
 import { EPSG } from '@api-service/src/shared/enum/epsg.enum';
 import { LayerName } from '@api-service/src/shared-enums';
+import { isExtentInWgs84Range } from '@api-service/src/utils/wgs84.helper';
 
 type Rgba = [number, number, number, number];
 
@@ -281,14 +282,17 @@ function getSourceRowsOrThrow({
 interface RasterMetadata {
   data: {
     extent: { xmin: number; ymin: number; xmax: number; ymax: number };
-    crs: EPSG;
+    crs: EPSG.WGS84;
     nodata: number;
   };
   coloured: {
     extent: { xmin: number; ymin: number; xmax: number; ymax: number };
-    crs: EPSG;
+    crs: EPSG.WebMercator;
   };
 }
+
+// The CRS or the extent of a raster is not correct: an error in the input, not in the server
+export class RasterGeoreferenceError extends Error {}
 
 export interface PopulationRasterResult {
   colouredBase64: string;
@@ -300,7 +304,7 @@ function computeRasterMetadata({
   metadata,
 }: {
   dataPngBuffer: Buffer;
-  metadata: { transform: number[]; crs: EPSG };
+  metadata: { transform: number[] };
 }): RasterMetadata {
   const width = dataPngBuffer.readUInt32BE(16);
   const height = dataPngBuffer.readUInt32BE(20);
@@ -314,14 +318,19 @@ function computeRasterMetadata({
   const ymin = ymax - yRes * height;
 
   const extent = { xmin, ymin, xmax, ymax };
-  const colouredExtent =
-    metadata.crs === EPSG.WGS84 ? reprojectExtents4326To3857(extent) : extent;
-  const colouredCrs =
-    metadata.crs === EPSG.WGS84 ? EPSG.WebMercator : metadata.crs;
+  // Finds a transform in a different CRS (e.g. metres) with an EPSG:4326 label
+  if (!isExtentInWgs84Range(extent)) {
+    throw new RasterGeoreferenceError(
+      `Raster extent is outside the EPSG:4326 range (xmin=${xmin}, ymin=${ymin}, xmax=${xmax}, ymax=${ymax})`,
+    );
+  }
 
   return {
-    data: { extent, crs: metadata.crs, nodata: 0 },
-    coloured: { extent: colouredExtent, crs: colouredCrs },
+    data: { extent, crs: EPSG.WGS84, nodata: 0 },
+    coloured: {
+      extent: reprojectExtents4326To3857(extent),
+      crs: EPSG.WebMercator,
+    },
   };
 }
 
@@ -333,7 +342,9 @@ export async function processPopulationRaster({
   metadata: { transform: number[]; crs: EPSG };
 }): Promise<PopulationRasterResult> {
   if (metadata.crs !== EPSG.WGS84) {
-    throw new Error('Only WGS84 population rasters are supported');
+    throw new RasterGeoreferenceError(
+      'Only WGS84 population rasters are supported',
+    );
   }
   const rasterMetadata = computeRasterMetadata({ dataPngBuffer, metadata });
   const colouredBase64 = await colorizeRgbaEncodedPng({

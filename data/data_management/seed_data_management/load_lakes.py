@@ -10,6 +10,7 @@ from data_management.seed_data_management.admin_areas.admin_area_dataset_helpers
 from fiona.model import Feature
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
+from shared.crs_helpers import validate_crs
 from shared.download_helpers import download_file
 
 LAKES_SOURCE_URL = (
@@ -25,6 +26,8 @@ def load_lake_geometries(
 ) -> list[BaseGeometry]:
     lakes_path = download_lakes()
     with fiona.open(f"zip://{lakes_path}!{LAKES_LAYER_PATH}") as lakes:
+        # The bounds and the geometries that use the lakes are in the CRS of all seed data
+        validate_crs(lakes.crs, "Lake source")
         return [
             shape(lake.geometry)
             for lake in lakes.filter(bbox=bounds)

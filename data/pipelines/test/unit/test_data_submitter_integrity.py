@@ -172,6 +172,31 @@ def test_raster_invalid_extent_is_rejected(
     assert not (tmp_output / "forecast.json").exists()
 
 
+def test_raster_extent_outside_crs_range_is_rejected(
+    valid_submitter: DataSubmitter, tmp_output: Path
+):
+    # Arrange
+    # Malawi in EPSG:3857
+    valid_submitter.add_raster_exposure(
+        event_name=EVENT_NAME,
+        layer=LayerName.FLOOD_DEPTH,
+        value_greyscale=PLACEHOLDER_RASTER_BASE64,
+        extent={
+            "xmin": 3636800.0,
+            "ymin": -1938000.0,
+            "xmax": 3998600.0,
+            "ymax": -1049300.0,
+        },
+    )
+
+    # Act
+    errors = valid_submitter.send_all(OutputMode.LOCAL, str(tmp_output))
+
+    # Assert
+    assert any("extent is outside the EPSG:4326 range" in e for e in errors)
+    assert not (tmp_output / "forecast.json").exists()
+
+
 def test_time_interval_start_after_end_is_rejected(
     valid_submitter: DataSubmitter, tmp_output: Path
 ):

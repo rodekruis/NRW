@@ -36,7 +36,8 @@ export class AdminAreasController {
     summary:
       'Get admin areas; all pg_featureserv query parameters are supported (not shown in Swagger UI, so calling via Swagger is limited)',
     description:
-      "Example current use: GET /admin-areas?filter=countryCodeIso3='ETH' AND adminLevel=2",
+      "Example current use: GET /admin-areas?filter=countryCodeIso3='ETH' AND adminLevel=2. " +
+      'Geometries are in EPSG:4326, unless the pg_featureserv `crs` parameter requests a different CRS.',
   })
   @ApiQuery({
     name: 'filter',

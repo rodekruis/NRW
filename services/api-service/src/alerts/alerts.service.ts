@@ -8,6 +8,7 @@ import { ForecastCreateDto } from '@api-service/src/alerts/dto/forecast-create.d
 import { AlertToEventService } from '@api-service/src/events/alert-to-event.service';
 import { TeamsNotificationsService } from '@api-service/src/notifications/teams-notifications.service';
 import { EnsembleMemberType, LayerName } from '@api-service/src/shared-enums';
+import { isExtentInWgs84Range } from '@api-service/src/utils/wgs84.helper';
 
 @Injectable()
 export class AlertsService {
@@ -289,6 +290,13 @@ export class AlertsService {
       if (ext.xmin >= ext.xmax || ext.ymin >= ext.ymax) {
         errors.push(
           `Alert '${alert.eventName}' raster '${raster.layer}': invalid extent (xmin=${ext.xmin}, ymin=${ext.ymin}, xmax=${ext.xmax}, ymax=${ext.ymax})`,
+        );
+      }
+
+      // The payload does not give the CRS of the extent: the repository stores EPSG:4326
+      if (!isExtentInWgs84Range(ext)) {
+        errors.push(
+          `Alert '${alert.eventName}' raster '${raster.layer}': extent is outside the EPSG:4326 range (xmin=${ext.xmin}, ymin=${ext.ymin}, xmax=${ext.xmax}, ymax=${ext.ymax})`,
         );
       }
 

@@ -102,6 +102,41 @@ describe('/ Admin Areas', () => {
 
       expect(response.status).toBe(HttpStatus.BAD_REQUEST);
     });
+
+    it('should return 400 for a geometry outside the EPSG:4326 range', async () => {
+      // Arrange
+      // The geometry of validAdminArea in EPSG:3857
+      const geometryInMetres = {
+        type: 'MultiPolygon',
+        coordinates: [
+          [
+            [
+              [3784863, -1574216],
+              [3840522, -1574216],
+              [3840522, -1516914],
+              [3784863, -1516914],
+              [3784863, -1574216],
+            ],
+          ],
+        ],
+      };
+
+      // Act
+      const response = await getServer()
+        .post('/admin-areas')
+        .set('Cookie', [accessToken])
+        .send([
+          {
+            ...validAdminArea,
+            placeCode: 'BADCRS01',
+            geometry: geometryInMetres,
+          },
+        ]);
+
+      // Assert
+      expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+      expect(response.body.message).toContain('not in the EPSG:4326 range');
+    });
   });
 
   describe('PATCH /admin-areas/:placeCode', () => {

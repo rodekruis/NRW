@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { AlertRasterResponseDto } from '@api-service/src/rasters/dto/alert-raster-response.dto';
 import { StaticRasterResponseDto } from '@api-service/src/rasters/dto/static-raster-response.dto';
@@ -6,7 +6,10 @@ import { StaticRasterSourceMetadataDto } from '@api-service/src/rasters/dto/stat
 import { UploadableStaticRasterLayer } from '@api-service/src/rasters/dto/static-raster-upload.dto';
 import { RastersRepository } from '@api-service/src/rasters/rasters.repository';
 import { LayerName } from '@api-service/src/shared-enums';
-import { processPopulationRaster } from '@api-service/src/utils/raster-colorization.helper';
+import {
+  processPopulationRaster,
+  RasterGeoreferenceError,
+} from '@api-service/src/utils/raster-colorization.helper';
 
 @Injectable()
 export class RastersService {
@@ -73,7 +76,14 @@ export class RastersService {
     metadata: StaticRasterSourceMetadataDto;
   }): Promise<StaticRasterResponseDto> {
     const { colouredBase64, metadata: rasterMetadata } =
-      await processPopulationRaster({ dataPngBuffer, metadata });
+      await processPopulationRaster({ dataPngBuffer, metadata }).catch(
+        (error: unknown) => {
+          if (error instanceof RasterGeoreferenceError) {
+            throw new BadRequestException(error.message);
+          }
+          throw error;
+        },
+      );
 
     return this.rastersRepository.upsertStaticRaster({
       countryCodeIso3,

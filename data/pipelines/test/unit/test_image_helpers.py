@@ -3,8 +3,12 @@ import io
 import numpy as np
 import pytest
 from PIL import Image
+from rasterio.io import MemoryFile
+from rasterio.transform import from_origin
 from shared import image_helpers
-from shared.image_helpers import rgba_png_to_float_array
+from shared.image_helpers import geotiff_to_rgba_data_array, rgba_png_to_float_array
+
+from pipelines.constants import DEFAULT_CRS
 
 
 def _make_rgba_png_bytes(values: np.ndarray) -> bytes:
@@ -18,6 +22,43 @@ def _make_rgba_png_bytes(values: np.ndarray) -> bytes:
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
+
+
+def _make_geotiff_bytes(crs: str) -> bytes:
+    with MemoryFile() as memory_file:
+        with memory_file.open(
+            driver="GTiff",
+            height=2,
+            width=2,
+            count=1,
+            dtype="float32",
+            crs=crs,
+            transform=from_origin(33.0, 5.0, 0.5, 0.5),
+        ) as dataset:
+            dataset.write(np.ones((1, 2, 2), dtype=np.float32))
+        return memory_file.read()
+
+
+class TestGeotiffToRgbaDataArray:
+    def test_gives_the_default_crs_in_the_metadata(self):
+        # Arrange
+        tif_data = _make_geotiff_bytes(DEFAULT_CRS)
+
+        # Act
+        metadata, _ = geotiff_to_rgba_data_array(tif_data)
+
+        # Assert
+        assert metadata["crs"] == DEFAULT_CRS
+
+    def test_raises_for_a_geotiff_in_a_different_crs(self):
+        # Arrange
+        tif_data = _make_geotiff_bytes("EPSG:3857")
+
+        # Act, Assert
+        with pytest.raises(
+            ValueError, match="has CRS 'EPSG:3857', but only EPSG:4326 is supported"
+        ):
+            geotiff_to_rgba_data_array(tif_data)
 
 
 class TestRgbaPngToFloatArray:

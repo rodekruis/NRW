@@ -6,7 +6,10 @@ import io
 
 import numpy as np
 from PIL import Image
+from pipelines.constants import DEFAULT_CRS
 from rasterio.io import MemoryFile
+
+from shared.crs_helpers import validate_crs
 
 # Allow PIL to open large images
 Image.MAX_IMAGE_PIXELS = None  # noqa: V101
@@ -17,6 +20,7 @@ def geotiff_to_rgba_data_array(tif_data: bytes):
     Converts a GeoTIFF to an RGBA int array, without changing the projection, and
     also returns metadata from the original GeoTIFF.
     This is used to convert GeoTIFFs to PNG with three decimal precision.
+    The GeoTIFF must be in DEFAULT_CRS: the pipelines and the API accept no other CRS.
 
     Population values are encoded across the R, G, B, A channels,
     allowing for a per pixel range of 256^4 (over 4 million per pixel, with 3 decimal precision).
@@ -36,6 +40,7 @@ def geotiff_to_rgba_data_array(tif_data: bytes):
             raise ValueError(
                 f"Expected a single-band GeoTIFF, but got {src.count} bands."
             )
+        validate_crs(src.crs, "GeoTIFF")
 
         raw_data = src.read(1)
 
@@ -43,7 +48,7 @@ def geotiff_to_rgba_data_array(tif_data: bytes):
             "width": src.width,
             "height": src.height,
             "count": 4,  # this will be 4 since this converts to RGBA
-            "crs": str(src.crs),
+            "crs": DEFAULT_CRS,
             "transform": list(src.transform),
             "bounds": {
                 "left": src.bounds.left,

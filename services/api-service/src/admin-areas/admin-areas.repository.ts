@@ -12,6 +12,7 @@ import { AdminAreaUpdateDto } from '@api-service/src/admin-areas/dto/admin-area-
 import { env } from '@api-service/src/env';
 import { PrismaService } from '@api-service/src/prisma/prisma.service';
 import { extractPostgresErrorCode } from '@api-service/src/utils/extract-postgres-error-code.helper';
+import { getGeometryDatabaseErrorMessage } from '@api-service/src/utils/wgs84.helper';
 
 const ADMIN_AREA_COLLECTION = 'api-service.admin-area';
 
@@ -117,9 +118,7 @@ export class AdminAreasRepository {
           );
         }
         if (error.code === 'P2010') {
-          throw new BadRequestException(
-            'Invalid geometry: could not parse GeoJSON',
-          );
+          throw new BadRequestException(getGeometryDatabaseErrorMessage(error));
         }
       }
       throw error;
@@ -184,9 +183,7 @@ export class AdminAreasRepository {
               'One or more referenced countries do not exist',
             );
           }
-          throw new BadRequestException(
-            'Invalid geometry: could not parse GeoJSON',
-          );
+          throw new BadRequestException(getGeometryDatabaseErrorMessage(error));
         }
       }
       throw error;

@@ -766,7 +766,7 @@
     },
     "/admin-areas": {
       "get": {
-        "description": "Example current use: GET /admin-areas?filter=countryCodeIso3='ETH' AND adminLevel=2",
+        "description": "Example current use: GET /admin-areas?filter=countryCodeIso3='ETH' AND adminLevel=2. Geometries are in EPSG:4326, unless the pg_featureserv `crs` parameter requests a different CRS.",
         "operationId": "AdminAreasController_getAdminAreas",
         "parameters": [
           {
@@ -1130,7 +1130,7 @@
     },
     "/geo-features": {
       "get": {
-        "description": "Example: GET /geo-features?filter=countryCodeIso3='ETH' AND \"layerName\"='glofasStations'",
+        "description": "Example: GET /geo-features?filter=countryCodeIso3='ETH' AND \"layerName\"='glofasStations'. Geometries are in EPSG:4326, unless the pg_featureserv `crs` parameter requests a different CRS.",
         "operationId": "GeoFeaturesController_getGeoFeatures",
         "parameters": [],
         "responses": {
@@ -1792,11 +1792,13 @@
         "properties": {
           "latitude": {
             "type": "number",
-            "example": 0.35
+            "example": 0.35,
+            "description": "In EPSG:4326 (degrees)"
           },
           "longitude": {
             "type": "number",
-            "example": 32.6
+            "example": 32.6,
+            "description": "In EPSG:4326 (degrees)"
           }
         },
         "required": [
@@ -2015,10 +2017,10 @@
           "crs": {
             "type": "string",
             "enum": [
-              "EPSG:4326",
-              "EPSG:3857"
+              "EPSG:4326"
             ],
-            "example": "EPSG:4326"
+            "example": "EPSG:4326",
+            "description": "CRS of the extent and of the raster data"
           },
           "nodata": {
             "type": "number",
@@ -2040,10 +2042,10 @@
           "crs": {
             "type": "string",
             "enum": [
-              "EPSG:4326",
               "EPSG:3857"
             ],
-            "example": "EPSG:3857"
+            "example": "EPSG:3857",
+            "description": "CRS of the extent and of the rows of the coloured image"
           }
         },
         "required": [
@@ -2341,7 +2343,12 @@
             "example": "base64-encoded-greyscale-png"
           },
           "extent": {
-            "$ref": "#/components/schemas/RasterExtentDto"
+            "description": "Extent of the raster in EPSG:4326 (degrees)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RasterExtentDto"
+              }
+            ]
           }
         },
         "required": [
@@ -3065,7 +3072,7 @@
             ]
           },
           "coordinates": {
-            "description": "Coordinates array; structure depends on geometry type.",
+            "description": "Coordinates array in EPSG:4326, as [longitude, latitude]; structure depends on geometry type.",
             "example": [
               [
                 [
@@ -3288,10 +3295,31 @@
           },
           "geometry": {
             "type": "object",
+            "description": "GeoJSON MultiPolygon geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member",
             "example": {
-              "type": "Feature",
-              "geometry": {},
-              "properties": {}
+              "type": "MultiPolygon",
+              "coordinates": [
+                [
+                  [
+                    [
+                      36.7,
+                      -1.4
+                    ],
+                    [
+                      37.1,
+                      -1.4
+                    ],
+                    [
+                      37.1,
+                      -1.2
+                    ],
+                    [
+                      36.7,
+                      -1.4
+                    ]
+                  ]
+                ]
+              ]
             }
           }
         }
@@ -3489,6 +3517,7 @@
           },
           "geometry": {
             "type": "object",
+            "description": "GeoJSON geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member",
             "example": {
               "type": "Point",
               "coordinates": [

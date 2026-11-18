@@ -41,6 +41,7 @@ __all__ = [
 # Source: services/api-service/src/alerts/dto/centroid.dto.ts
 @dataclass
 class Centroid:
+    # In DEFAULT_CRS (degrees)
     latitude: float
     longitude: float
 
@@ -152,7 +153,7 @@ class RasterExtent:
 class ExposureRaster:
     layer: LayerName
     value_greyscale: str
-    extent: RasterExtent
+    extent: RasterExtent  # in DEFAULT_CRS (degrees)
 
     def to_dict(self) -> JsonDict:
         return {

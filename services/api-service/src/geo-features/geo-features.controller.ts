@@ -35,7 +35,8 @@ export class GeoFeaturesController {
     summary:
       'Get geo-features; all pg_featureserv query parameters are supported (not shown in Swagger UI, so calling via Swagger is limited)',
     description:
-      "Example: GET /geo-features?filter=countryCodeIso3='ETH' AND \"layerName\"='glofasStations'",
+      "Example: GET /geo-features?filter=countryCodeIso3='ETH' AND \"layerName\"='glofasStations'. " +
+      'Geometries are in EPSG:4326, unless the pg_featureserv `crs` parameter requests a different CRS.',
   })
   @ApiResponse({
     status: HttpStatus.OK,

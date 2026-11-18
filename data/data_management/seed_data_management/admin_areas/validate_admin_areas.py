@@ -14,8 +14,10 @@ from data_management.seed_data_management.admin_areas.admin_area_source_config i
     ADMIN_AREA_SOURCES,
     AdminAreaSource,
 )
+from pipelines.constants import DEFAULT_CRS
 from shapely.errors import ShapelyError
 from shapely.geometry import shape
+from shared.crs_helpers import is_in_longitude_latitude_range
 from shared.data_helpers import get_seed_data_repo_path
 
 BASE_SEED_REPO_DIR = get_seed_data_repo_path()
@@ -27,9 +29,20 @@ POPULATION_TOTAL_DIFFERENCE_THRESHOLD = (
     0.01  # Allow small rounding and source-data differences between admin levels.
 )
 CANONICAL_PROPERTY_NAMES = {field.name for field in fields(AdminAreaProperties)}
+# The names that a source file can give to DEFAULT_CRS in a 'crs' member.
+# A processed file must have no 'crs' member: the conversion does not keep it.
+SOURCE_CRS_NAMES = frozenset(
+    {
+        "urn:ogc:def:crs:OGC:1.3:CRS84",
+        "urn:ogc:def:crs:EPSG::4326",
+        DEFAULT_CRS,
+    }
+)
 
 
-def load_feature_collection(filepath: Path) -> list[dict]:
+def load_feature_collection(
+    filepath: Path, allowed_crs_names: frozenset[str] = frozenset()
+) -> list[dict]:
     with open(filepath, encoding="utf-8") as file:
         data = json.load(file)
 
@@ -42,7 +55,25 @@ def load_feature_collection(filepath: Path) -> list[dict]:
     if not features:
         raise ValueError(f"Expected non-empty features list in: {filepath}")
 
+    # GeoJSON of 2008 lets the collection, a feature and a geometry give a CRS
+    geometries = [
+        feature.get("geometry") for feature in features if isinstance(feature, dict)
+    ]
+    for geojson_object in (data, *features, *geometries):
+        if not isinstance(geojson_object, dict) or "crs" not in geojson_object:
+            continue
+        crs = geojson_object["crs"]
+        if get_crs_name(crs) not in allowed_crs_names:
+            raise ValueError(f"Unexpected 'crs' member {crs} in: {filepath}")
+
     return features
+
+
+def get_crs_name(crs: object) -> str | None:
+    if not isinstance(crs, dict):
+        return None
+    properties = crs.get("properties")
+    return properties.get("name") if isinstance(properties, dict) else None
 
 
 def get_pcode_key(level: int) -> str:
@@ -125,7 +156,7 @@ def validate_country(country: str, levels: list[int]) -> list[str]:
             errors.append(f"{country} adm{level}: source file missing")
         elif source_path.exists():
             try:
-                load_feature_collection(source_path)
+                load_feature_collection(source_path, SOURCE_CRS_NAMES)
             except (json.JSONDecodeError, TypeError, ValueError) as error:
                 errors.append(f"{country} adm{level}: invalid source file: {error}")
         if not processed_path.exists():
@@ -217,6 +248,7 @@ def validate_country(country: str, levels: list[int]) -> list[str]:
 
         invalid_geometry_count = 0
         non_multipolygon_count = 0
+        out_of_range_geometry_count = 0
         for feature in features:
             geometry_data = feature.get("geometry")
             if not isinstance(geometry_data, dict):
@@ -231,6 +263,10 @@ def validate_country(country: str, levels: list[int]) -> list[str]:
                 invalid_geometry_count += 1
             if geometry.geom_type != "MultiPolygon":
                 non_multipolygon_count += 1
+            if not geometry.is_empty and not is_in_longitude_latitude_range(
+                geometry.bounds
+            ):
+                out_of_range_geometry_count += 1
 
         if invalid_geometry_count > 0:
             errors.append(
@@ -239,6 +275,10 @@ def validate_country(country: str, levels: list[int]) -> list[str]:
         if non_multipolygon_count > 0:
             errors.append(
                 f"{country} adm{level}: {non_multipolygon_count} non-MultiPolygon geometries"
+            )
+        if out_of_range_geometry_count > 0:
+            errors.append(
+                f"{country} adm{level}: {out_of_range_geometry_count} geometries outside the {DEFAULT_CRS} range"
             )
 
     for level in sorted_levels:
@@ -294,6 +334,8 @@ def get_validation_summary() -> list[str]:
         "- Current-level pcode uniqueness: passed",
         "- Parent-reference integrity: passed",
         "- Geometry validity and MultiPolygon normalization: passed",
+        f"- Stored source files in {DEFAULT_CRS}, and processed files without a `crs` member: passed",
+        f"- Processed coordinates in the {DEFAULT_CRS} range: passed",
         f"- Processed file size below GitHub limit ({GITHUB_FILE_SIZE_LIMIT_BYTES:,} bytes): passed",
         "- Population presence and numeric validity: passed",
         f"- Population totals within {POPULATION_TOTAL_DIFFERENCE_THRESHOLD:.2%} of adm0: passed",
@@ -325,7 +367,9 @@ def main() -> None:
             source_count = "not stored"
             if source_path.exists():
                 try:
-                    source_count = str(len(load_feature_collection(source_path)))
+                    source_count = str(
+                        len(load_feature_collection(source_path, SOURCE_CRS_NAMES))
+                    )
                 except (json.JSONDecodeError, TypeError, ValueError):
                     source_count = "invalid"
             populated_properties = "<br>".join(

@@ -4,6 +4,7 @@ import base64
 import binascii
 from datetime import datetime
 
+from pipelines.constants import DEFAULT_CRS
 from pipelines.infra.data_types.dtos import (
     Alert,
     Centroid,
@@ -12,6 +13,7 @@ from pipelines.infra.data_types.dtos import (
     WATER_DISCHARGE_ATTRIBUTE,
     WaterDischargeTimeSeriesEntry,
 )
+from shared.crs_helpers import is_in_longitude_latitude_range
 
 LOW = "low"
 MEDIAN = "median"
@@ -115,6 +117,13 @@ def check_raster_integrity(event_name: str, alert: Alert) -> list[str]:
                 f"Alert '{event_name}' raster '{raster.layer}': "
                 f"invalid extent (xmin={ext.xmin}, ymin={ext.ymin}, "
                 f"xmax={ext.xmax}, ymax={ext.ymax})"
+            )
+        # The payload does not give the CRS of the extent: the API stores DEFAULT_CRS
+        if not is_in_longitude_latitude_range((ext.xmin, ext.ymin, ext.xmax, ext.ymax)):
+            errors.append(
+                f"Alert '{event_name}' raster '{raster.layer}': "
+                f"extent is outside the {DEFAULT_CRS} range (xmin={ext.xmin}, "
+                f"ymin={ext.ymin}, xmax={ext.xmax}, ymax={ext.ymax})"
             )
         if not raster.value_greyscale:
             errors.append(

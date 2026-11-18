@@ -11,6 +11,7 @@ import { GeoFeatureCreateDto } from '@api-service/src/geo-features/dto/geo-featu
 import { GeoFeatureUpdateDto } from '@api-service/src/geo-features/dto/geo-feature-update.dto';
 import { PrismaService } from '@api-service/src/prisma/prisma.service';
 import { extractPostgresErrorCode } from '@api-service/src/utils/extract-postgres-error-code.helper';
+import { getGeometryDatabaseErrorMessage } from '@api-service/src/utils/wgs84.helper';
 
 const GEO_FEATURE_COLLECTION = 'api-service.geo-feature';
 
@@ -88,9 +89,7 @@ export class GeoFeaturesRepository {
           throw new NotFoundException(`Geo-feature with id ${id} not found`);
         }
         if (error.code === 'P2010') {
-          throw new BadRequestException(
-            'Invalid geometry: could not parse GeoJSON',
-          );
+          throw new BadRequestException(getGeometryDatabaseErrorMessage(error));
         }
       }
       throw error;
@@ -120,6 +119,7 @@ export class GeoFeaturesRepository {
     try {
       // Uses raw SQL because Prisma's client API cannot call PostGIS functions (ST_GeomFromGeoJSON) inline
       // No wrapping transaction: Prisma aborts transactions after 5s, which large imports exceed
+      // No ST_SetSRID: it changes the SRID without a check. The column type rejects a geometry with a different SRID
       for (let i = 0; i < dtos.length; i += BATCH_SIZE) {
         const batch = dtos.slice(i, i + BATCH_SIZE);
         const values = batch.map((dto) => {
@@ -130,7 +130,7 @@ export class GeoFeaturesRepository {
               ${dto.featureType},
               ${dto.layer}::"api-service"."LayerName",
               ${dto.referenceId},
-              public.ST_SetSRID(public.ST_GeomFromGeoJSON(${geojson}), 4326),
+              public.ST_GeomFromGeoJSON(${geojson}),
               ${attrs}::jsonb,
               NOW()
             )`;
@@ -151,9 +151,7 @@ export class GeoFeaturesRepository {
               'One or more referenced countries or layers do not exist',
             );
           }
-          throw new BadRequestException(
-            'Invalid geometry: could not parse GeoJSON',
-          );
+          throw new BadRequestException(getGeometryDatabaseErrorMessage(error));
         }
       }
       throw error;

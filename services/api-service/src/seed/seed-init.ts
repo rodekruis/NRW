@@ -34,11 +34,13 @@ interface GeoJsonFeature {
   readonly type: string;
   readonly properties: Record<string, string | null>;
   readonly geometry: Record<string, unknown>;
+  readonly crs?: unknown;
 }
 
 interface GeoJsonFeatureCollection {
   readonly type: string;
   readonly features: GeoJsonFeature[];
+  readonly crs?: unknown;
 }
 
 interface StationThresholdEntry {
@@ -233,6 +235,16 @@ export class SeedInit {
       this.logger.warn(`${filename} is not a valid FeatureCollection`);
       return;
     }
+    // GeoJSON of 2008 lets the collection and each feature give a CRS in a 'crs' member.
+    // These members are not used below, so a different CRS would get no check
+    const hasCrsMember =
+      geojson.crs !== undefined ||
+      geojson.features.some((feature) => feature.crs !== undefined);
+    if (hasCrsMember) {
+      throw new Error(
+        `${filename} has a 'crs' member: admin areas must be in EPSG:4326 without a 'crs' member`,
+      );
+    }
 
     const adminAreas = geojson.features.map((feature) =>
       this.parseAdminAreaFeature({
@@ -305,6 +317,8 @@ export class SeedInit {
   ): Record<string, unknown> {
     if (geometry.type === 'Polygon') {
       return {
+        // Keep the other members (e.g. 'crs') for the checks in the service
+        ...geometry,
         type: 'MultiPolygon',
         coordinates: [geometry.coordinates],
       };

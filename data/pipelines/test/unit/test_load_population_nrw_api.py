@@ -50,14 +50,14 @@ def _make_rgba_png_bytes(values: np.ndarray) -> bytes:
     return buf.getvalue()
 
 
-def _make_api_metadata_response() -> dict:
+def _make_api_metadata_response(crs: str = "EPSG:4326") -> dict:
     return {
         "id": 1,
         "layerName": LayerName.POPULATION_DENSITY,
         "metadata": {
             "data": {
-                "extent": {"xmin": 0.0, "ymin": -200.0, "xmax": 200.0, "ymax": 0.0},
-                "crs": "EPSG:4326",
+                "extent": {"xmin": 0.0, "ymin": -2.0, "xmax": 2.0, "ymax": 0.0},
+                "crs": crs,
                 "nodata": 0,
             },
             "coloured": {
@@ -89,6 +89,24 @@ class TestLoadNrwApiPopulationData:
         assert container.data.array.shape == (2, 2)
         assert container.data.nodata == POPULATION_NODATA_VALUE
         np.testing.assert_allclose(container.data.array, population_values, atol=0.01)
+
+    def test_raises_when_metadata_gives_a_different_crs(self):
+        # Arrange
+        config = _make_config()
+        container = _make_container()
+        api_client = MagicMock()
+        api_client.get_static_raster_metadata.return_value = (
+            _make_api_metadata_response(crs="EPSG:3857")
+        )
+        api_client.get_static_raster_data_image.return_value = _make_rgba_png_bytes(
+            np.array([[1.5]], dtype=np.float64)
+        )
+
+        # Act, Assert
+        with pytest.raises(
+            ValueError, match="has CRS 'EPSG:3857', but only EPSG:4326 is supported"
+        ):
+            _load_nrw_api_population_data(config, container, api_client)
 
     def test_raises_when_metadata_request_fails(self):
         config = _make_config()

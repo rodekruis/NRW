@@ -99,6 +99,42 @@ describe('/ Geo Features', () => {
 
       expect(response.status).toBe(HttpStatus.BAD_REQUEST);
     });
+
+    it("should return 400 for a geometry with a 'crs' member", async () => {
+      // Arrange
+      // The coordinates are in the EPSG:4326 range, thus only the 'crs' member shows the different CRS
+      const geometry = {
+        type: 'Point',
+        coordinates: [100, 50],
+        crs: { type: 'name', properties: { name: 'EPSG:3857' } },
+      };
+
+      // Act
+      const response = await getServer()
+        .post('/geo-features')
+        .set('Cookie', [accessToken])
+        .send([{ ...validGeoFeature, referenceId: 'BADCRS01', geometry }]);
+
+      // Assert
+      expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+      expect(response.body.message).toContain("'crs' member");
+    });
+
+    it('should return 400 for coordinates in metres that only PostGIS reads', async () => {
+      // Arrange
+      // PostGIS ignores the case of member names, the check in the service does not
+      const geometry = { type: 'Point', Coordinates: [3840522, -1574216] };
+
+      // Act
+      const response = await getServer()
+        .post('/geo-features')
+        .set('Cookie', [accessToken])
+        .send([{ ...validGeoFeature, referenceId: 'BADCRS02', geometry }]);
+
+      // Assert
+      expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+      expect(response.body.message).toContain('not in the EPSG:4326 range');
+    });
   });
 
   describe('PATCH /geo-features/:id', () => {
@@ -159,6 +195,31 @@ describe('/ Geo Features', () => {
         .send({ geometry: { type: 'Point', coordinates: 'invalid' } });
 
       expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 for coordinates in metres that only PostGIS reads on update', async () => {
+      // Arrange
+      await getServer()
+        .post('/geo-features')
+        .set('Cookie', [accessToken])
+        .send([{ ...validGeoFeature, referenceId: 'PATCHCRS01' }]);
+      const getResponse = await getServer()
+        .get('/geo-features')
+        .query({ filter: "referenceId='PATCHCRS01'" })
+        .set('Cookie', [accessToken]);
+      const id = getResponse.body.features[0].id;
+      // PostGIS ignores the case of member names, the check in the service does not
+      const geometry = { type: 'Point', Coordinates: [3840522, -1574216] };
+
+      // Act
+      const response = await getServer()
+        .patch(`/geo-features/${id}`)
+        .set('Cookie', [accessToken])
+        .send({ geometry });
+
+      // Assert
+      expect(response.status).toBe(HttpStatus.BAD_REQUEST);
+      expect(response.body.message).toContain('not in the EPSG:4326 range');
     });
   });
 
