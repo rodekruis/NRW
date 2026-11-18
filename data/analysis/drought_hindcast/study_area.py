@@ -42,6 +42,14 @@ class Bounds:
     north: int
 
 
+def describe_outdated_download(directory: Path, download_step_name: str) -> str:
+    """What to do when downloaded files do not cover the study area."""
+    return (
+        f"The regions have changed since the download. Delete {directory} and run "
+        f"{download_step_name} again."
+    )
+
+
 def load_study_bounds() -> Bounds:
     """Whole-degree box around all regions, used as download extent for every source."""
     west, south, east, north = union_all(

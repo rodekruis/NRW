@@ -8,6 +8,7 @@ from analysis.drought_hindcast.definitions import LEAD_MONTH_COUNT
 from analysis.drought_hindcast.region_weights import calculate_cell_weights
 from analysis.drought_hindcast.study_area import (
     Bounds,
+    describe_outdated_download,
     FORECAST_RAINFALL_FILE,
     load_region_geometries,
     load_study_bounds,
@@ -129,7 +130,10 @@ def _check_grid(
         np.array_equal(rainfall["latitude"].values, latitudes)
         and np.array_equal(rainfall["longitude"].values, longitudes)
     ):
-        raise ValueError(f"{path.name} is not on the expected grid")
+        raise ValueError(
+            f"{path.name} is not on the grid of the study area. "
+            + describe_outdated_download(SEAS5_DIRECTORY, "download_seas5")
+        )
 
 
 if __name__ == "__main__":

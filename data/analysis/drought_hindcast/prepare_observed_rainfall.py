@@ -8,6 +8,7 @@ import xarray as xr
 from analysis.drought_hindcast.region_weights import calculate_cell_weights
 from analysis.drought_hindcast.study_area import (
     CHIRPS_DIRECTORY,
+    describe_outdated_download,
     load_region_geometries,
     load_study_bounds,
     OBSERVED_RAINFALL_FILE,
@@ -35,10 +36,17 @@ def main() -> None:
     rainfall = np.empty((len(weights_by_region), len(paths)))
     for month_position, path in enumerate(paths):
         with rasterio.open(path) as source:
+            if not np.allclose(
+                source.bounds,
+                (bounds.west, bounds.south, bounds.east, bounds.north),
+                atol=CHIRPS_CELL_SIZE_DEGREES / 2,
+            ):
+                raise ValueError(
+                    f"{path.name} covers {tuple(source.bounds)}, not the study area. "
+                    + describe_outdated_download(CHIRPS_DIRECTORY, "download_chirps")
+                )
             cell_rainfall = source.read(1, masked=True)
         for region_position, weights in enumerate(weights_by_region.values()):
-            if cell_rainfall.shape != weights.shape:
-                raise ValueError(f"{path.name} has grid {cell_rainfall.shape}")
             rainfall[region_position, month_position] = np.ma.average(
                 cell_rainfall, weights=weights
             )

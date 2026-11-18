@@ -2,7 +2,66 @@
 
 Spike AB#45772: measure on historical data how well the proposed drought alert logic works, to validate the skill review and calibrate thresholds.
 
-This README covers SEAS5: data collection, the calculation and the alert rule, skill charts, and comparisons with the earlier 2025-26 matrix and with the skill review. IOD and FEWS NET as further indicators are in [iod_and_fews_net.md](./iod_and_fews_net.md). Raw and intermediate data land in `data/data/drought_hindcast/` (git-ignored); hand-made input tables are in `inputs/`; result tables in `results/`.
+This README covers how to rerun and extend the analysis, and the SEAS5 part of it: data collection, the calculation and the alert rule, skill charts, and comparisons with the earlier 2025-26 matrix and with the skill review. IOD and FEWS NET as further indicators are in [iod_and_fews_net.md](./iod_and_fews_net.md).
+
+| Where                                        | What                                                                    |
+| -------------------------------------------- | ----------------------------------------------------------------------- |
+| `definitions.py`, `indicator_definitions.py` | The region-seasons, the alert rules and thresholds, the drought measure |
+| `run_all.py`                                 | Every step, in the order in which they depend on each other             |
+| `inputs/`                                    | Tables copied by hand from the skill review and the earlier matrix      |
+| `results/`                                   | The result tables, `charts/`, and the two slide decks                   |
+| `data/data/drought_hindcast/` (git-ignored)  | Region shapes, downloaded data and intermediate files, about 1 GB       |
+
+## Reproduce the results
+
+1. Set up the Python environment of `data/` as in the [data README](../../README.md#prerequisites): Python, uv, GDAL and ecCodes, then `./uv-sync.sh`.
+2. Clone the seed-data repo and point `SEED_DATA_REPO_ROOT` in `data/.env` to it. It holds the admin areas that the region shapes are built from.
+3. Get a Copernicus CDS account for SEAS5: accept the dataset's licence on its [download page](https://cds.climate.copernicus.eu/datasets/seasonal-monthly-single-levels?tab=download), then put your personal access token in `CDSAPI_KEY` in `data/.env`, or in `~/.cdsapirc`. The other sources need no account.
+4. From `data/`:
+
+```bash
+uv run python -m analysis.drought_hindcast.run_all --collect-data
+uv run pytest analysis/
+```
+
+- **`--collect-data`** builds the region shapes and downloads all data first. CHIRPS takes about half an hour (its server limits the speed), SEAS5 about an hour, IOD and FEWS NET a few minutes. The CHIRPS, SEAS5 and FEWS NET downloads skip what is already there, so the command can be rerun to resume.
+- **Without it,** `run_all` runs every step from the downloaded data to the tables and charts, in about four minutes. Every step rebuilds its output from scratch.
+- **One step:** `uv run python -m analysis.drought_hindcast.<step>`. To resume a run: `run_all --from-step <step>`. The steps and their order are in `run_all.py`.
+- **Run from `data/`.** The region shapes read the alert configuration of the api-service by a path relative to it.
+- **The slide decks** are written by hand on the tables and charts. Export them to PDF with [Marp](https://marp.app), for example with its VS Code extension.
+
+From the same downloaded data, a rerun gives the same tables and charts, byte for byte. That was checked on 18 November 2026, for all 24 tables and 42 charts. The uncertainty ranges are drawn with a fixed seed.
+
+### The data behind the committed results
+
+The sources are live, so a download at a later date holds more months, and the numbers move with them. The committed results were made with:
+
+| Data              | State                                                                         | Downloaded       |
+| ----------------- | ----------------------------------------------------------------------------- | ---------------- |
+| Seed-data repo    | Revision `3639e28`                                                            | 13 November 2026 |
+| CHIRPS v3.0 final | 1981-01 to 2026-09, 550 months                                                | 13 November 2026 |
+| SEAS5 system 51   | Start months 1981-01 to 2026-11                                               | 13 November 2026 |
+| IOD, four sources | Latest month per source between 2026-05 and 2026-10; these series get revised | 16 November 2026 |
+| FEWS NET          | Reports of 2011 to 2026                                                       | 16 November 2026 |
+
+`download_iod` replaces its files on every run, and `download_fews_net` refreshes the recent years. To reproduce the committed numbers exactly, use a copy of the data folder of that date instead of `--collect-data`.
+
+## Add a country, a region or a season
+
+Steps 1 to 3 were tried on 18 November 2026 with Uganda (Karamoja April to October, Central MAM and SON). The alerts, the scores, the reliable lead times and the charts per country and per region-season then included it. Steps 4 to 6 follow from the code and were not run for a new country.
+
+1. **Country:** add its ISO3 code to `STUDY_COUNTRIES` in `build_region_shapes.py`. Its admin areas must be in the seed-data repo. A country with drought regions in `seed-alert-configs.const.ts` gets those regions; any other country becomes one region, `National`.
+2. **Region-seasons:** add a `RegionSeason` per region and season to `REGION_SEASONS` in `definitions.py`: the country code, the region name as in the region shapes, a season name, and the season's months in order. Give an extra season definition of a region that is already counted `is_in_pooled_results=False`.
+3. **Run** `build_region_shapes`, then `run_all`. All data is cut to one box around all regions. If the new region lies outside it, `prepare_observed_rainfall` stops and says so: delete the `chirps` and `seas5` folders and run `run_all --collect-data`.
+4. **IOD, if it applies:** add the region-season and the phase that goes with drought to `IOD_DROUGHT_PHASES` in `indicator_definitions.py`.
+5. **FEWS NET, if it reports on the country:** add its two-letter code to `FEWS_NET_COUNTRY_CODES` in `download_fews_net.py` and run `download_fews_net` again.
+6. **Skill review:** add the review's grades to `inputs/skill_review_seas5_grades.csv` and `inputs/skill_review_fews_net_grades.csv`. Without them the region-season is left out of those two comparisons.
+
+What to expect:
+
+- **The results for all region-seasons together change,** as the new ones count towards them. The scores of the existing region-seasons stay the same. Their uncertainty ranges can move a little for those listed after the new ones, as all ranges are drawn from one random sequence.
+- **A season of more than six months** is never forecast whole: SEAS5 reaches six months. The charts mark such forecasts as "part of season".
+- **Not generic:** `check_kenya_region`, the short-rains charts of `plot_threshold_choices`, the example of `plot_alert_rules` and the comparison with the earlier matrix are about specific regions. The two slide decks are written by hand.
 
 ## Data
 
@@ -13,37 +72,6 @@ This README covers SEAS5: data collection, the calculation and the alert rule, s
 | Forecast monthly rainfall (SEAS5) | [Copernicus CDS](https://cds.climate.copernicus.eu/datasets/seasonal-monthly-single-levels), ECMWF system 51, 1°, leads 1-6 | Start months 1981-01 to latest release | `download_seas5`      |
 
 The regions are the four Ethiopian climate regions (Belg, Meher, Northern, Southern) and Kenya, Zimbabwe and Lesotho as a whole. CHIRPS and SEAS5 are both cut to one whole-degree box around all regions (24°E-49°E, 32°S-16°N).
-
-## Run
-
-From `data/`, in this order (the downloads take their extent from the region shapes):
-
-```bash
-uv run python -m analysis.drought_hindcast.build_region_shapes
-uv run python -m analysis.drought_hindcast.download_chirps
-uv run python -m analysis.drought_hindcast.download_seas5
-uv run python -m analysis.drought_hindcast.prepare_observed_rainfall
-uv run python -m analysis.drought_hindcast.prepare_forecast_rainfall
-uv run python -m analysis.drought_hindcast.calculate_alerts
-uv run python -m analysis.drought_hindcast.calculate_skill
-uv run python -m analysis.drought_hindcast.plot_skill
-uv run python -m analysis.drought_hindcast.plot_alert_rules
-uv run python -m analysis.drought_hindcast.plot_thresholds
-uv run python -m analysis.drought_hindcast.plot_threshold_steps
-uv run python -m analysis.drought_hindcast.plot_threshold_choices
-uv run python -m analysis.drought_hindcast.plot_in_season
-uv run python -m analysis.drought_hindcast.check_skill
-uv run python -m analysis.drought_hindcast.compare_with_earlier_matrix
-uv run python -m analysis.drought_hindcast.compare_with_skill_review
-uv run python -m analysis.drought_hindcast.plot_countries
-uv run python -m analysis.drought_hindcast.check_against_raw_data
-uv run pytest analysis/
-```
-
-- `build_region_shapes` needs a local clone of the seed-data repo (`SEED_DATA_REPO_ROOT` in `data/.env`).
-- `download_seas5` needs a Copernicus CDS account: accept the dataset's licence on its CDS download page, then put your personal access token in `CDSAPI_KEY` in `data/.env`, or in `~/.cdsapirc`.
-- Both downloads skip what is already there, so they can be rerun to resume or to pick up new months. The CHIRPS server limits download speed; the full record takes about half an hour, SEAS5 about an hour.
-- The two `prepare_` scripts and `calculate_alerts` rebuild their output from scratch; together they take about a minute.
 
 ## Calculation
 

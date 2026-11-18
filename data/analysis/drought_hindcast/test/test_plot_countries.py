@@ -3,6 +3,7 @@ from analysis.drought_hindcast.definitions import RegionSeason
 from analysis.drought_hindcast.plot_countries import (
     count_years_after_rainy_season_start,
     get_first_reliable_lead_time,
+    group_by_country,
 )
 
 WHOLE_RAINY_SEASON = RegionSeason("ZWE", "National", "Oct-Mar", (10, 11, 12, 1, 2, 3))
@@ -29,6 +30,30 @@ def test_season_after_the_new_year_belongs_to_the_rainy_season_of_the_year_befor
 
     # Assert
     assert year_count == expected_year_count
+
+
+def test_seasons_of_a_country_are_ordered_by_start_with_a_whole_season_before_its_halves() -> (
+    None
+):
+    # Arrange
+    long_rains = RegionSeason("KEN", "National", "MAM", (3, 4, 5))
+    short_rains = RegionSeason("KEN", "National", "OND", (10, 11, 12))
+    region_seasons = [
+        SECOND_HALF,
+        short_rains,
+        FIRST_HALF,
+        long_rains,
+        WHOLE_RAINY_SEASON,
+    ]
+
+    # Act
+    countries = group_by_country(region_seasons)
+
+    # Assert
+    assert countries == {
+        "ZWE": [WHOLE_RAINY_SEASON, FIRST_HALF, SECOND_HALF],
+        "KEN": [long_rains, short_rains],
+    }
 
 
 def test_season_of_another_region_is_not_taken_as_the_rainy_season() -> None:

@@ -1,6 +1,6 @@
 # IOD and FEWS NET
 
-The two other indicators of spike AB#45772 (tasks AB#45805 and AB#45804): data collection and analysis. It is kept apart from the SEAS5 analysis for now: its data locations are in `indicator_data.py`, its definitions in `indicator_definitions.py`, the scores and chart parts that both indicators share in `indicator_scoring.py` and `indicator_charts.py`, and this file is to be merged into the [README](./README.md).
+The two other indicators of spike AB#45772 (tasks AB#45805 and AB#45804): data collection and analysis. Their data locations are in `indicator_data.py`, their definitions in `indicator_definitions.py`, and the scores and chart parts that both share in `indicator_scoring.py` and `indicator_charts.py`. How to rerun everything and how to add a country is in the [README](./README.md).
 
 ## Data
 
@@ -13,41 +13,19 @@ Raw files land in `data/data/drought_hindcast/iod/` and `fews_net/`, the prepare
 
 ## Run
 
-From `data/`:
+`run_all` runs these steps with the SEAS5 analysis, in the order of `run_all.py` (see the [README](./README.md#reproduce-the-results)). On their own, from `data/`: `uv run python -m analysis.drought_hindcast.<step>`.
 
-```bash
-uv run python -m analysis.drought_hindcast.download_iod
-uv run python -m analysis.drought_hindcast.prepare_iod
-uv run python -m analysis.drought_hindcast.download_fews_net
-uv run python -m analysis.drought_hindcast.prepare_fews_net
-```
+| Part              | Steps, in order                                                                                                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Data              | `download_iod`, `download_fews_net`, `prepare_iod`, `prepare_fews_net`                                                                                                     |
+| IOD analysis      | `calculate_iod_alerts`, `calculate_iod_skill`, `combine_indicators`, `plot_iod`                                                                                            |
+| FEWS NET analysis | `calculate_fews_net_alerts`, `calculate_fews_net_skill`, `check_fews_net`, `compare_outcomes`, `plot_fews_net`, `check_kenya_region`, `compare_fews_net_with_skill_review` |
 
 - No account is needed. Both downloads take less than five minutes.
 - `download_iod` replaces its four files on every run. `download_fews_net` skips the years that were downloaded more than 90 days after their end.
 - `prepare_fews_net` needs the region shapes of `build_region_shapes`.
-
-The IOD analysis, after `calculate_alerts` and `calculate_skill` of the SEAS5 analysis:
-
-```bash
-uv run python -m analysis.drought_hindcast.calculate_iod_alerts
-uv run python -m analysis.drought_hindcast.calculate_iod_skill
-uv run python -m analysis.drought_hindcast.combine_indicators
-uv run python -m analysis.drought_hindcast.plot_iod
-```
-
-The FEWS NET analysis, after the same two:
-
-```bash
-uv run python -m analysis.drought_hindcast.calculate_fews_net_alerts
-uv run python -m analysis.drought_hindcast.calculate_fews_net_skill
-uv run python -m analysis.drought_hindcast.check_fews_net
-uv run python -m analysis.drought_hindcast.compare_outcomes
-uv run python -m analysis.drought_hindcast.plot_fews_net
-uv run python -m analysis.drought_hindcast.check_kenya_region
-uv run python -m analysis.drought_hindcast.compare_fews_net_with_skill_review
-```
-
-`check_kenya_region` needs the seed-data repo and the CHIRPS files, and takes about a minute.
+- Both analyses need `calculate_alerts` and `calculate_skill` of the SEAS5 analysis.
+- `check_kenya_region` needs the seed-data repo and the CHIRPS files, and takes about a minute.
 
 ## IOD
 

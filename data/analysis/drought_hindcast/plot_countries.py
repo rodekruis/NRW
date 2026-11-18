@@ -16,8 +16,6 @@ from analysis.drought_hindcast.plot_skill import (
 )
 from analysis.drought_hindcast.study_area import RELIABLE_LEAD_TIMES_FILE, SKILL_FILE
 
-# Order of the seasons in the charts; a whole rainy season comes before its halves.
-SEASON_ORDER = ("MAM", "JAS", "Oct-Mar", "OND", "JFM")
 SEASONS_PER_CHART_ROW = 3
 MONTHS_PER_YEAR = 12
 RAINY_SEASON_YEAR_AXIS_LABEL = (
@@ -29,7 +27,7 @@ RAINY_SEASON_YEAR_AXIS_LABEL = (
 def main() -> None:
     skill = pd.read_csv(SKILL_FILE)
     cases = add_outcomes(load_scorable_cases())
-    for country_code_iso3, region_seasons in _group_by_country().items():
+    for country_code_iso3, region_seasons in group_by_country(REGION_SEASONS).items():
         file_suffix = country_code_iso3.lower()
         plot_region_seasons(
             skill,
@@ -42,18 +40,28 @@ def main() -> None:
     _write_reliable_lead_times(skill)
 
 
-def _group_by_country() -> dict[str, list[RegionSeason]]:
-    """The region-seasons of each country, ordered by season."""
+def group_by_country(
+    region_seasons: list[RegionSeason],
+) -> dict[str, list[RegionSeason]]:
+    """The region-seasons of each country, ordered by the month in which they start.
+
+    A whole rainy season comes before its halves, and a half that starts after the new
+    year comes last.
+    """
     countries: dict[str, list[RegionSeason]] = {}
     for region_season in sorted(
-        REGION_SEASONS,
-        key=lambda region_season: SEASON_ORDER.index(region_season.season_name),
+        region_seasons,
+        key=lambda region_season: (
+            count_years_after_rainy_season_start(region_season, region_seasons),
+            region_season.months[0],
+            -len(region_season.months),
+        ),
     ):
         countries.setdefault(region_season.country_code_iso3, []).append(region_season)
     return {
         country_code_iso3: countries[country_code_iso3]
         for country_code_iso3 in dict.fromkeys(
-            region_season.country_code_iso3 for region_season in REGION_SEASONS
+            region_season.country_code_iso3 for region_season in region_seasons
         )
     }
 
