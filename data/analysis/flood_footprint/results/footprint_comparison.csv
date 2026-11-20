@@ -1,0 +1,25 @@
+station_code,method,regridding,minimum_flood_depth_metres,flooded_area_square_kilometres,exposed_population,maximum_flood_depth_metres
+G1724,today: one flood map for the station,,0.0,149.36,9136.0,10.92
+G1724,new: return period per cell,nearest,0.0,102.69,2166.0,0.77
+G1724,new: return period per cell,bilinear,0.0,112.89,2855.0,0.77
+G1724,"new: return period per cell, all cells drive",bilinear,0.0,76.4,2155.0,0.67
+G1724,today: one flood map for the station,,0.2,146.53,7996.0,10.92
+G1724,new: return period per cell,nearest,0.2,30.42,381.0,0.77
+G1724,new: return period per cell,bilinear,0.2,21.26,250.0,0.77
+G1724,"new: return period per cell, all cells drive",bilinear,0.2,8.7,102.0,0.67
+G2001,today: one flood map for the station,,0.0,363.48,16273.0,5.19
+G2001,new: return period per cell,nearest,0.0,237.11,10568.0,0.73
+G2001,new: return period per cell,bilinear,0.0,298.19,13534.0,0.73
+G2001,"new: return period per cell, all cells drive",bilinear,0.0,235.75,8412.0,0.72
+G2001,today: one flood map for the station,,0.2,345.64,14196.0,5.19
+G2001,new: return period per cell,nearest,0.2,69.12,1294.0,0.73
+G2001,new: return period per cell,bilinear,0.2,58.11,1070.0,0.73
+G2001,"new: return period per cell, all cells drive",bilinear,0.2,28.31,471.0,0.72
+G5694,today: one flood map for the station,,0.0,26.26,1117.0,12.54
+G5694,new: return period per cell,nearest,0.0,21.06,741.0,1.11
+G5694,new: return period per cell,bilinear,0.0,21.36,741.0,0.97
+G5694,"new: return period per cell, all cells drive",bilinear,0.0,21.25,741.0,0.97
+G5694,today: one flood map for the station,,0.2,24.98,990.0,12.54
+G5694,new: return period per cell,nearest,0.2,12.55,138.0,1.11
+G5694,new: return period per cell,bilinear,0.2,12.16,133.0,0.97
+G5694,"new: return period per cell, all cells drive",bilinear,0.2,11.54,115.0,0.97

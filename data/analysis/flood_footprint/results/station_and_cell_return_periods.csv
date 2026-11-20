@@ -1,0 +1,5 @@
+station_code,peak_lead_time_days,peak_median_discharge,station_return_period,cell_return_period,cell_drives_footprint
+G1724,0,2222.0,2.0,2.165,True
+G2001,0,2220.4,2.0,2.267,True
+G5670,7,12.4,0.0,1.104,True
+G5694,0,2215.2,2.0,2.507,True
