@@ -1,0 +1,101 @@
+region_season,issue_month,grade,confidence,regime,decision_id,note,months_after_season_end,season_count,drought_count,alert_count,hit_count,hit_rate,hit_rate_low,hit_rate_high,false_alarm_ratio,false_alarm_ratio_low,false_alarm_ratio_high,alert_frequency,drought_frequency,probability_by_chance,roc_area,roc_area_probability_by_chance,rule_level,roc_level
+ETH Meher JAS,1,Readiness,Medium,KIR,F077,,4,16,5,5,0,0.0,0.0,0.0,1.0,1.0,1.0,0.312,0.312,1.0,0.409,0.7349,Exclude,Exclude
+ETH Meher JAS,4,Readiness,Medium,KIR,F077,,-5,16,5,6,0,0.0,0.0,0.0,1.0,1.0,1.0,0.375,0.312,1.0,0.227,0.9606,Exclude,Exclude
+ETH Meher JAS,5,Include,Medium,KIR,F077,,-4,15,5,6,0,0.0,0.0,0.0,1.0,1.0,1.0,0.4,0.333,1.0,0.25,0.9445,Exclude,Exclude
+ETH Meher JAS,6,Include,Medium,KIR,F077,,-3,15,5,5,1,0.2,0.0,0.667,0.8,0.333,1.0,0.333,0.333,0.9161,0.16,0.986,Exclude,Exclude
+ETH Meher JAS,7,Include,Medium,KIR,F077,,-2,15,5,5,1,0.2,0.0,0.667,0.8,0.333,1.0,0.333,0.333,0.9161,0.2,0.9713,Exclude,Exclude
+ETH Meher JAS,8,Include,Medium,KIR,F077,,-1,15,5,5,1,0.2,0.0,0.667,0.8,0.333,1.0,0.333,0.333,0.9161,0.2,0.9713,Exclude,Exclude
+ETH Meher JAS,9,Include,Medium,KIR,F077,,0,15,5,5,1,0.2,0.0,0.667,0.8,0.333,1.0,0.333,0.333,0.9161,0.2,0.9713,Exclude,Exclude
+ETH Meher JAS,10,Readiness,Medium,KIR,F077,,1,16,5,6,2,0.4,0.0,1.0,0.667,0.25,1.0,0.375,0.312,0.6538,0.473,0.5956,Readiness,Exclude
+ETH Meher JAS,11,Readiness,Medium,KIR,F077,,2,16,5,6,2,0.4,0.0,1.0,0.667,0.221,1.0,0.375,0.312,0.6538,0.473,0.5956,Readiness,Exclude
+ETH Meher JAS,12,Readiness,Medium,KIR,F077,,3,16,5,5,0,0.0,0.0,0.0,1.0,1.0,1.0,0.312,0.312,1.0,0.364,0.824,Exclude,Exclude
+ETH Belg JAS,1,Readiness,Medium,BELG,F069,,4,16,5,5,1,0.2,0.0,0.667,0.8,0.333,1.0,0.312,0.312,0.8942,0.418,0.715,Exclude,Exclude
+ETH Belg JAS,4,Readiness,Medium,BELG,F069,,-5,16,5,6,2,0.4,0.0,1.0,0.667,0.2,1.0,0.375,0.312,0.6538,0.473,0.5865,Readiness,Exclude
+ETH Belg JAS,5,Include,Medium,BELG,F069,,-4,15,5,5,2,0.4,0.0,1.0,0.6,0.0,1.0,0.333,0.333,0.5664,0.42,0.703,Readiness,Exclude
+ETH Belg JAS,6,Include,Medium,BELG,F069,,-3,15,5,5,1,0.2,0.0,0.667,0.8,0.333,1.0,0.333,0.333,0.9161,0.34,0.8452,Exclude,Exclude
+ETH Belg JAS,7,Include,Medium,BELG,F069,,-2,15,5,5,1,0.2,0.0,0.667,0.8,0.333,1.0,0.333,0.333,0.9161,0.32,0.8728,Exclude,Exclude
+ETH Belg JAS,8,Include,Medium,BELG,F069,,-1,15,5,5,1,0.2,0.0,0.667,0.8,0.333,1.0,0.333,0.333,0.9161,0.32,0.8728,Exclude,Exclude
+ETH Belg JAS,9,Include,Medium,BELG,F069,,0,15,5,5,1,0.2,0.0,0.667,0.8,0.333,1.0,0.333,0.333,0.9161,0.32,0.8728,Exclude,Exclude
+ETH Belg JAS,10,Readiness,Medium,BELG,F069,,1,16,5,6,2,0.4,0.0,1.0,0.667,0.25,1.0,0.375,0.312,0.6538,0.5,0.5226,Readiness,Exclude
+ETH Belg JAS,11,Readiness,Medium,BELG,F069,,2,16,5,6,2,0.4,0.0,1.0,0.667,0.248,1.0,0.375,0.312,0.6538,0.5,0.5226,Readiness,Exclude
+ETH Belg JAS,12,Readiness,Medium,BELG,F069,,3,16,5,6,2,0.4,0.0,1.0,0.667,0.25,1.0,0.375,0.312,0.6538,0.5,0.5226,Readiness,Exclude
+ETH Belg MAM,1,Include,Medium,BELG,F071,,-4,15,5,5,2,0.4,0.0,1.0,0.6,0.0,1.0,0.333,0.333,0.5664,0.54,0.4269,Readiness,Readiness
+ETH Belg MAM,2,Include,Medium,BELG,F071,,-3,15,5,6,2,0.4,0.0,1.0,0.667,0.25,1.0,0.4,0.333,0.7063,0.5,0.5235,Exclude,Exclude
+ETH Belg MAM,3,Include,Medium,BELG,F071,,-2,15,5,6,2,0.4,0.0,1.0,0.667,0.25,1.0,0.4,0.333,0.7063,0.5,0.5235,Exclude,Exclude
+ETH Belg MAM,4,Include,Medium,BELG,F071,,-1,16,6,6,2,0.333,0.0,0.75,0.667,0.25,1.0,0.375,0.375,0.785,0.483,0.5626,Exclude,Exclude
+ETH Belg MAM,5,Include,Medium,BELG,F071,,0,15,5,5,2,0.4,0.0,1.0,0.6,0.0,1.0,0.333,0.333,0.5664,0.58,0.3393,Readiness,Readiness
+ETH Belg MAM,6,Readiness,Medium,BELG,F071,,1,15,5,5,2,0.4,0.0,1.0,0.6,0.0,1.0,0.333,0.333,0.5664,0.56,0.3839,Readiness,Readiness
+ETH Belg MAM,7,Readiness,Medium,BELG,F071,,2,15,5,5,4,0.8,0.333,1.0,0.2,0.0,0.6,0.333,0.333,0.017,0.88,0.0097,Include,Include
+ETH Belg MAM,8,Readiness,Medium,BELG,F071,,3,15,5,5,4,0.8,0.4,1.0,0.2,0.0,0.634,0.333,0.333,0.017,0.88,0.0097,Include,Include
+ETH Belg MAM,9,Readiness,Medium,BELG,F071,,4,15,5,5,4,0.8,0.333,1.0,0.2,0.0,0.604,0.333,0.333,0.017,0.88,0.0097,Include,Include
+ETH Belg MAM,12,Readiness,Medium,BELG,F071,,-5,15,5,6,2,0.4,0.0,1.0,0.667,0.25,1.0,0.4,0.333,0.7063,0.56,0.3796,Exclude,Readiness
+ETH Northern JAS,1,Readiness,Medium,NPA,F079,,4,16,3,5,1,0.333,0.0,1.0,0.8,0.333,1.0,0.312,0.188,0.7054,0.692,0.1821,Readiness,Readiness
+ETH Northern JAS,4,Readiness,Medium,NPA,F079,,-5,16,3,6,0,0.0,0.0,0.0,1.0,1.0,1.0,0.375,0.188,1.0,0.436,0.6482,Exclude,Exclude
+ETH Northern JAS,5,Include,Medium,NPA,F079,,-4,15,3,5,0,0.0,0.0,0.0,1.0,1.0,1.0,0.333,0.2,1.0,0.417,0.6835,Exclude,Exclude
+ETH Northern JAS,6,Include,Medium,NPA,F079,,-3,15,3,5,1,0.333,0.0,1.0,0.8,0.333,1.0,0.333,0.2,0.7363,0.528,0.4725,Exclude,Readiness
+ETH Northern JAS,7,Include,Medium,NPA,F079,,-2,15,3,5,1,0.333,0.0,1.0,0.8,0.333,1.0,0.333,0.2,0.7363,0.611,0.3165,Exclude,Readiness
+ETH Northern JAS,8,Include,Medium,NPA,F079,,-1,15,3,5,1,0.333,0.0,1.0,0.8,0.333,1.0,0.333,0.2,0.7363,0.611,0.3165,Exclude,Readiness
+ETH Northern JAS,9,Include,Medium,NPA,F079,,0,15,3,5,1,0.333,0.0,1.0,0.8,0.333,1.0,0.333,0.2,0.7363,0.611,0.3165,Exclude,Readiness
+ETH Northern JAS,10,Readiness,Medium,NPA,F079,,1,16,3,6,2,0.667,0.0,1.0,0.667,0.2,1.0,0.375,0.188,0.3036,0.718,0.1482,Readiness,Readiness
+ETH Northern JAS,11,Readiness,Medium,NPA,F079,,2,16,3,6,2,0.667,0.0,1.0,0.667,0.25,1.0,0.375,0.188,0.3036,0.718,0.1482,Readiness,Readiness
+ETH Northern JAS,12,Readiness,Medium,NPA,F079,,3,16,3,6,2,0.667,0.0,1.0,0.667,0.25,1.0,0.375,0.188,0.3036,0.769,0.0946,Readiness,Readiness
+ETH Northern MAM,1,Include,Medium,NPA,F081,,-4,15,4,5,2,0.5,0.0,1.0,0.6,0.0,1.0,0.333,0.267,0.4066,0.523,0.4747,Readiness,Readiness
+ETH Northern MAM,2,Include,Medium,NPA,F081,,-3,15,4,5,1,0.25,0.0,1.0,0.8,0.333,1.0,0.333,0.267,0.8462,0.5,0.5253,Exclude,Exclude
+ETH Northern MAM,3,Include,Medium,NPA,F081,,-2,15,4,5,1,0.25,0.0,1.0,0.8,0.333,1.0,0.333,0.267,0.8462,0.5,0.5253,Exclude,Exclude
+ETH Northern MAM,4,Include,Medium,NPA,F081,,-1,16,5,6,2,0.4,0.0,1.0,0.667,0.248,1.0,0.375,0.312,0.6538,0.473,0.5865,Readiness,Exclude
+ETH Northern MAM,5,Include,Medium,NPA,F081,,0,15,4,5,2,0.5,0.0,1.0,0.6,0.0,1.0,0.333,0.267,0.4066,0.523,0.4747,Readiness,Readiness
+ETH Northern MAM,6,Readiness,Medium,NPA,F081,,1,15,4,5,2,0.5,0.0,1.0,0.6,0.0,1.0,0.333,0.267,0.4066,0.614,0.2857,Readiness,Readiness
+ETH Northern MAM,7,Readiness,Medium,NPA,F081,,2,15,4,5,2,0.5,0.0,1.0,0.6,0.0,1.0,0.333,0.267,0.4066,0.795,0.052,Readiness,Readiness
+ETH Northern MAM,8,Readiness,Medium,NPA,F081,,3,15,4,5,2,0.5,0.0,1.0,0.6,0.0,1.0,0.333,0.267,0.4066,0.795,0.052,Readiness,Readiness
+ETH Northern MAM,9,Readiness,Medium,NPA,F081,,4,15,4,5,2,0.5,0.0,1.0,0.6,0.0,1.0,0.333,0.267,0.4066,0.795,0.052,Readiness,Readiness
+ETH Northern MAM,12,Readiness,Medium,NPA,F081,,-5,15,4,5,1,0.25,0.0,1.0,0.8,0.333,1.0,0.333,0.267,0.8462,0.409,0.7143,Exclude,Exclude
+ETH Southern OND,1,Readiness,Medium,HOA,F075,,1,15,3,5,1,0.333,0.0,1.0,0.8,0.333,1.0,0.333,0.2,0.7363,0.486,0.5574,Exclude,Exclude
+ETH Southern OND,2,Readiness,Medium,HOA,F075,,2,15,3,5,2,0.667,0.0,1.0,0.6,0.0,1.0,0.333,0.2,0.2418,0.667,0.2242,Readiness,Readiness
+ETH Southern OND,3,Readiness,Medium,HOA,F075,,3,15,3,5,2,0.667,0.0,1.0,0.6,0.0,1.0,0.333,0.2,0.2418,0.667,0.2242,Readiness,Readiness
+ETH Southern OND,4,Readiness,Medium,HOA,F075,,4,16,4,5,2,0.5,0.0,1.0,0.6,0.0,1.0,0.312,0.25,0.3654,0.688,0.1582,Readiness,Readiness
+ETH Southern OND,7,Readiness,Medium,HOA,F075,,-5,14,2,5,1,0.5,0.0,1.0,0.8,0.333,1.0,0.357,0.143,0.6044,0.458,0.608,Readiness,Exclude
+ETH Southern OND,8,Include,Medium,HOA,F075,,-4,14,2,5,1,0.5,0.0,1.0,0.8,0.333,1.0,0.357,0.143,0.6044,0.458,0.608,Readiness,Exclude
+ETH Southern OND,9,Include,Medium,HOA,F075,,-3,14,2,5,1,0.5,0.0,1.0,0.8,0.333,1.0,0.357,0.143,0.6044,0.458,0.608,Readiness,Exclude
+ETH Southern OND,10,Include,Medium,HOA,F075,,-2,15,3,5,1,0.333,0.0,1.0,0.8,0.333,1.0,0.333,0.2,0.7363,0.486,0.5574,Exclude,Exclude
+ETH Southern OND,11,Include,Medium,HOA,F075,,-1,15,3,5,1,0.333,0.0,1.0,0.8,0.4,1.0,0.333,0.2,0.7363,0.486,0.5574,Exclude,Exclude
+ETH Southern OND,12,Include,Medium,HOA,F075,,0,15,3,5,1,0.333,0.0,1.0,0.8,0.333,1.0,0.333,0.2,0.7363,0.486,0.5574,Exclude,Exclude
+ETH Southern MAM,1,Include,Medium,HOA,F073,,-4,15,4,5,1,0.25,0.0,0.75,0.8,0.333,1.0,0.333,0.267,0.8462,0.227,0.9488,Exclude,Exclude
+ETH Southern MAM,2,Include,Medium,HOA,F073,,-3,15,4,5,1,0.25,0.0,0.8,0.8,0.333,1.0,0.333,0.267,0.8462,0.386,0.7553,Exclude,Exclude
+ETH Southern MAM,3,Include,Medium,HOA,F073,,-2,15,4,5,1,0.25,0.0,1.0,0.8,0.37,1.0,0.333,0.267,0.8462,0.386,0.7553,Exclude,Exclude
+ETH Southern MAM,4,Include,Medium,HOA,F073,,-1,16,5,5,2,0.4,0.0,1.0,0.6,0.0,1.0,0.312,0.312,0.5165,0.6,0.2917,Readiness,Readiness
+ETH Southern MAM,5,Include,Medium,HOA,F073,,0,15,5,5,2,0.4,0.0,1.0,0.6,0.0,1.0,0.333,0.333,0.5664,0.6,0.297,Readiness,Readiness
+ETH Southern MAM,6,Readiness,Medium,HOA,F073,,1,15,5,6,3,0.6,0.0,1.0,0.5,0.0,1.0,0.4,0.333,0.2867,0.6,0.297,Readiness,Readiness
+ETH Southern MAM,7,Readiness,Medium,HOA,F073,,2,15,5,6,3,0.6,0.0,1.0,0.5,0.0,1.0,0.4,0.333,0.2867,0.67,0.1634,Readiness,Readiness
+ETH Southern MAM,8,Readiness,Medium,HOA,F073,,3,15,5,5,3,0.6,0.0,1.0,0.4,0.0,1.0,0.333,0.333,0.1668,0.67,0.1634,Readiness,Readiness
+ETH Southern MAM,9,Readiness,Medium,HOA,F073,,4,15,5,5,3,0.6,0.143,1.0,0.4,0.0,0.857,0.333,0.333,0.1668,0.67,0.1634,Readiness,Readiness
+ETH Southern MAM,12,Readiness,Medium,HOA,F073,,-5,15,4,5,1,0.25,0.0,1.0,0.8,0.333,1.0,0.333,0.267,0.8462,0.33,0.8521,Exclude,Exclude
+KEN National OND,1,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades,1,16,3,5,2,0.667,0.0,1.0,0.6,0.129,1.0,0.312,0.188,0.2143,0.744,0.1113,Readiness,Readiness
+KEN National OND,2,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades,2,16,3,6,3,1.0,1.0,1.0,0.5,0.0,1.0,0.375,0.188,0.0357,0.897,0.021,Include,Include
+KEN National OND,3,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades,3,15,3,5,2,0.667,0.0,1.0,0.6,0.0,1.0,0.333,0.2,0.2418,0.889,0.0246,Readiness,Include
+KEN National OND,4,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades,4,15,3,5,2,0.667,0.0,1.0,0.6,0.0,1.0,0.333,0.2,0.2418,0.806,0.0614,Readiness,Readiness
+KEN National OND,7,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades,-5,14,1,5,0,0.0,0.0,0.0,1.0,1.0,1.0,0.357,0.071,1.0,0.231,0.7857,Exclude,Exclude
+KEN National OND,8,Include,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades,-4,15,2,6,0,0.0,0.0,0.0,1.0,1.0,1.0,0.4,0.133,1.0,0.385,0.7143,Exclude,Exclude
+KEN National OND,9,Include,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades,-3,15,2,6,0,0.0,0.0,0.0,1.0,1.0,1.0,0.4,0.133,1.0,0.385,0.7143,Exclude,Exclude
+KEN National OND,10,Include,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades,-2,15,2,5,1,0.5,0.0,1.0,0.8,0.333,1.0,0.333,0.133,0.5714,0.615,0.3327,Readiness,Readiness
+KEN National OND,11,Include,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades,-1,14,2,5,1,0.5,0.0,1.0,0.8,0.333,1.0,0.357,0.143,0.6044,0.583,0.3909,Readiness,Readiness
+KEN National OND,12,Include,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades,0,15,2,5,1,0.5,0.0,1.0,0.8,0.333,1.0,0.333,0.133,0.5714,0.615,0.3305,Readiness,Readiness
+KEN National MAM,1,Include,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades,-4,16,6,5,2,0.333,0.0,0.75,0.6,0.0,1.0,0.312,0.375,0.6538,0.467,0.6076,Readiness,Exclude
+KEN National MAM,2,Include,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades,-3,16,6,6,4,0.667,0.25,1.0,0.333,0.0,0.75,0.375,0.375,0.0919,0.675,0.1373,Readiness,Readiness
+KEN National MAM,3,Include,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades,-2,15,6,5,3,0.5,0.0,1.0,0.4,0.0,1.0,0.333,0.4,0.2867,0.676,0.1423,Readiness,Readiness
+KEN National MAM,4,Include,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades,-1,15,6,5,3,0.5,0.0,1.0,0.4,0.0,1.0,0.333,0.4,0.2867,0.574,0.3372,Readiness,Readiness
+KEN National MAM,5,Include,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades,0,15,6,5,3,0.5,0.0,1.0,0.4,0.0,1.0,0.333,0.4,0.2867,0.574,0.3372,Readiness,Readiness
+KEN National MAM,6,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades,1,15,6,5,3,0.5,0.0,1.0,0.4,0.0,1.0,0.333,0.4,0.2867,0.685,0.1306,Readiness,Readiness
+KEN National MAM,7,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades,2,15,6,6,4,0.667,0.25,1.0,0.333,0.0,0.75,0.4,0.4,0.1189,0.815,0.0248,Readiness,Include
+KEN National MAM,8,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades,3,16,6,6,4,0.667,0.25,1.0,0.333,0.0,0.75,0.375,0.375,0.0919,0.9,0.0054,Readiness,Include
+KEN National MAM,9,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades,4,16,6,6,4,0.667,0.25,1.0,0.333,0.0,0.8,0.375,0.375,0.0919,0.9,0.0054,Readiness,Include
+KEN National MAM,12,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades,-5,15,5,5,1,0.2,0.0,0.667,0.8,0.333,1.0,0.333,0.333,0.9161,0.33,0.8725,Exclude,Exclude
+ZWE National Oct-Mar,1,Include,Medium,SSA,F189,,-2,16,4,5,2,0.5,0.0,1.0,0.6,0.106,1.0,0.312,0.25,0.3654,0.708,0.1211,Readiness,Readiness
+ZWE National Oct-Mar,2,Include,Medium,SSA,F189,,-1,16,4,6,2,0.5,0.0,1.0,0.667,0.25,1.0,0.375,0.25,0.489,0.75,0.0785,Readiness,Readiness
+ZWE National Oct-Mar,3,Include,Medium,SSA,F189,,0,15,4,5,2,0.5,0.0,1.0,0.6,0.0,1.0,0.333,0.267,0.4066,0.818,0.0363,Readiness,Include
+ZWE National Oct-Mar,4,Readiness,Medium,SSA,F189,,1,15,4,6,4,1.0,1.0,1.0,0.333,0.0,0.75,0.4,0.267,0.011,0.977,0.0018,Include,Include
+ZWE National Oct-Mar,5,Readiness,Medium,SSA,F189,,2,15,4,6,4,1.0,1.0,1.0,0.333,0.0,0.751,0.4,0.267,0.011,0.977,0.0013,Include,Include
+ZWE National Oct-Mar,6,Readiness,Medium,SSA,F189,,3,15,4,5,4,1.0,1.0,1.0,0.2,0.0,0.667,0.333,0.267,0.0037,0.955,0.0029,Include,Include
+ZWE National Oct-Mar,7,Readiness,Medium,SSA,F189,,4,15,4,5,4,1.0,1.0,1.0,0.2,0.0,0.6,0.333,0.267,0.0037,0.955,0.0043,Include,Include
+ZWE National Oct-Mar,10,Readiness,Medium,SSA,F189,,-5,15,4,5,2,0.5,0.0,1.0,0.6,0.0,1.0,0.333,0.267,0.4066,0.705,0.1314,Readiness,Readiness
+ZWE National Oct-Mar,11,Include,Medium,SSA,F189,,-4,14,3,5,1,0.333,0.0,1.0,0.8,0.333,1.0,0.357,0.214,0.7692,0.636,0.2644,Exclude,Readiness
+ZWE National Oct-Mar,12,Include,Medium,SSA,F189,,-3,15,4,5,2,0.5,0.0,1.0,0.6,0.0,1.0,0.333,0.267,0.4066,0.682,0.1616,Readiness,Readiness

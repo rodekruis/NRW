@@ -1,0 +1,56 @@
+region_season,months_until_season_start,issue_month,grade,confidence,regime,decision_id,note
+ETH Meher JAS,4,2,Exclude,Medium,KIR,C036,
+ETH Meher JAS,3,3,Exclude,Medium,KIR,C036,
+ETH Meher JAS,2,4,Readiness,Medium,KIR,C036,
+ETH Meher JAS,1,5,Include,Medium,KIR,C036,
+ETH Meher JAS,0,6,Include,Medium,KIR,C036,
+ETH Belg JAS,4,2,Exclude,Medium-low,BELG,C042,Southern Belg zones (below 8N) are graded Readiness only (C043)
+ETH Belg JAS,3,3,Exclude,Medium-low,BELG,C042,Southern Belg zones (below 8N) are graded Readiness only (C043)
+ETH Belg JAS,2,4,Readiness,Medium-low,BELG,C042,Southern Belg zones (below 8N) are graded Readiness only (C043)
+ETH Belg JAS,1,5,Include,Medium-low,BELG,C042,Southern Belg zones (below 8N) are graded Readiness only (C043)
+ETH Belg JAS,0,6,Include,Medium-low,BELG,C042,Southern Belg zones (below 8N) are graded Readiness only (C043)
+ETH Belg MAM,4,10,Exclude,Low,BELG,C039,
+ETH Belg MAM,3,11,Exclude,Low,BELG,C039,
+ETH Belg MAM,2,12,Exclude,Low,BELG,C039,
+ETH Belg MAM,1,1,Exclude,Low,BELG,C039,
+ETH Belg MAM,0,2,Readiness,Low,BELG,C039,
+ETH Northern JAS,4,3,Exclude,Low-medium,NPA,C049,
+ETH Northern JAS,3,4,Exclude,Low-medium,NPA,C049,
+ETH Northern JAS,2,5,Readiness,Low-medium,NPA,C049,
+ETH Northern JAS,1,6,Include,Low-medium,NPA,C049,
+ETH Northern JAS,0,7,Include,Low-medium,NPA,C049,
+ETH Northern MAM,4,11,Exclude,Low,NPA,C046,
+ETH Northern MAM,3,12,Exclude,Low,NPA,C046,
+ETH Northern MAM,2,1,Exclude,Low,NPA,C046,
+ETH Northern MAM,1,2,Exclude,Low,NPA,C046,
+ETH Northern MAM,0,3,Readiness,Low,NPA,C046,
+ETH Southern OND,4,6,Exclude,Medium-high,HOA,C062,
+ETH Southern OND,3,7,Readiness,Medium-high,HOA,C062,
+ETH Southern OND,2,8,Include,Medium-high,HOA,C062,
+ETH Southern OND,1,9,Include,Medium-high,HOA,C062,
+ETH Southern OND,0,10,Include,Medium-high,HOA,C062,
+ETH Southern MAM,4,11,Exclude,Low,HOA,C058,
+ETH Southern MAM,3,12,Readiness,Low,HOA,C058,
+ETH Southern MAM,2,1,Readiness,Low,HOA,C058,
+ETH Southern MAM,1,2,Readiness,Low,HOA,C058,
+ETH Southern MAM,0,3,Include,Low,HOA,C058,
+KEN National OND,4,6,Exclude,Medium-high,HOA,C062,Farming zones (C072) have the same grades
+KEN National OND,3,7,Readiness,Medium-high,HOA,C062,Farming zones (C072) have the same grades
+KEN National OND,2,8,Include,Medium-high,HOA,C062,Farming zones (C072) have the same grades
+KEN National OND,1,9,Include,Medium-high,HOA,C062,Farming zones (C072) have the same grades
+KEN National OND,0,10,Include,Medium-high,HOA,C062,Farming zones (C072) have the same grades
+KEN National MAM,4,11,Exclude,Low,HOA,C058,Grades of the ASAL zones; farming zones (C065) are Exclude until Readiness in February and Include in March
+KEN National MAM,3,12,Readiness,Low,HOA,C058,Grades of the ASAL zones; farming zones (C065) are Exclude until Readiness in February and Include in March
+KEN National MAM,2,1,Readiness,Low,HOA,C058,Grades of the ASAL zones; farming zones (C065) are Exclude until Readiness in February and Include in March
+KEN National MAM,1,2,Readiness,Low,HOA,C058,Grades of the ASAL zones; farming zones (C065) are Exclude until Readiness in February and Include in March
+KEN National MAM,0,3,Include,Low,HOA,C058,Grades of the ASAL zones; farming zones (C065) are Exclude until Readiness in February and Include in March
+ZWE National Oct-Mar,4,6,Exclude,Medium,SSA,C095,
+ZWE National Oct-Mar,3,7,Readiness,Medium,SSA,C095,
+ZWE National Oct-Mar,2,8,Readiness,Medium,SSA,C095,
+ZWE National Oct-Mar,1,9,Include,Medium,SSA,C095,
+ZWE National Oct-Mar,0,10,Include,Medium,SSA,C095,
+LSO National Oct-Mar,4,6,Exclude,Low,SSA,C097,
+LSO National Oct-Mar,3,7,Readiness,Low,SSA,C097,
+LSO National Oct-Mar,2,8,Readiness,Low,SSA,C097,
+LSO National Oct-Mar,1,9,Readiness,Low,SSA,C097,
+LSO National Oct-Mar,0,10,Readiness,Low,SSA,C097,

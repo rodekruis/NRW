@@ -1,0 +1,133 @@
+region_season,issue_month,grade,confidence,regime,decision_id,note
+ETH Meher JAS,1,Readiness,Medium,KIR,F077,
+ETH Meher JAS,2,Readiness,Medium,KIR,F077,
+ETH Meher JAS,3,Readiness,Medium,KIR,F077,
+ETH Meher JAS,4,Readiness,Medium,KIR,F077,
+ETH Meher JAS,5,Include,Medium,KIR,F077,
+ETH Meher JAS,6,Include,Medium,KIR,F077,
+ETH Meher JAS,7,Include,Medium,KIR,F077,
+ETH Meher JAS,8,Include,Medium,KIR,F077,
+ETH Meher JAS,9,Include,Medium,KIR,F077,
+ETH Meher JAS,10,Readiness,Medium,KIR,F077,
+ETH Meher JAS,11,Readiness,Medium,KIR,F077,
+ETH Meher JAS,12,Readiness,Medium,KIR,F077,
+ETH Belg JAS,1,Readiness,Medium,BELG,F069,
+ETH Belg JAS,2,Readiness,Medium,BELG,F069,
+ETH Belg JAS,3,Readiness,Medium,BELG,F069,
+ETH Belg JAS,4,Readiness,Medium,BELG,F069,
+ETH Belg JAS,5,Include,Medium,BELG,F069,
+ETH Belg JAS,6,Include,Medium,BELG,F069,
+ETH Belg JAS,7,Include,Medium,BELG,F069,
+ETH Belg JAS,8,Include,Medium,BELG,F069,
+ETH Belg JAS,9,Include,Medium,BELG,F069,
+ETH Belg JAS,10,Readiness,Medium,BELG,F069,
+ETH Belg JAS,11,Readiness,Medium,BELG,F069,
+ETH Belg JAS,12,Readiness,Medium,BELG,F069,
+ETH Belg MAM,1,Include,Medium,BELG,F071,
+ETH Belg MAM,2,Include,Medium,BELG,F071,
+ETH Belg MAM,3,Include,Medium,BELG,F071,
+ETH Belg MAM,4,Include,Medium,BELG,F071,
+ETH Belg MAM,5,Include,Medium,BELG,F071,
+ETH Belg MAM,6,Readiness,Medium,BELG,F071,
+ETH Belg MAM,7,Readiness,Medium,BELG,F071,
+ETH Belg MAM,8,Readiness,Medium,BELG,F071,
+ETH Belg MAM,9,Readiness,Medium,BELG,F071,
+ETH Belg MAM,10,Readiness,Medium,BELG,F071,
+ETH Belg MAM,11,Readiness,Medium,BELG,F071,
+ETH Belg MAM,12,Readiness,Medium,BELG,F071,
+ETH Northern JAS,1,Readiness,Medium,NPA,F079,
+ETH Northern JAS,2,Readiness,Medium,NPA,F079,
+ETH Northern JAS,3,Readiness,Medium,NPA,F079,
+ETH Northern JAS,4,Readiness,Medium,NPA,F079,
+ETH Northern JAS,5,Include,Medium,NPA,F079,
+ETH Northern JAS,6,Include,Medium,NPA,F079,
+ETH Northern JAS,7,Include,Medium,NPA,F079,
+ETH Northern JAS,8,Include,Medium,NPA,F079,
+ETH Northern JAS,9,Include,Medium,NPA,F079,
+ETH Northern JAS,10,Readiness,Medium,NPA,F079,
+ETH Northern JAS,11,Readiness,Medium,NPA,F079,
+ETH Northern JAS,12,Readiness,Medium,NPA,F079,
+ETH Northern MAM,1,Include,Medium,NPA,F081,
+ETH Northern MAM,2,Include,Medium,NPA,F081,
+ETH Northern MAM,3,Include,Medium,NPA,F081,
+ETH Northern MAM,4,Include,Medium,NPA,F081,
+ETH Northern MAM,5,Include,Medium,NPA,F081,
+ETH Northern MAM,6,Readiness,Medium,NPA,F081,
+ETH Northern MAM,7,Readiness,Medium,NPA,F081,
+ETH Northern MAM,8,Readiness,Medium,NPA,F081,
+ETH Northern MAM,9,Readiness,Medium,NPA,F081,
+ETH Northern MAM,10,Readiness,Medium,NPA,F081,
+ETH Northern MAM,11,Readiness,Medium,NPA,F081,
+ETH Northern MAM,12,Readiness,Medium,NPA,F081,
+ETH Southern OND,1,Readiness,Medium,HOA,F075,
+ETH Southern OND,2,Readiness,Medium,HOA,F075,
+ETH Southern OND,3,Readiness,Medium,HOA,F075,
+ETH Southern OND,4,Readiness,Medium,HOA,F075,
+ETH Southern OND,5,Exclude,Medium,HOA,F075,
+ETH Southern OND,6,Readiness,Medium,HOA,F075,
+ETH Southern OND,7,Readiness,Medium,HOA,F075,
+ETH Southern OND,8,Include,Medium,HOA,F075,
+ETH Southern OND,9,Include,Medium,HOA,F075,
+ETH Southern OND,10,Include,Medium,HOA,F075,
+ETH Southern OND,11,Include,Medium,HOA,F075,
+ETH Southern OND,12,Include,Medium,HOA,F075,
+ETH Southern MAM,1,Include,Medium,HOA,F073,
+ETH Southern MAM,2,Include,Medium,HOA,F073,
+ETH Southern MAM,3,Include,Medium,HOA,F073,
+ETH Southern MAM,4,Include,Medium,HOA,F073,
+ETH Southern MAM,5,Include,Medium,HOA,F073,
+ETH Southern MAM,6,Readiness,Medium,HOA,F073,
+ETH Southern MAM,7,Readiness,Medium,HOA,F073,
+ETH Southern MAM,8,Readiness,Medium,HOA,F073,
+ETH Southern MAM,9,Readiness,Medium,HOA,F073,
+ETH Southern MAM,10,Readiness,Medium,HOA,F073,
+ETH Southern MAM,11,Readiness,Medium,HOA,F073,
+ETH Southern MAM,12,Readiness,Medium,HOA,F073,
+KEN National OND,1,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,2,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,3,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,4,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,5,Exclude,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,6,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,7,Readiness,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,8,Include,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,9,Include,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,10,Include,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,11,Include,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National OND,12,Include,Medium,HOA,F099,Grades of the ASAL zones; the farming zones (F093 and F095) have the same grades
+KEN National MAM,1,Include,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,2,Include,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,3,Include,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,4,Include,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,5,Include,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,6,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,7,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,8,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,9,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,10,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,11,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+KEN National MAM,12,Readiness,Medium,HOA,F097,Grades of the ASAL zones; the farming zones (F087 and F089) have the same grades
+ZWE National Oct-Mar,1,Include,Medium,SSA,F189,
+ZWE National Oct-Mar,2,Include,Medium,SSA,F189,
+ZWE National Oct-Mar,3,Include,Medium,SSA,F189,
+ZWE National Oct-Mar,4,Readiness,Medium,SSA,F189,
+ZWE National Oct-Mar,5,Readiness,Medium,SSA,F189,
+ZWE National Oct-Mar,6,Readiness,Medium,SSA,F189,
+ZWE National Oct-Mar,7,Readiness,Medium,SSA,F189,
+ZWE National Oct-Mar,8,Exclude,Medium,SSA,F189,
+ZWE National Oct-Mar,9,Exclude,Medium,SSA,F189,
+ZWE National Oct-Mar,10,Readiness,Medium,SSA,F189,
+ZWE National Oct-Mar,11,Include,Medium,SSA,F189,
+ZWE National Oct-Mar,12,Include,Medium,SSA,F189,
+LSO National Oct-Mar,1,Include,Low-medium,SSA,F101,
+LSO National Oct-Mar,2,Include,Low-medium,SSA,F101,
+LSO National Oct-Mar,3,Include,Low-medium,SSA,F101,
+LSO National Oct-Mar,4,Readiness,Low-medium,SSA,F101,
+LSO National Oct-Mar,5,Readiness,Low-medium,SSA,F101,
+LSO National Oct-Mar,6,Readiness,Low-medium,SSA,F101,
+LSO National Oct-Mar,7,Readiness,Low-medium,SSA,F101,
+LSO National Oct-Mar,8,Exclude,Low-medium,SSA,F101,
+LSO National Oct-Mar,9,Exclude,Low-medium,SSA,F101,
+LSO National Oct-Mar,10,Readiness,Low-medium,SSA,F101,
+LSO National Oct-Mar,11,Include,Low-medium,SSA,F101,
+LSO National Oct-Mar,12,Include,Low-medium,SSA,F101,

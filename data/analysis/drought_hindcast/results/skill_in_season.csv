@@ -1,0 +1,289 @@
+scope,variant,months_until_season_start,season_count,drought_count,alert_count,hit_count,hit_rate,hit_rate_low,hit_rate_high,false_alarm_ratio,false_alarm_ratio_low,false_alarm_ratio_high,alert_frequency,drought_frequency,full_season_share,probability_by_chance
+All region-seasons,rest_of_season,-5,90,30,41,19,0.633,0.457,0.806,0.537,0.359,0.706,0.456,0.333,0.0,
+All region-seasons,rest_of_season,-4,90,30,32,15,0.5,0.281,0.696,0.531,0.32,0.75,0.356,0.333,0.0,
+All region-seasons,rest_of_season,-3,228,78,80,45,0.577,0.439,0.703,0.438,0.322,0.562,0.351,0.342,0.0,
+All region-seasons,rest_of_season,-2,502,172,194,107,0.622,0.544,0.697,0.448,0.36,0.547,0.386,0.343,0.0,
+All region-seasons,rest_of_season,-1,502,172,193,120,0.698,0.612,0.776,0.378,0.314,0.451,0.384,0.343,0.0,
+All region-seasons,rest_of_season,0,502,172,181,112,0.651,0.56,0.731,0.381,0.305,0.459,0.361,0.343,1.0,
+All region-seasons,rest_of_season,1,502,172,183,101,0.587,0.491,0.683,0.448,0.354,0.549,0.365,0.343,0.821,
+All region-seasons,rest_of_season,2,501,172,174,85,0.494,0.409,0.577,0.511,0.42,0.603,0.347,0.343,0.82,
+All region-seasons,rest_of_season,3,498,172,186,88,0.512,0.427,0.605,0.527,0.44,0.613,0.373,0.345,0.544,
+All region-seasons,rest_of_season,4,498,172,163,77,0.448,0.367,0.531,0.528,0.453,0.603,0.327,0.345,0.0,
+All region-seasons,earlier_forecast_for_past_months,-5,90,30,35,18,0.6,0.409,0.778,0.486,0.29,0.686,0.389,0.333,1.0,
+All region-seasons,earlier_forecast_for_past_months,-4,90,30,33,18,0.6,0.364,0.8,0.455,0.25,0.688,0.367,0.333,1.0,
+All region-seasons,earlier_forecast_for_past_months,-3,228,78,83,54,0.692,0.584,0.793,0.349,0.244,0.463,0.364,0.342,1.0,
+All region-seasons,earlier_forecast_for_past_months,-2,502,172,204,138,0.802,0.728,0.871,0.324,0.244,0.407,0.406,0.343,1.0,
+All region-seasons,earlier_forecast_for_past_months,-1,502,172,196,129,0.75,0.665,0.827,0.342,0.27,0.421,0.39,0.343,1.0,
+All region-seasons,earlier_forecast_for_past_months,0,502,172,181,112,0.651,0.564,0.733,0.381,0.309,0.46,0.361,0.343,1.0,
+All region-seasons,earlier_forecast_for_past_months,1,502,172,183,101,0.587,0.487,0.681,0.448,0.355,0.547,0.365,0.343,0.821,
+All region-seasons,earlier_forecast_for_past_months,2,501,172,174,85,0.494,0.407,0.575,0.511,0.421,0.607,0.347,0.343,0.82,
+All region-seasons,earlier_forecast_for_past_months,3,498,172,186,88,0.512,0.428,0.6,0.527,0.441,0.609,0.373,0.345,0.544,
+All region-seasons,earlier_forecast_for_past_months,4,498,172,163,77,0.448,0.365,0.528,0.528,0.452,0.605,0.327,0.345,0.0,
+All region-seasons,observed_for_past_months,-5,90,30,33,28,0.933,0.833,1.0,0.152,0.034,0.293,0.367,0.333,1.0,
+All region-seasons,observed_for_past_months,-4,90,30,35,24,0.8,0.65,0.933,0.314,0.146,0.5,0.389,0.333,1.0,
+All region-seasons,observed_for_past_months,-3,228,78,76,60,0.769,0.658,0.859,0.211,0.103,0.325,0.333,0.342,1.0,
+All region-seasons,observed_for_past_months,-2,502,172,180,145,0.843,0.785,0.899,0.194,0.137,0.253,0.359,0.343,1.0,
+All region-seasons,observed_for_past_months,-1,502,172,196,135,0.785,0.71,0.857,0.311,0.245,0.383,0.39,0.343,1.0,
+All region-seasons,observed_for_past_months,0,502,172,181,112,0.651,0.565,0.733,0.381,0.307,0.46,0.361,0.343,1.0,
+All region-seasons,observed_for_past_months,1,502,172,183,101,0.587,0.49,0.685,0.448,0.348,0.544,0.365,0.343,0.821,
+All region-seasons,observed_for_past_months,2,501,172,174,85,0.494,0.411,0.576,0.511,0.419,0.605,0.347,0.343,0.82,
+All region-seasons,observed_for_past_months,3,498,172,186,88,0.512,0.429,0.597,0.527,0.44,0.612,0.373,0.345,0.544,
+All region-seasons,observed_for_past_months,4,498,172,163,77,0.448,0.368,0.527,0.528,0.453,0.607,0.327,0.345,0.0,
+ETH Meher JAS,rest_of_season,-3,46,16,16,10,0.625,0.375,0.857,0.375,0.143,0.625,0.348,0.348,0.0,0.0055
+ETH Meher JAS,rest_of_season,-2,46,16,17,10,0.625,0.381,0.857,0.412,0.187,0.65,0.37,0.348,0.0,0.011
+ETH Meher JAS,rest_of_season,-1,46,16,16,9,0.562,0.308,0.812,0.438,0.2,0.696,0.348,0.348,0.0,0.029
+ETH Meher JAS,rest_of_season,0,46,16,14,8,0.5,0.25,0.765,0.429,0.167,0.7,0.304,0.348,1.0,0.0396
+ETH Meher JAS,rest_of_season,1,46,16,15,9,0.562,0.312,0.812,0.4,0.154,0.667,0.326,0.348,1.0,0.0158
+ETH Meher JAS,rest_of_season,2,46,16,11,7,0.438,0.214,0.688,0.364,0.1,0.667,0.239,0.348,1.0,0.0278
+ETH Meher JAS,rest_of_season,3,46,16,16,8,0.5,0.25,0.75,0.5,0.25,0.75,0.348,0.348,0.0,0.1049
+ETH Meher JAS,rest_of_season,4,46,16,14,6,0.375,0.133,0.632,0.571,0.294,0.833,0.304,0.348,0.0,0.3321
+ETH Meher JAS,earlier_forecast_for_past_months,-3,46,16,16,12,0.75,0.5,0.941,0.25,0.056,0.5,0.348,0.348,1.0,0.0001
+ETH Meher JAS,earlier_forecast_for_past_months,-2,46,16,17,12,0.75,0.533,0.938,0.294,0.083,0.5,0.37,0.348,1.0,0.0002
+ETH Meher JAS,earlier_forecast_for_past_months,-1,46,16,16,10,0.625,0.375,0.857,0.375,0.133,0.625,0.348,0.348,1.0,0.0055
+ETH Meher JAS,earlier_forecast_for_past_months,0,46,16,14,8,0.5,0.25,0.75,0.429,0.167,0.706,0.304,0.348,1.0,0.0396
+ETH Meher JAS,earlier_forecast_for_past_months,1,46,16,15,9,0.562,0.312,0.8,0.4,0.154,0.667,0.326,0.348,1.0,0.0158
+ETH Meher JAS,earlier_forecast_for_past_months,2,46,16,11,7,0.438,0.2,0.692,0.364,0.1,0.667,0.239,0.348,1.0,0.0278
+ETH Meher JAS,earlier_forecast_for_past_months,3,46,16,16,8,0.5,0.25,0.733,0.5,0.267,0.75,0.348,0.348,0.0,0.1049
+ETH Meher JAS,earlier_forecast_for_past_months,4,46,16,14,6,0.375,0.143,0.625,0.571,0.294,0.833,0.304,0.348,0.0,0.3321
+ETH Meher JAS,observed_for_past_months,-3,46,16,13,13,0.812,0.6,1.0,0.0,0.0,0.0,0.283,0.348,1.0,0.0
+ETH Meher JAS,observed_for_past_months,-2,46,16,14,13,0.812,0.6,1.0,0.071,0.0,0.25,0.304,0.348,1.0,0.0
+ETH Meher JAS,observed_for_past_months,-1,46,16,19,12,0.75,0.5,0.941,0.368,0.154,0.6,0.413,0.348,1.0,0.001
+ETH Meher JAS,observed_for_past_months,0,46,16,14,8,0.5,0.25,0.75,0.429,0.176,0.7,0.304,0.348,1.0,0.0396
+ETH Meher JAS,observed_for_past_months,1,46,16,15,9,0.562,0.308,0.8,0.4,0.154,0.667,0.326,0.348,1.0,0.0158
+ETH Meher JAS,observed_for_past_months,2,46,16,11,7,0.438,0.2,0.688,0.364,0.083,0.667,0.239,0.348,1.0,0.0278
+ETH Meher JAS,observed_for_past_months,3,46,16,16,8,0.5,0.25,0.733,0.5,0.25,0.75,0.348,0.348,0.0,0.1049
+ETH Meher JAS,observed_for_past_months,4,46,16,14,6,0.375,0.15,0.615,0.571,0.308,0.833,0.304,0.348,0.0,0.3321
+ETH Belg JAS,rest_of_season,-3,46,16,15,11,0.688,0.429,0.9,0.267,0.062,0.5,0.326,0.348,0.0,0.0002
+ETH Belg JAS,rest_of_season,-2,46,16,19,12,0.75,0.533,0.941,0.368,0.154,0.6,0.413,0.348,0.0,0.001
+ETH Belg JAS,rest_of_season,-1,46,16,15,12,0.75,0.529,0.938,0.2,0.0,0.429,0.326,0.348,0.0,0.0
+ETH Belg JAS,rest_of_season,0,46,16,16,11,0.688,0.444,0.9,0.312,0.091,0.571,0.348,0.348,1.0,0.0007
+ETH Belg JAS,rest_of_season,1,46,16,15,11,0.688,0.444,0.923,0.267,0.062,0.5,0.326,0.348,1.0,0.0002
+ETH Belg JAS,rest_of_season,2,46,16,15,10,0.625,0.375,0.85,0.333,0.105,0.583,0.326,0.348,1.0,0.0025
+ETH Belg JAS,rest_of_season,3,46,16,16,10,0.625,0.364,0.846,0.375,0.133,0.625,0.348,0.348,0.0,0.0055
+ETH Belg JAS,rest_of_season,4,46,16,17,12,0.75,0.529,0.947,0.294,0.083,0.529,0.37,0.348,0.0,0.0002
+ETH Belg JAS,earlier_forecast_for_past_months,-3,46,16,15,11,0.688,0.455,0.909,0.267,0.067,0.5,0.326,0.348,1.0,0.0002
+ETH Belg JAS,earlier_forecast_for_past_months,-2,46,16,19,15,0.938,0.8,1.0,0.211,0.048,0.412,0.413,0.348,1.0,0.0
+ETH Belg JAS,earlier_forecast_for_past_months,-1,46,16,15,13,0.812,0.583,1.0,0.133,0.0,0.333,0.326,0.348,1.0,0.0
+ETH Belg JAS,earlier_forecast_for_past_months,0,46,16,16,11,0.688,0.444,0.909,0.312,0.087,0.556,0.348,0.348,1.0,0.0007
+ETH Belg JAS,earlier_forecast_for_past_months,1,46,16,15,11,0.688,0.467,0.923,0.267,0.067,0.5,0.326,0.348,1.0,0.0002
+ETH Belg JAS,earlier_forecast_for_past_months,2,46,16,15,10,0.625,0.375,0.857,0.333,0.091,0.588,0.326,0.348,1.0,0.0025
+ETH Belg JAS,earlier_forecast_for_past_months,3,46,16,16,10,0.625,0.389,0.857,0.375,0.143,0.632,0.348,0.348,0.0,0.0055
+ETH Belg JAS,earlier_forecast_for_past_months,4,46,16,17,12,0.75,0.5,0.944,0.294,0.083,0.533,0.37,0.348,0.0,0.0002
+ETH Belg JAS,observed_for_past_months,-3,46,16,15,14,0.875,0.688,1.0,0.067,0.0,0.222,0.326,0.348,1.0,0.0
+ETH Belg JAS,observed_for_past_months,-2,46,16,17,14,0.875,0.688,1.0,0.176,0.0,0.385,0.37,0.348,1.0,0.0
+ETH Belg JAS,observed_for_past_months,-1,46,16,17,14,0.875,0.688,1.0,0.176,0.0,0.385,0.37,0.348,1.0,0.0
+ETH Belg JAS,observed_for_past_months,0,46,16,16,11,0.688,0.444,0.923,0.312,0.083,0.545,0.348,0.348,1.0,0.0007
+ETH Belg JAS,observed_for_past_months,1,46,16,15,11,0.688,0.438,0.917,0.267,0.067,0.53,0.326,0.348,1.0,0.0002
+ETH Belg JAS,observed_for_past_months,2,46,16,15,10,0.625,0.384,0.857,0.333,0.105,0.583,0.326,0.348,1.0,0.0025
+ETH Belg JAS,observed_for_past_months,3,46,16,16,10,0.625,0.368,0.857,0.375,0.143,0.643,0.348,0.348,0.0,0.0055
+ETH Belg JAS,observed_for_past_months,4,46,16,17,12,0.75,0.5,0.944,0.294,0.091,0.526,0.37,0.348,0.0,0.0002
+ETH Belg MAM,rest_of_season,-3,46,16,17,9,0.562,0.312,0.818,0.471,0.235,0.714,0.37,0.348,0.0,0.0492
+ETH Belg MAM,rest_of_season,-2,46,16,19,8,0.5,0.25,0.75,0.579,0.333,0.792,0.413,0.348,0.0,0.2867
+ETH Belg MAM,rest_of_season,-1,46,16,18,12,0.75,0.5,0.941,0.333,0.125,0.565,0.391,0.348,0.0,0.0004
+ETH Belg MAM,rest_of_season,0,46,16,17,10,0.625,0.385,0.867,0.412,0.176,0.667,0.37,0.348,1.0,0.011
+ETH Belg MAM,rest_of_season,1,46,16,20,10,0.625,0.37,0.875,0.5,0.292,0.727,0.435,0.348,1.0,0.0562
+ETH Belg MAM,rest_of_season,2,45,16,16,6,0.375,0.133,0.625,0.625,0.385,0.875,0.356,0.356,1.0,0.545
+ETH Belg MAM,rest_of_season,3,45,16,15,8,0.5,0.25,0.769,0.467,0.2,0.727,0.333,0.356,0.0,0.0771
+ETH Belg MAM,rest_of_season,4,45,16,18,10,0.625,0.375,0.857,0.444,0.222,0.692,0.4,0.356,0.0,0.0245
+ETH Belg MAM,earlier_forecast_for_past_months,-3,46,16,16,11,0.688,0.455,0.917,0.312,0.077,0.556,0.348,0.348,1.0,0.0007
+ETH Belg MAM,earlier_forecast_for_past_months,-2,46,16,21,14,0.875,0.688,1.0,0.333,0.133,0.545,0.457,0.348,1.0,0.0
+ETH Belg MAM,earlier_forecast_for_past_months,-1,46,16,17,12,0.75,0.5,0.938,0.294,0.083,0.538,0.37,0.348,1.0,0.0002
+ETH Belg MAM,earlier_forecast_for_past_months,0,46,16,17,10,0.625,0.385,0.857,0.412,0.176,0.647,0.37,0.348,1.0,0.011
+ETH Belg MAM,earlier_forecast_for_past_months,1,46,16,20,10,0.625,0.4,0.864,0.5,0.28,0.722,0.435,0.348,1.0,0.0562
+ETH Belg MAM,earlier_forecast_for_past_months,2,45,16,16,6,0.375,0.136,0.619,0.625,0.385,0.846,0.356,0.356,1.0,0.545
+ETH Belg MAM,earlier_forecast_for_past_months,3,45,16,15,8,0.5,0.25,0.75,0.467,0.2,0.733,0.333,0.356,0.0,0.0771
+ETH Belg MAM,earlier_forecast_for_past_months,4,45,16,18,10,0.625,0.381,0.889,0.444,0.222,0.684,0.4,0.356,0.0,0.0245
+ETH Belg MAM,observed_for_past_months,-3,46,16,14,13,0.812,0.6,1.0,0.071,0.0,0.222,0.304,0.348,1.0,0.0
+ETH Belg MAM,observed_for_past_months,-2,46,16,18,13,0.812,0.583,1.0,0.278,0.067,0.501,0.391,0.348,1.0,0.0
+ETH Belg MAM,observed_for_past_months,-1,46,16,17,12,0.75,0.5,0.938,0.294,0.077,0.5,0.37,0.348,1.0,0.0002
+ETH Belg MAM,observed_for_past_months,0,46,16,17,10,0.625,0.385,0.867,0.412,0.176,0.647,0.37,0.348,1.0,0.011
+ETH Belg MAM,observed_for_past_months,1,46,16,20,10,0.625,0.385,0.857,0.5,0.278,0.722,0.435,0.348,1.0,0.0562
+ETH Belg MAM,observed_for_past_months,2,45,16,16,6,0.375,0.133,0.625,0.625,0.364,0.867,0.356,0.356,1.0,0.545
+ETH Belg MAM,observed_for_past_months,3,45,16,15,8,0.5,0.25,0.733,0.467,0.222,0.727,0.333,0.356,0.0,0.0771
+ETH Belg MAM,observed_for_past_months,4,45,16,18,10,0.625,0.364,0.867,0.444,0.211,0.688,0.4,0.356,0.0,0.0245
+ETH Northern JAS,rest_of_season,-2,46,16,17,11,0.688,0.444,0.909,0.353,0.125,0.6,0.37,0.348,0.0,0.0016
+ETH Northern JAS,rest_of_season,-1,46,16,16,10,0.625,0.375,0.867,0.375,0.133,0.625,0.348,0.348,0.0,0.0055
+ETH Northern JAS,rest_of_season,0,46,16,17,13,0.812,0.6,1.0,0.235,0.053,0.455,0.37,0.348,1.0,0.0
+ETH Northern JAS,rest_of_season,1,46,16,14,11,0.688,0.437,0.917,0.214,0.0,0.462,0.304,0.348,1.0,0.0001
+ETH Northern JAS,rest_of_season,2,46,16,17,12,0.75,0.5,0.941,0.294,0.077,0.533,0.37,0.348,1.0,0.0002
+ETH Northern JAS,rest_of_season,3,46,16,16,12,0.75,0.5,0.944,0.25,0.053,0.5,0.348,0.348,1.0,0.0001
+ETH Northern JAS,rest_of_season,4,46,16,15,11,0.688,0.444,0.9,0.267,0.062,0.5,0.326,0.348,0.0,0.0002
+ETH Northern JAS,earlier_forecast_for_past_months,-2,46,16,18,14,0.875,0.684,1.0,0.222,0.053,0.412,0.391,0.348,1.0,0.0
+ETH Northern JAS,earlier_forecast_for_past_months,-1,46,16,18,14,0.875,0.692,1.0,0.222,0.053,0.417,0.391,0.348,1.0,0.0
+ETH Northern JAS,earlier_forecast_for_past_months,0,46,16,17,13,0.812,0.6,1.0,0.235,0.059,0.45,0.37,0.348,1.0,0.0
+ETH Northern JAS,earlier_forecast_for_past_months,1,46,16,14,11,0.688,0.455,0.917,0.214,0.0,0.462,0.304,0.348,1.0,0.0001
+ETH Northern JAS,earlier_forecast_for_past_months,2,46,16,17,12,0.75,0.521,0.938,0.294,0.083,0.533,0.37,0.348,1.0,0.0002
+ETH Northern JAS,earlier_forecast_for_past_months,3,46,16,16,12,0.75,0.529,0.941,0.25,0.062,0.5,0.348,0.348,1.0,0.0001
+ETH Northern JAS,earlier_forecast_for_past_months,4,46,16,15,11,0.688,0.444,0.917,0.267,0.062,0.5,0.326,0.348,0.0,0.0002
+ETH Northern JAS,observed_for_past_months,-2,46,16,16,16,1.0,1.0,1.0,0.0,0.0,0.0,0.348,0.348,1.0,0.0
+ETH Northern JAS,observed_for_past_months,-1,46,16,19,14,0.875,0.688,1.0,0.263,0.067,0.471,0.413,0.348,1.0,0.0
+ETH Northern JAS,observed_for_past_months,0,46,16,17,13,0.812,0.6,1.0,0.235,0.05,0.444,0.37,0.348,1.0,0.0
+ETH Northern JAS,observed_for_past_months,1,46,16,14,11,0.688,0.462,0.909,0.214,0.0,0.444,0.304,0.348,1.0,0.0001
+ETH Northern JAS,observed_for_past_months,2,46,16,17,12,0.75,0.529,0.941,0.294,0.071,0.529,0.37,0.348,1.0,0.0002
+ETH Northern JAS,observed_for_past_months,3,46,16,16,12,0.75,0.529,0.944,0.25,0.059,0.474,0.348,0.348,1.0,0.0001
+ETH Northern JAS,observed_for_past_months,4,46,16,15,11,0.688,0.438,0.909,0.267,0.059,0.5,0.326,0.348,0.0,0.0002
+ETH Northern MAM,rest_of_season,-2,46,16,13,7,0.438,0.188,0.7,0.462,0.2,0.75,0.283,0.348,0.0,0.0882
+ETH Northern MAM,rest_of_season,-1,46,16,20,11,0.688,0.454,0.9,0.45,0.222,0.667,0.435,0.348,0.0,0.0133
+ETH Northern MAM,rest_of_season,0,46,16,17,12,0.75,0.5,0.941,0.294,0.091,0.529,0.37,0.348,1.0,0.0002
+ETH Northern MAM,rest_of_season,1,46,16,16,10,0.625,0.357,0.857,0.375,0.143,0.625,0.348,0.348,1.0,0.0055
+ETH Northern MAM,rest_of_season,2,46,16,18,7,0.438,0.2,0.688,0.611,0.4,0.842,0.391,0.348,1.0,0.4371
+ETH Northern MAM,rest_of_season,3,45,16,22,9,0.562,0.308,0.8,0.591,0.385,0.8,0.489,0.356,1.0,0.3366
+ETH Northern MAM,rest_of_season,4,45,16,15,5,0.312,0.1,0.538,0.667,0.412,0.9,0.333,0.356,0.0,0.7057
+ETH Northern MAM,earlier_forecast_for_past_months,-2,46,16,18,12,0.75,0.5,0.945,0.333,0.125,0.562,0.391,0.348,1.0,0.0004
+ETH Northern MAM,earlier_forecast_for_past_months,-1,46,16,20,13,0.812,0.6,1.0,0.35,0.143,0.571,0.435,0.348,1.0,0.0002
+ETH Northern MAM,earlier_forecast_for_past_months,0,46,16,17,12,0.75,0.526,0.944,0.294,0.083,0.5,0.37,0.348,1.0,0.0002
+ETH Northern MAM,earlier_forecast_for_past_months,1,46,16,16,10,0.625,0.375,0.857,0.375,0.143,0.619,0.348,0.348,1.0,0.0055
+ETH Northern MAM,earlier_forecast_for_past_months,2,46,16,18,7,0.438,0.2,0.688,0.611,0.368,0.833,0.391,0.348,1.0,0.4371
+ETH Northern MAM,earlier_forecast_for_past_months,3,45,16,22,9,0.562,0.333,0.8,0.591,0.375,0.792,0.489,0.356,1.0,0.3366
+ETH Northern MAM,earlier_forecast_for_past_months,4,45,16,15,5,0.312,0.083,0.545,0.667,0.417,0.909,0.333,0.356,0.0,0.7057
+ETH Northern MAM,observed_for_past_months,-2,46,16,15,14,0.875,0.688,1.0,0.067,0.0,0.214,0.326,0.348,1.0,0.0
+ETH Northern MAM,observed_for_past_months,-1,46,16,20,14,0.875,0.687,1.0,0.3,0.105,0.524,0.435,0.348,1.0,0.0
+ETH Northern MAM,observed_for_past_months,0,46,16,17,12,0.75,0.5,0.941,0.294,0.077,0.526,0.37,0.348,1.0,0.0002
+ETH Northern MAM,observed_for_past_months,1,46,16,16,10,0.625,0.368,0.85,0.375,0.133,0.616,0.348,0.348,1.0,0.0055
+ETH Northern MAM,observed_for_past_months,2,46,16,18,7,0.438,0.2,0.688,0.611,0.368,0.826,0.391,0.348,1.0,0.4371
+ETH Northern MAM,observed_for_past_months,3,45,16,22,9,0.562,0.333,0.812,0.591,0.375,0.792,0.489,0.356,1.0,0.3366
+ETH Northern MAM,observed_for_past_months,4,45,16,15,5,0.312,0.091,0.556,0.667,0.417,0.905,0.333,0.356,0.0,0.7057
+ETH Southern OND,rest_of_season,-2,45,15,21,10,0.667,0.412,0.889,0.524,0.3,0.75,0.467,0.333,0.0,0.0562
+ETH Southern OND,rest_of_season,-1,45,15,17,13,0.867,0.667,1.0,0.235,0.056,0.462,0.378,0.333,0.0,0.0
+ETH Southern OND,rest_of_season,0,45,15,19,9,0.6,0.333,0.846,0.526,0.28,0.765,0.422,0.333,1.0,0.083
+ETH Southern OND,rest_of_season,1,45,15,18,9,0.6,0.333,0.85,0.5,0.267,0.75,0.4,0.333,1.0,0.0538
+ETH Southern OND,rest_of_season,2,45,15,18,7,0.467,0.214,0.727,0.611,0.385,0.833,0.4,0.333,1.0,0.3713
+ETH Southern OND,rest_of_season,3,45,15,19,9,0.6,0.333,0.833,0.526,0.3,0.75,0.422,0.333,1.0,0.083
+ETH Southern OND,rest_of_season,4,45,15,18,9,0.6,0.353,0.857,0.5,0.25,0.722,0.4,0.333,0.0,0.0538
+ETH Southern OND,earlier_forecast_for_past_months,-2,45,15,19,12,0.8,0.571,1.0,0.368,0.167,0.609,0.422,0.333,1.0,0.0004
+ETH Southern OND,earlier_forecast_for_past_months,-1,45,15,19,12,0.8,0.571,1.0,0.368,0.167,0.6,0.422,0.333,1.0,0.0004
+ETH Southern OND,earlier_forecast_for_past_months,0,45,15,19,9,0.6,0.333,0.846,0.526,0.294,0.75,0.422,0.333,1.0,0.083
+ETH Southern OND,earlier_forecast_for_past_months,1,45,15,18,9,0.6,0.333,0.85,0.5,0.273,0.727,0.4,0.333,1.0,0.0538
+ETH Southern OND,earlier_forecast_for_past_months,2,45,15,18,7,0.467,0.214,0.727,0.611,0.385,0.833,0.4,0.333,1.0,0.3713
+ETH Southern OND,earlier_forecast_for_past_months,3,45,15,19,9,0.6,0.333,0.846,0.526,0.294,0.737,0.422,0.333,1.0,0.083
+ETH Southern OND,earlier_forecast_for_past_months,4,45,15,18,9,0.6,0.333,0.846,0.5,0.25,0.737,0.4,0.333,0.0,0.0538
+ETH Southern OND,observed_for_past_months,-2,45,15,15,14,0.933,0.773,1.0,0.067,0.0,0.214,0.333,0.333,1.0,0.0
+ETH Southern OND,observed_for_past_months,-1,45,15,16,14,0.933,0.778,1.0,0.125,0.0,0.312,0.356,0.333,1.0,0.0
+ETH Southern OND,observed_for_past_months,0,45,15,19,9,0.6,0.333,0.833,0.526,0.294,0.765,0.422,0.333,1.0,0.083
+ETH Southern OND,observed_for_past_months,1,45,15,18,9,0.6,0.333,0.846,0.5,0.263,0.737,0.4,0.333,1.0,0.0538
+ETH Southern OND,observed_for_past_months,2,45,15,18,7,0.467,0.214,0.714,0.611,0.368,0.833,0.4,0.333,1.0,0.3713
+ETH Southern OND,observed_for_past_months,3,45,15,19,9,0.6,0.357,0.846,0.526,0.278,0.75,0.422,0.333,1.0,0.083
+ETH Southern OND,observed_for_past_months,4,45,15,18,9,0.6,0.353,0.846,0.5,0.278,0.727,0.4,0.333,0.0,0.0538
+ETH Southern MAM,rest_of_season,-2,46,16,16,10,0.625,0.375,0.857,0.375,0.133,0.625,0.348,0.348,0.0,0.0055
+ETH Southern MAM,rest_of_season,-1,46,16,19,11,0.688,0.438,0.909,0.421,0.192,0.647,0.413,0.348,0.0,0.0071
+ETH Southern MAM,rest_of_season,0,46,16,17,9,0.562,0.312,0.813,0.471,0.235,0.714,0.37,0.348,1.0,0.0492
+ETH Southern MAM,rest_of_season,1,46,16,16,8,0.5,0.25,0.75,0.5,0.25,0.75,0.348,0.348,1.0,0.1049
+ETH Southern MAM,rest_of_season,2,46,16,12,7,0.438,0.188,0.688,0.417,0.125,0.714,0.261,0.348,1.0,0.0522
+ETH Southern MAM,rest_of_season,3,45,16,13,4,0.25,0.059,0.474,0.692,0.417,0.923,0.289,0.356,1.0,0.7772
+ETH Southern MAM,rest_of_season,4,45,16,15,4,0.25,0.059,0.474,0.733,0.5,0.938,0.333,0.356,0.0,0.8883
+ETH Southern MAM,earlier_forecast_for_past_months,-2,46,16,15,12,0.75,0.526,0.947,0.2,0.0,0.417,0.326,0.348,1.0,0.0
+ETH Southern MAM,earlier_forecast_for_past_months,-1,46,16,21,13,0.812,0.611,1.0,0.381,0.176,0.6,0.457,0.348,1.0,0.0005
+ETH Southern MAM,earlier_forecast_for_past_months,0,46,16,17,9,0.562,0.312,0.8,0.471,0.235,0.714,0.37,0.348,1.0,0.0492
+ETH Southern MAM,earlier_forecast_for_past_months,1,46,16,16,8,0.5,0.25,0.75,0.5,0.263,0.75,0.348,0.348,1.0,0.1049
+ETH Southern MAM,earlier_forecast_for_past_months,2,46,16,12,7,0.438,0.2,0.692,0.417,0.133,0.7,0.261,0.348,1.0,0.0522
+ETH Southern MAM,earlier_forecast_for_past_months,3,45,16,13,4,0.25,0.059,0.476,0.692,0.417,0.923,0.289,0.356,1.0,0.7772
+ETH Southern MAM,earlier_forecast_for_past_months,4,45,16,15,4,0.25,0.059,0.467,0.733,0.5,0.938,0.333,0.356,0.0,0.8883
+ETH Southern MAM,observed_for_past_months,-2,46,16,16,14,0.875,0.7,1.0,0.125,0.0,0.312,0.348,0.348,1.0,0.0
+ETH Southern MAM,observed_for_past_months,-1,46,16,19,11,0.688,0.444,0.909,0.421,0.2,0.667,0.413,0.348,1.0,0.0071
+ETH Southern MAM,observed_for_past_months,0,46,16,17,9,0.562,0.312,0.8,0.471,0.214,0.714,0.37,0.348,1.0,0.0492
+ETH Southern MAM,observed_for_past_months,1,46,16,16,8,0.5,0.263,0.75,0.5,0.25,0.733,0.348,0.348,1.0,0.1049
+ETH Southern MAM,observed_for_past_months,2,46,16,12,7,0.438,0.188,0.692,0.417,0.133,0.714,0.261,0.348,1.0,0.0522
+ETH Southern MAM,observed_for_past_months,3,45,16,13,4,0.25,0.062,0.462,0.692,0.417,0.923,0.289,0.356,1.0,0.7772
+ETH Southern MAM,observed_for_past_months,4,45,16,15,4,0.25,0.062,0.471,0.733,0.474,0.938,0.333,0.356,0.0,0.8883
+KEN National OND,rest_of_season,-2,45,15,19,11,0.733,0.5,0.933,0.421,0.2,0.647,0.422,0.333,0.0,0.0037
+KEN National OND,rest_of_season,-1,45,15,19,10,0.667,0.429,0.909,0.474,0.238,0.7,0.422,0.333,0.0,0.0213
+KEN National OND,rest_of_season,0,45,15,17,11,0.733,0.5,0.938,0.353,0.125,0.583,0.378,0.333,1.0,0.0008
+KEN National OND,rest_of_season,1,45,15,23,10,0.667,0.417,0.889,0.565,0.364,0.762,0.511,0.333,1.0,0.1229
+KEN National OND,rest_of_season,2,45,15,19,8,0.533,0.278,0.786,0.579,0.363,0.812,0.422,0.333,1.0,0.2271
+KEN National OND,rest_of_season,3,45,15,21,9,0.6,0.333,0.846,0.571,0.36,0.79,0.467,0.333,1.0,0.171
+KEN National OND,rest_of_season,4,45,15,17,8,0.533,0.278,0.786,0.529,0.286,0.769,0.378,0.333,0.0,0.1164
+KEN National OND,earlier_forecast_for_past_months,-2,45,15,20,10,0.667,0.412,0.909,0.5,0.278,0.708,0.444,0.333,1.0,0.0355
+KEN National OND,earlier_forecast_for_past_months,-1,45,15,17,8,0.533,0.273,0.778,0.529,0.294,0.762,0.378,0.333,1.0,0.1164
+KEN National OND,earlier_forecast_for_past_months,0,45,15,17,11,0.733,0.5,0.941,0.353,0.133,0.583,0.378,0.333,1.0,0.0008
+KEN National OND,earlier_forecast_for_past_months,1,45,15,23,10,0.667,0.421,0.905,0.565,0.364,0.769,0.511,0.333,1.0,0.1229
+KEN National OND,earlier_forecast_for_past_months,2,45,15,19,8,0.533,0.273,0.8,0.579,0.353,0.812,0.422,0.333,1.0,0.2271
+KEN National OND,earlier_forecast_for_past_months,3,45,15,21,9,0.6,0.333,0.857,0.571,0.353,0.783,0.467,0.333,1.0,0.171
+KEN National OND,earlier_forecast_for_past_months,4,45,15,17,8,0.533,0.273,0.8,0.529,0.294,0.765,0.378,0.333,0.0,0.1164
+KEN National OND,observed_for_past_months,-2,45,15,16,12,0.8,0.583,1.0,0.25,0.059,0.474,0.356,0.333,1.0,0.0
+KEN National OND,observed_for_past_months,-1,45,15,17,11,0.733,0.5,0.933,0.353,0.133,0.588,0.378,0.333,1.0,0.0008
+KEN National OND,observed_for_past_months,0,45,15,17,11,0.733,0.5,0.938,0.353,0.133,0.6,0.378,0.333,1.0,0.0008
+KEN National OND,observed_for_past_months,1,45,15,23,10,0.667,0.412,0.909,0.565,0.364,0.762,0.511,0.333,1.0,0.1229
+KEN National OND,observed_for_past_months,2,45,15,19,8,0.533,0.273,0.8,0.579,0.35,0.8,0.422,0.333,1.0,0.2271
+KEN National OND,observed_for_past_months,3,45,15,21,9,0.6,0.333,0.834,0.571,0.364,0.783,0.467,0.333,1.0,0.171
+KEN National OND,observed_for_past_months,4,45,15,17,8,0.533,0.267,0.8,0.529,0.286,0.765,0.378,0.333,0.0,0.1164
+KEN National MAM,rest_of_season,-2,46,16,18,11,0.688,0.454,0.917,0.389,0.176,0.615,0.391,0.348,0.0,0.0036
+KEN National MAM,rest_of_season,-1,46,16,21,13,0.812,0.611,1.0,0.381,0.176,0.591,0.457,0.348,0.0,0.0005
+KEN National MAM,rest_of_season,0,46,16,17,11,0.688,0.444,0.9,0.353,0.143,0.588,0.37,0.348,1.0,0.0016
+KEN National MAM,rest_of_season,1,46,16,16,7,0.438,0.188,0.684,0.562,0.308,0.824,0.348,0.348,1.0,0.27
+KEN National MAM,rest_of_season,2,46,16,14,5,0.312,0.083,0.556,0.643,0.375,0.909,0.304,0.348,1.0,0.5927
+KEN National MAM,rest_of_season,3,45,16,15,5,0.312,0.091,0.562,0.667,0.412,0.909,0.333,0.356,1.0,0.7057
+KEN National MAM,rest_of_season,4,45,16,13,4,0.25,0.059,0.467,0.692,0.429,0.929,0.289,0.356,0.0,0.7772
+KEN National MAM,earlier_forecast_for_past_months,-2,46,16,18,15,0.938,0.786,1.0,0.167,0.0,0.357,0.391,0.348,1.0,0.0
+KEN National MAM,earlier_forecast_for_past_months,-1,46,16,18,13,0.812,0.611,1.0,0.278,0.077,0.5,0.391,0.348,1.0,0.0
+KEN National MAM,earlier_forecast_for_past_months,0,46,16,17,11,0.688,0.438,0.909,0.353,0.125,0.588,0.37,0.348,1.0,0.0016
+KEN National MAM,earlier_forecast_for_past_months,1,46,16,16,7,0.438,0.188,0.692,0.562,0.3,0.8,0.348,0.348,1.0,0.27
+KEN National MAM,earlier_forecast_for_past_months,2,46,16,14,5,0.312,0.1,0.556,0.643,0.375,0.882,0.304,0.348,1.0,0.5927
+KEN National MAM,earlier_forecast_for_past_months,3,45,16,15,5,0.312,0.083,0.546,0.667,0.4,0.9,0.333,0.356,1.0,0.7057
+KEN National MAM,earlier_forecast_for_past_months,4,45,16,13,4,0.25,0.059,0.5,0.692,0.444,0.923,0.289,0.356,0.0,0.7772
+KEN National MAM,observed_for_past_months,-2,46,16,17,15,0.938,0.786,1.0,0.118,0.0,0.286,0.37,0.348,1.0,0.0
+KEN National MAM,observed_for_past_months,-1,46,16,17,12,0.75,0.5,0.941,0.294,0.091,0.533,0.37,0.348,1.0,0.0002
+KEN National MAM,observed_for_past_months,0,46,16,17,11,0.688,0.438,0.9,0.353,0.133,0.6,0.37,0.348,1.0,0.0016
+KEN National MAM,observed_for_past_months,1,46,16,16,7,0.438,0.2,0.7,0.562,0.308,0.8,0.348,0.348,1.0,0.27
+KEN National MAM,observed_for_past_months,2,46,16,14,5,0.312,0.1,0.545,0.643,0.385,0.889,0.304,0.348,1.0,0.5927
+KEN National MAM,observed_for_past_months,3,45,16,15,5,0.312,0.091,0.556,0.667,0.412,0.9,0.333,0.356,1.0,0.7057
+KEN National MAM,observed_for_past_months,4,45,16,13,4,0.25,0.059,0.474,0.692,0.417,0.923,0.289,0.356,0.0,0.7772
+ZWE National Oct-Mar,rest_of_season,-5,45,15,21,11,0.733,0.467,0.938,0.476,0.25,0.684,0.467,0.333,0.0,0.0128
+ZWE National Oct-Mar,rest_of_season,-4,45,15,15,9,0.6,0.333,0.846,0.4,0.143,0.667,0.333,0.333,0.0,0.01
+ZWE National Oct-Mar,rest_of_season,-3,45,15,17,8,0.533,0.273,0.778,0.529,0.308,0.769,0.378,0.333,0.0,0.1164
+ZWE National Oct-Mar,rest_of_season,-2,45,15,18,8,0.533,0.267,0.8,0.556,0.312,0.786,0.4,0.333,0.0,0.1664
+ZWE National Oct-Mar,rest_of_season,-1,45,15,17,9,0.6,0.333,0.846,0.471,0.25,0.714,0.378,0.333,0.0,0.0329
+ZWE National Oct-Mar,rest_of_season,0,45,15,15,10,0.667,0.4,0.909,0.333,0.111,0.571,0.333,0.333,1.0,0.0014
+ZWE National Oct-Mar,rest_of_season,1,45,15,16,8,0.533,0.273,0.786,0.5,0.25,0.75,0.356,0.333,0.0,0.0771
+ZWE National Oct-Mar,rest_of_season,2,45,15,19,8,0.533,0.286,0.786,0.579,0.35,0.8,0.422,0.333,0.0,0.2271
+ZWE National Oct-Mar,rest_of_season,3,45,15,15,7,0.467,0.214,0.727,0.533,0.278,0.786,0.333,0.333,0.0,0.1572
+ZWE National Oct-Mar,rest_of_season,4,45,15,12,3,0.2,0.0,0.429,0.75,0.5,1.0,0.267,0.333,0.0,0.8588
+ZWE National Oct-Mar,earlier_forecast_for_past_months,-5,45,15,17,8,0.533,0.273,0.786,0.529,0.294,0.778,0.378,0.333,1.0,0.1164
+ZWE National Oct-Mar,earlier_forecast_for_past_months,-4,45,15,16,7,0.467,0.2,0.75,0.562,0.333,0.8,0.356,0.333,1.0,0.2195
+ZWE National Oct-Mar,earlier_forecast_for_past_months,-3,45,15,17,8,0.533,0.273,0.8,0.529,0.278,0.769,0.378,0.333,1.0,0.1164
+ZWE National Oct-Mar,earlier_forecast_for_past_months,-2,45,15,20,10,0.667,0.417,0.9,0.5,0.286,0.727,0.444,0.333,1.0,0.0355
+ZWE National Oct-Mar,earlier_forecast_for_past_months,-1,45,15,18,9,0.6,0.333,0.846,0.5,0.267,0.737,0.4,0.333,1.0,0.0538
+ZWE National Oct-Mar,earlier_forecast_for_past_months,0,45,15,15,10,0.667,0.417,0.9,0.333,0.083,0.583,0.333,0.333,1.0,0.0014
+ZWE National Oct-Mar,earlier_forecast_for_past_months,1,45,15,16,8,0.533,0.273,0.786,0.5,0.235,0.75,0.356,0.333,0.0,0.0771
+ZWE National Oct-Mar,earlier_forecast_for_past_months,2,45,15,19,8,0.533,0.267,0.786,0.579,0.353,0.8,0.422,0.333,0.0,0.2271
+ZWE National Oct-Mar,earlier_forecast_for_past_months,3,45,15,15,7,0.467,0.214,0.733,0.533,0.286,0.778,0.333,0.333,0.0,0.1572
+ZWE National Oct-Mar,earlier_forecast_for_past_months,4,45,15,12,3,0.2,0.0,0.429,0.75,0.5,1.0,0.267,0.333,0.0,0.8588
+ZWE National Oct-Mar,observed_for_past_months,-5,45,15,17,15,1.0,1.0,1.0,0.118,0.0,0.294,0.378,0.333,1.0,0.0
+ZWE National Oct-Mar,observed_for_past_months,-4,45,15,17,13,0.867,0.667,1.0,0.235,0.056,0.462,0.378,0.333,1.0,0.0
+ZWE National Oct-Mar,observed_for_past_months,-3,45,15,16,10,0.667,0.389,0.889,0.375,0.143,0.636,0.356,0.333,1.0,0.0031
+ZWE National Oct-Mar,observed_for_past_months,-2,45,15,16,9,0.6,0.333,0.842,0.438,0.182,0.692,0.356,0.333,1.0,0.0188
+ZWE National Oct-Mar,observed_for_past_months,-1,45,15,17,8,0.533,0.278,0.786,0.529,0.267,0.778,0.378,0.333,1.0,0.1164
+ZWE National Oct-Mar,observed_for_past_months,0,45,15,15,10,0.667,0.417,0.9,0.333,0.091,0.583,0.333,0.333,1.0,0.0014
+ZWE National Oct-Mar,observed_for_past_months,1,45,15,16,8,0.533,0.273,0.778,0.5,0.25,0.75,0.356,0.333,0.0,0.0771
+ZWE National Oct-Mar,observed_for_past_months,2,45,15,19,8,0.533,0.263,0.789,0.579,0.353,0.813,0.422,0.333,0.0,0.2271
+ZWE National Oct-Mar,observed_for_past_months,3,45,15,15,7,0.467,0.214,0.727,0.533,0.273,0.789,0.333,0.333,0.0,0.1572
+ZWE National Oct-Mar,observed_for_past_months,4,45,15,12,3,0.2,0.0,0.429,0.75,0.474,1.0,0.267,0.333,0.0,0.8588
+LSO National Oct-Mar,rest_of_season,-5,45,15,20,8,0.533,0.273,0.786,0.6,0.375,0.81,0.444,0.333,0.0,0.2974
+LSO National Oct-Mar,rest_of_season,-4,45,15,17,6,0.4,0.154,0.667,0.647,0.412,0.867,0.378,0.333,0.0,0.5395
+LSO National Oct-Mar,rest_of_season,-3,45,15,15,7,0.467,0.214,0.733,0.533,0.273,0.769,0.333,0.333,0.0,0.1572
+LSO National Oct-Mar,rest_of_season,-2,45,15,17,9,0.6,0.333,0.846,0.471,0.231,0.722,0.378,0.333,0.0,0.0329
+LSO National Oct-Mar,rest_of_season,-1,45,15,15,10,0.667,0.412,0.909,0.333,0.1,0.6,0.333,0.333,0.0,0.0014
+LSO National Oct-Mar,rest_of_season,0,45,15,15,8,0.533,0.273,0.786,0.467,0.2,0.727,0.333,0.333,1.0,0.048
+LSO National Oct-Mar,rest_of_season,1,45,15,14,8,0.533,0.263,0.8,0.429,0.167,0.692,0.311,0.333,0.0,0.0277
+LSO National Oct-Mar,rest_of_season,2,45,15,15,8,0.533,0.267,0.8,0.467,0.214,0.727,0.333,0.333,0.0,0.048
+LSO National Oct-Mar,rest_of_season,3,45,15,18,7,0.467,0.2,0.727,0.611,0.375,0.842,0.4,0.333,0.0,0.3713
+LSO National Oct-Mar,rest_of_season,4,45,15,9,5,0.333,0.083,0.583,0.444,0.125,0.8,0.2,0.333,0.0,0.1192
+LSO National Oct-Mar,earlier_forecast_for_past_months,-5,45,15,18,10,0.667,0.412,0.9,0.444,0.214,0.684,0.4,0.333,1.0,0.012
+LSO National Oct-Mar,earlier_forecast_for_past_months,-4,45,15,17,11,0.733,0.5,0.938,0.353,0.133,0.6,0.378,0.333,1.0,0.0008
+LSO National Oct-Mar,earlier_forecast_for_past_months,-3,45,15,19,12,0.8,0.579,1.0,0.368,0.15,0.6,0.422,0.333,1.0,0.0004
+LSO National Oct-Mar,earlier_forecast_for_past_months,-2,45,15,19,12,0.8,0.579,1.0,0.368,0.15,0.6,0.422,0.333,1.0,0.0004
+LSO National Oct-Mar,earlier_forecast_for_past_months,-1,45,15,17,12,0.8,0.583,1.0,0.294,0.077,0.5,0.378,0.333,1.0,0.0001
+LSO National Oct-Mar,earlier_forecast_for_past_months,0,45,15,15,8,0.533,0.267,0.786,0.467,0.214,0.722,0.333,0.333,1.0,0.048
+LSO National Oct-Mar,earlier_forecast_for_past_months,1,45,15,14,8,0.533,0.273,0.786,0.429,0.167,0.7,0.311,0.333,0.0,0.0277
+LSO National Oct-Mar,earlier_forecast_for_past_months,2,45,15,15,8,0.533,0.273,0.786,0.467,0.2,0.727,0.333,0.333,0.0,0.048
+LSO National Oct-Mar,earlier_forecast_for_past_months,3,45,15,18,7,0.467,0.2,0.714,0.611,0.375,0.84,0.4,0.333,0.0,0.3713
+LSO National Oct-Mar,earlier_forecast_for_past_months,4,45,15,9,5,0.333,0.091,0.571,0.444,0.125,0.8,0.2,0.333,0.0,0.1192
+LSO National Oct-Mar,observed_for_past_months,-5,45,15,16,13,0.867,0.667,1.0,0.188,0.0,0.4,0.356,0.333,1.0,0.0
+LSO National Oct-Mar,observed_for_past_months,-4,45,15,18,11,0.733,0.471,0.941,0.389,0.154,0.632,0.4,0.333,1.0,0.0018
+LSO National Oct-Mar,observed_for_past_months,-3,45,15,18,10,0.667,0.417,0.9,0.444,0.222,0.688,0.4,0.333,1.0,0.012
+LSO National Oct-Mar,observed_for_past_months,-2,45,15,20,11,0.733,0.5,0.933,0.45,0.227,0.667,0.444,0.333,1.0,0.0071
+LSO National Oct-Mar,observed_for_past_months,-1,45,15,18,13,0.867,0.667,1.0,0.278,0.077,0.5,0.4,0.333,1.0,0.0
+LSO National Oct-Mar,observed_for_past_months,0,45,15,15,8,0.533,0.25,0.8,0.467,0.214,0.722,0.333,0.333,1.0,0.048
+LSO National Oct-Mar,observed_for_past_months,1,45,15,14,8,0.533,0.273,0.8,0.429,0.182,0.7,0.311,0.333,0.0,0.0277
+LSO National Oct-Mar,observed_for_past_months,2,45,15,15,8,0.533,0.273,0.786,0.467,0.2,0.727,0.333,0.333,0.0,0.048
+LSO National Oct-Mar,observed_for_past_months,3,45,15,18,7,0.467,0.2,0.75,0.611,0.385,0.842,0.4,0.333,0.0,0.3713
+LSO National Oct-Mar,observed_for_past_months,4,45,15,9,5,0.333,0.083,0.583,0.444,0.125,0.8,0.2,0.333,0.0,0.1192

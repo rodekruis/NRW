@@ -1,0 +1,8 @@
+region_key,scenario,pair_count,mean_absolute_error,mean_absolute_error_of_no_change,mean_error,correlation_of_changes,projected_change_count,share_of_changes_in_the_right_direction
+All regions,ML2,615,0.091,0.149,0.0,0.77,564,0.793
+ETH Belg,ML2,102,0.1,0.171,0.012,0.827,102,0.853
+ETH Meher,ML2,102,0.024,0.041,0.006,0.783,97,0.845
+ETH Northern,ML2,102,0.143,0.168,-0.007,0.633,94,0.67
+ETH Southern,ML2,102,0.083,0.138,0.01,0.802,94,0.777
+KEN National,ML2,108,0.115,0.15,-0.068,0.7,96,0.74
+ZWE National,ML2,95,0.086,0.241,0.057,0.881,81,0.877
