@@ -46,6 +46,7 @@ class DataSource(StrEnum):
     GLOFAS_STATIONS_NRW_API = "glofas_stations_nrw_api"
     POPULATION_NRW_API = "population_nrw_api"
     FLOOD_DEPTH_SEED_REPO = "flood_depth_seed_repo"
+    GLOFAS_RETURN_PERIOD_CURVES_SEED_REPO = "glofas_return_period_curves_seed_repo"
     GLOFAS_DISCHARGE_FTP = "glofas_discharge_ftp"
     GLOFAS_DISCHARGE_SEED_REPO_ALERT = "glofas_discharge_seed_repo_alert"
     GLOFAS_DISCHARGE_SEED_REPO_NO_ALERT = "glofas_discharge_seed_repo_no_alert"

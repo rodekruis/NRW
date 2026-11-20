@@ -3,17 +3,22 @@ from __future__ import annotations
 import logging
 import os
 import re
+import warnings
+from contextlib import ExitStack
 from dataclasses import dataclass
 from datetime import datetime, timedelta, UTC
 
 import numpy as np
 import rasterio
+from rasterio.io import DatasetReader
 
+from pipelines.constants import DEFAULT_CRS
 from pipelines.flood.constants import (
     WATER_DISCHARGE_HIGH_PERCENTILE,
     WATER_DISCHARGE_LOW_PERCENTILE,
 )
 from pipelines.infra.data_types.dtos import WaterDischargeTimeSeriesEntry
+from pipelines.infra.data_types.loaded_data_types import RasterData
 from pipelines.infra.data_types.location_point import LocationPoint
 from pipelines.infra.utils.nrw_logger import log_info, log_warning, LogTag
 
@@ -93,6 +98,89 @@ def extract_discharge_glofas_station(
                 )
 
     return discharges
+
+
+def determine_peak_lead_time(
+    time_interval_discharges: list[TimeIntervalDischarge],
+    temporal_extent: dict[str, list],
+) -> int:
+    """
+    The lead time in days at which the station's ensemble-median discharge is highest, the
+    earliest one when several are equally high. The flood footprint is computed for that day.
+    """
+    lead_time_min, _ = _parse_lead_time_range(temporal_extent)
+    median_discharges = [
+        (
+            float(np.nanmedian(ensemble_discharges))
+            if not np.isnan(ensemble_discharges).all()
+            else -np.inf
+        )
+        for ensemble_discharges in (
+            np.asarray(time_interval_discharge.ensemble_discharges, dtype=float)
+            for time_interval_discharge in time_interval_discharges
+        )
+    ]
+    if not median_discharges or max(median_discharges) == -np.inf:
+        raise ValueError("No discharge to determine the peak lead time from")
+    return lead_time_min + int(np.argmax(median_discharges))
+
+
+def extract_median_discharge(
+    netcdf_paths: list[str],
+    lead_time: int,
+) -> RasterData | None:
+    """
+    Per GloFAS cell, the ensemble-median discharge at one lead time (days).
+
+    Returns None when there is no gridded forecast to read. Cells without discharge are NaN.
+    """
+    band_index = lead_time + 1
+    existing_paths = [path for path in netcdf_paths if os.path.exists(path)]
+
+    with ExitStack() as stack:
+        datasets = [stack.enter_context(rasterio.open(path)) for path in existing_paths]
+        datasets = [dataset for dataset in datasets if band_index <= dataset.count]
+        if not datasets:
+            return None
+
+        reference = datasets[0]
+        datasets_on_reference_grid = [
+            dataset
+            for dataset in datasets
+            if dataset.shape == reference.shape
+            and dataset.transform == reference.transform
+        ]
+        if len(datasets_on_reference_grid) < len(datasets):
+            log_warning(
+                logger,
+                LogTag.FLOOD_LOGIC,
+                f"Skipped {len(datasets) - len(datasets_on_reference_grid)} GloFAS files on a different grid",
+            )
+
+        ensemble_discharges = np.stack(
+            [
+                _read_discharge_band(dataset, band_index)
+                for dataset in datasets_on_reference_grid
+            ]
+        )
+        with warnings.catch_warnings():
+            # Cells without discharge in any ensemble member stay NaN.
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            median_discharge = np.nanmedian(ensemble_discharges, axis=0)
+
+        return RasterData(
+            array=median_discharge,
+            transform=reference.transform,
+            crs=DEFAULT_CRS,
+            nodata=np.nan,
+        )
+
+
+def _read_discharge_band(dataset: DatasetReader, band_index: int) -> np.ndarray:
+    discharge = dataset.read(band_index, masked=True).astype(np.float32).filled(np.nan)
+    # Fill values that the file does not declare as such are negative.
+    discharge[discharge < 0] = np.nan
+    return discharge
 
 
 def build_water_discharge_time_series(

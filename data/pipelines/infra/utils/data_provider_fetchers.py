@@ -6,8 +6,10 @@ See the readme for more details on adding new data sources.
 
 import logging
 import os
+from pathlib import Path
 
 import numpy as np
+from pipelines.flood.constants import GLOFAS_VERSION
 from pipelines.infra.data_types.admin_area_types import AdminAreasSet
 from pipelines.infra.data_types.data_config_types import (
     CountryRunConfig,
@@ -26,6 +28,10 @@ from pipelines.infra.data_types.glofas_discharge_provider import (
     load_glofas_discharge_from_local_country_files,
     load_glofas_discharge_from_local_global_files,
 )
+from pipelines.infra.data_types.glofas_return_period_curves import (
+    get_glofas_return_period_curves_filename,
+    GlofasReturnPeriodCurves,
+)
 from pipelines.infra.data_types.loaded_data_types import (
     DataType,
     LoadedDataSource,
@@ -35,12 +41,18 @@ from pipelines.infra.data_types.location_point import LocationPoint
 from pipelines.infra.utils.api_client import ApiClient
 from pipelines.infra.utils.dummy_data import DUMMY_DATA
 from rasterio.transform import Affine
-from shared.download_helpers import download_json_source
+from shared.download_helpers import download_json_source, download_object
 from shared.image_helpers import rgba_png_to_float_array
 
 logger = logging.getLogger(__name__)
 
 SEED_REPO_FLOOD_DEPTH_DATA_PNG_PATH = "/hazard/flood/flood-extents/data-png/"
+SEED_REPO_GLOFAS_RETURN_PERIOD_CURVES_PATH = (
+    "/hazard/flood/glofas-return-period-curves/"
+)
+# Draft (AB#42674): the curves are not in the seed repo yet. Until they are, point this at the
+# directory that build_glofas_return_period_curves.py wrote them to.
+GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY_VARIABLE = "GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY"
 
 
 def _get_seed_repo_uri() -> str:
@@ -81,6 +93,8 @@ def load_data_container(
         # --- Flood sources ---
         case DataSource.FLOOD_DEPTH_SEED_REPO:
             return _load_seed_repo_flood_depth(data_config, container)
+        case DataSource.GLOFAS_RETURN_PERIOD_CURVES_SEED_REPO:
+            return _load_seed_repo_glofas_return_period_curves(data_config, container)
         case DataSource.GLOFAS_STATIONS_NRW_API:
             return _load_nrw_api_glofas_stations(
                 container,
@@ -250,6 +264,33 @@ def _load_seed_repo_flood_depth(config: DataSourceConfig, container: LoadedDataS
         base_url=base_url,
         country=country,
     )
+
+
+def _load_seed_repo_glofas_return_period_curves(
+    config: DataSourceConfig, container: LoadedDataSource
+):
+    container.data_type = DataType.GLOFAS_RETURN_PERIOD_CURVES
+
+    filename = get_glofas_return_period_curves_filename(
+        config.country_code_iso_3, GLOFAS_VERSION
+    )
+    local_directory = os.environ.get(GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY_VARIABLE)
+    if local_directory:
+        location = str(Path(local_directory) / filename)
+        content = Path(location).read_bytes() if Path(location).exists() else None
+    else:
+        location = (
+            _get_seed_repo_uri() + SEED_REPO_GLOFAS_RETURN_PERIOD_CURVES_PATH + filename
+        )
+        content = download_object(location)
+
+    if content is None:
+        container.error = (
+            f"Failed to load GloFAS return period curves from '{location}'"
+        )
+        raise FileNotFoundError(container.error)
+
+    container.data = GlofasReturnPeriodCurves.from_geotiff(content)
 
 
 # =============================================================================

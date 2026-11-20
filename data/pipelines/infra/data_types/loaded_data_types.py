@@ -39,6 +39,9 @@ class DataType(StrEnum):
     # A FloodDepthProvider that lazily fetches flood depth rasters on demand
     FLOOD_DEPTH_PROVIDER = "flood_depth_provider"
 
+    # A GlofasReturnPeriodCurves object: Gumbel parameters and upstream area per GloFAS cell
+    GLOFAS_RETURN_PERIOD_CURVES = "glofas_return_period_curves"
+
     # an AdminAreasSet object
     ADMIN_AREA_SET = "admin_area_set"
 
