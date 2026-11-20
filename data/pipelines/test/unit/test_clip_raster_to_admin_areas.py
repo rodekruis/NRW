@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 from rasterio.transform import from_origin
+from shapely.geometry import box
 
 from pipelines.infra.data_types.admin_area_types import (
     AdminArea,
@@ -12,6 +13,7 @@ from pipelines.infra.data_types.loaded_data_types import RasterData
 from pipelines.infra.utils.exposure import (
     clip_raster_to_admin_areas,
     create_raster_admin_area_clipper,
+    create_raster_geometry_clipper,
 )
 
 _CRS = "EPSG:4326"
@@ -122,3 +124,17 @@ def test_reusable_clipper_matches_single_clip():
     assert reusable.transform == single.transform
     assert reusable.crs == single.crs
     assert reusable.nodata == single.nodata
+
+
+def test_geometry_clipper_clips_to_any_boundary():
+    # Arrange: a boundary around the eastern column only
+    raster = _make_raster()
+
+    # Act
+    clipped = create_raster_geometry_clipper(box(1.0, 0.0, 2.0, 2.0), raster).clip(
+        raster
+    )
+
+    # Assert
+    np.testing.assert_array_equal(clipped.array, [[2.0], [4.0]])
+    assert clipped.transform == from_origin(1, 2, 1, 1)

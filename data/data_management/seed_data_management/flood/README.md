@@ -23,6 +23,27 @@ uv run python -m data_management.seed_data_management.flood.build_flood_depth_so
 uv run python -m data_management.seed_data_management.flood.convert_flood_depth_to_png
 ```
 
+## GloFAS return period curves
+
+`build_glofas_return_period_curves.py` builds `hazard/flood/glofas-return-period-curves/{ISO3}_glofas_{version}_return_period_curves.tif` in the seed repo from the [GloFAS auxiliary data](https://confluence.ecmwf.int/spaces/CEMS/pages/242067380/Auxiliary+Data) that ECMWF publishes. The flood pipeline uses them to turn the forecast discharge of each GloFAS cell into a return period.
+
+Each file has three bands on the GloFAS grid (0.05°), clipped to the country and its stations plus `--padding-degrees`:
+
+- `location` and `scale`: the Gumbel parameters `mu` and `sigma` of annual peak discharge (m³/s).
+- `upstream_area`: the upstream area (m²).
+
+The station thresholds in `glofas-stations/` lie on the v4 curve of each station's cell (see `analysis/flood_footprint/check_curve_source.py`), so curves and thresholds must stay on the same GloFAS version. To add a version, add its global files to `GLOBAL_FILES_BY_GLOFAS_VERSION` and set `GLOFAS_VERSION` in `pipelines/flood/constants.py`.
+
+Where files go:
+
+- **Output**: written directly into the local seed repo (`SEED_DATA_REPO_ROOT` in `data/.env`). Use `--output-directory` to write elsewhere for review.
+- **Downloads**: cached in this repo under `data/data/glofas-auxiliary-cache/` (gitignored, about 430 MB).
+
+```bash
+cd data
+uv run python -m data_management.seed_data_management.flood.build_glofas_return_period_curves --countries MWI
+```
+
 # Flood GloFAS station-area mapping
 
 ## Spatial migration
