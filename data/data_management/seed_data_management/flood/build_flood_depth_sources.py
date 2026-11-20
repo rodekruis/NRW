@@ -34,6 +34,10 @@ DEFAULT_CACHE_DIRECTORY = (
 )
 SOURCES_TIF_DIRECTORY = Path("hazard/flood/flood-extents/sources-tif")
 NODATA = -9999.0
+# Value of a permanent-water pixel in JRC's Permanent_WaterBodies tiles; every other pixel is nodata.
+PERMANENT_WATER_VALUE = 1
+# Depth that JRC writes on permanent water where its flood model has no depth, so it is not a flood depth.
+PERMANENT_WATER_FILL_DEPTH_METRES = 1.0
 
 
 @dataclass(frozen=True)
@@ -111,6 +115,9 @@ def build_country_flood_depths(
         tile for tile in tiles if tile.geometry.intersects(box(*country_bounds))
     ]
     lake_geometries = load_lake_geometries(country_bounds)
+    is_permanent_water = load_permanent_water(
+        country_tiles, tile_cache_directory, country_bounds
+    )
     print(f"{country}: {len(country_tiles)} tiles, {len(lake_geometries)} lakes")
 
     written_paths: set[Path] = set()
@@ -124,11 +131,26 @@ def build_country_flood_depths(
         ]
         depth, profile = merge_tiles(depth_paths, country_bounds)
         mask_lakes(depth, profile, lake_geometries)
+        mask_permanent_water_fill(depth, is_permanent_water)
         output_path = output_directory / f"{country}_flood_extent_rp{return_period}.tif"
         write_flood_depth(depth, profile, output_path)
         written_paths.add(output_path)
 
     remove_stale_flood_depths(output_directory, country, written_paths)
+
+
+def load_permanent_water(
+    tiles: list[Tile], tile_cache_directory: Path, bounds: Bounds
+) -> np.ndarray:
+    permanent_water_paths = [
+        download_jrc_file(
+            f"Permanent_WaterBodies/{tile.filename_prefix}_permanent_water.tif",
+            tile_cache_directory,
+        )
+        for tile in tiles
+    ]
+    permanent_water, _ = merge_tiles(permanent_water_paths, bounds)
+    return permanent_water == PERMANENT_WATER_VALUE
 
 
 def remove_stale_flood_depths(
@@ -181,6 +203,19 @@ def mask_lakes(
         invert=True,
     )
     depth[is_lake] = NODATA
+
+
+def mask_permanent_water_fill(
+    depth: np.ndarray, is_permanent_water: np.ndarray
+) -> None:
+    """A modelled depth of exactly the fill value on permanent water is masked too: about 0.1% of the masked pixels."""
+    if is_permanent_water.shape != depth.shape:
+        raise ValueError(
+            f"Permanent water {is_permanent_water.shape} and depth {depth.shape} "
+            "are not on the same grid"
+        )
+    is_fill = is_permanent_water & (depth == PERMANENT_WATER_FILL_DEPTH_METRES)
+    depth[is_fill] = NODATA
 
 
 def write_flood_depth(depth: np.ndarray, profile: Profile, path: Path) -> None:
