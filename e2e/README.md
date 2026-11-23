@@ -9,9 +9,12 @@ e2e/
 ├── playwright.config.ts     # Playwright configuration (baseURL, projects, ...)
 ├── env.ts                   # Centralized environment-variable access
 └── nrw/
-    ├── helpers/             # Shared utilities and data
-    ├── pages/NrwMapPage.ts  # Page object for the NRW map view
-    └── tests/               # Test specs
+    ├── setup/               # One database reset per run, before all specs
+    ├── scenarios.ts         # Named database states + expected values
+    ├── fixtures.ts          # `nrwPage` fixture and `useScenario()`
+    ├── helpers/             # API utilities (reset, mock, events) and enums
+    ├── pages/               # Page object (NrwPage) and its components
+    └── tests/               # Test specs, one per user flow
 ```
 
 ## Prerequisites
@@ -67,6 +70,23 @@ npm run test:e2e
 npm run setup
 npm test
 ```
+
+A run first resets the local database for all scenario countries (the
+`setup` project), then loads mock events per spec.
+
+## Updating screenshots
+
+All screenshot assertions live in `nrw/tests/Visual.spec.ts`. After an
+intentional UI change, regenerate the baselines (from this directory):
+
+| Scope             | Command                                                    |
+| ----------------- | ---------------------------------------------------------- |
+| All               | `npm run test:update-snapshots`                            |
+| One file          | `npm run test:update-snapshots -- Visual`                  |
+| One test, by name | `npm run test:update-snapshots:specific -- "event opened"` |
+
+Only screenshots that differ or are missing are rewritten. Review the changed
+images before committing them.
 
 ## Linting & type-checking
 
