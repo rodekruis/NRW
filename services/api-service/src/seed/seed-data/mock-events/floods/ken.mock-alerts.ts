@@ -11,15 +11,15 @@ export function buildKenyaFloodAlerts(issuedAt: Date): MockFloodAlert[] {
       eventName: 'ATHI MUNYU (3DA02)',
       centroid: { latitude: -3.1789, longitude: 39.3795 },
       stationThresholds: {
-        1.5: 2.41,
-        2: 3.29,
-        5: 5.44,
-        10: 6.86,
-        20: 8.23,
-        50: 9.99,
-        100: 11.32,
-        200: 12.64,
-        500: 14.38,
+        1.5: 193.94,
+        2: 268.62,
+        5: 452.4,
+        10: 574.08,
+        20: 690.8,
+        50: 841.88,
+        100: 955.09,
+        200: 1067.89,
+        500: 1216.71,
       },
       exposure: {
         adminAreas: [
@@ -154,8 +154,8 @@ export function buildKenyaFloodAlerts(issuedAt: Date): MockFloodAlert[] {
           buildBasicGlofasStationGeoFeature({
             issuedAt,
             geoFeatureId: 'G5142',
-            medianDischarge: 8.16,
-            onset: { startDay: 1, dischargeBeforeStart: 2.17 },
+            medianDischarge: 684.83,
+            onset: { startDay: 1, dischargeBeforeStart: 174.63 },
           }),
         ],
         rasters: [

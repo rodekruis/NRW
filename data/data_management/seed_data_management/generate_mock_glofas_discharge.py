@@ -80,15 +80,25 @@ def compute_country_grid(
     min_lon = min(lons) - COUNTRY_BUFFER_DEGREES
     max_lon = max(lons) + COUNTRY_BUFFER_DEGREES
 
-    min_lat = round(min_lat / GLOFAS_RESOLUTION) * GLOFAS_RESOLUTION
-    max_lat = round(max_lat / GLOFAS_RESOLUTION) * GLOFAS_RESOLUTION
-    min_lon = round(min_lon / GLOFAS_RESOLUTION) * GLOFAS_RESOLUTION
-    max_lon = round(max_lon / GLOFAS_RESOLUTION) * GLOFAS_RESOLUTION
+    # Cell centres on the GloFAS grid, half a cell off the multiples of its resolution, like the real forecasts.
+    min_lat, max_lat, min_lon, max_lon = (
+        _snap_to_cell_centre(value) for value in (min_lat, max_lat, min_lon, max_lon)
+    )
 
-    lat_coords = np.arange(max_lat, min_lat - GLOFAS_RESOLUTION / 2, -GLOFAS_RESOLUTION)
-    lon_coords = np.arange(min_lon, max_lon + GLOFAS_RESOLUTION / 2, GLOFAS_RESOLUTION)
+    lat_coords = np.round(
+        np.arange(max_lat, min_lat - GLOFAS_RESOLUTION / 2, -GLOFAS_RESOLUTION), 3
+    )
+    lon_coords = np.round(
+        np.arange(min_lon, max_lon + GLOFAS_RESOLUTION / 2, GLOFAS_RESOLUTION), 3
+    )
 
     return lat_coords, lon_coords, min_lat, min_lon
+
+
+def _snap_to_cell_centre(coordinate: float) -> float:
+    return round(
+        (np.floor(coordinate / GLOFAS_RESOLUTION) + 0.5) * GLOFAS_RESOLUTION, 3
+    )
 
 
 def find_nearest_indices(
