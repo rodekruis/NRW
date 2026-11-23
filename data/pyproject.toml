@@ -61,6 +61,9 @@ dev = [
     "pytest",
     "ruff",
     "vulture",
+    "matplotlib>=3.11.2",
+    "pandas>=3.0.6",
+    "ecmwf-datastores-client>=0.6.0",
 ]
 
 [tool.deptry]
@@ -70,7 +73,7 @@ known_first_party = ["pipelines", "data_management", "shared"]
 # entries are deptry's defaults, repeated because setting `exclude` overrides
 # them (deptry has no extend-exclude option).
 exclude = ["^pipelines/deploy/", "^\\.venv", "^\\.git", "^\\.direnv", "^\\.eggs", "^\\.hg", "^\\.mypy_cache", "^\\.nox", "^\\.pants\\.d", "^\\.svn", "^\\.tox", "^__pypackages__", "^_build", "^buck-out", "^build", "^dist", "^node_modules", "^venv"]
-per_rule_ignores = { DEP002 = ["cfgrib", "netCDF4", "scipy", "rasterstats", "shapely", "xarray"], DEP004 = ["pytest"] }
+per_rule_ignores = { DEP002 = ["cfgrib", "netCDF4", "scipy", "rasterstats", "shapely", "xarray"], DEP004 = ["pytest", "matplotlib", "pandas", "ecmwf"] }
 
 [tool.vulture]
 # The paths we want vulture to check for dead code.
