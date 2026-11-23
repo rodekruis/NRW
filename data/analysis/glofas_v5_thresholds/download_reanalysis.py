@@ -11,11 +11,16 @@ from pathlib import Path
 import numpy as np
 import requests
 import xarray as xr
+from analysis.glofas_v5_thresholds.station_cells import locate_station_cell, StationCell
 from analysis.glofas_v5_thresholds.stations import (
     DownloadBox,
+    GLOFAS_CELL_SIZE_DEGREES,
     group_into_boxes,
     load_stations,
-    Station,
+)
+from data_management.seed_data_management.flood.build_glofas_return_period_curves import (
+    DEFAULT_CACHE_DIRECTORY,
+    load_global_curves,
 )
 from ecmwf.datastores import Client
 from shared.data_helpers import get_seed_data_repo_path
@@ -66,6 +71,10 @@ def main() -> None:
     print(f"{len(stations)} stations in {len(boxes)} boxes")
     for box in boxes:
         print(f"{box.name}: {len(box.station_codes)} stations")
+    v4_curves = load_global_curves("v4", DEFAULT_CACHE_DIRECTORY)
+    station_cells = {
+        station.code: locate_station_cell(station, v4_curves) for station in stations
+    }
 
     for version_name in arguments.versions:
         version = GLOFAS_VERSIONS[version_name]
@@ -81,9 +90,9 @@ def main() -> None:
         output_path = (
             arguments.download_directory / f"station_discharge_{version_name}.nc"
         )
-        extract_station_windows(version, version_directory, boxes, stations).to_netcdf(
-            output_path
-        )
+        extract_station_windows(
+            version, version_directory, boxes, station_cells
+        ).to_netcdf(output_path)
         print(f"{version_name}: wrote {output_path}")
 
 
@@ -159,13 +168,12 @@ def extract_station_windows(
     version: GlofasVersion,
     version_directory: Path,
     boxes: list[DownloadBox],
-    stations: list[Station],
+    station_cells: dict[str, StationCell],
 ) -> xr.Dataset:
-    """Daily discharge in a square window of cells around each station, with the station's own cell in the middle.
+    """Daily discharge in a square window of cells around each station, with the station's cell in the middle.
 
     Reads one year at a time, as a large box over all years does not fit in memory.
     """
-    stations_by_code = {station.code: station for station in stations}
     windows: list[xr.Dataset] = []
     for box in boxes:
         yearly_windows: dict[str, list[xr.DataArray]] = {
@@ -175,7 +183,7 @@ def extract_station_windows(
             discharge = _open_box_year(_get_download_path(version_directory, box, year))
             for station_code in box.station_codes:
                 yearly_windows[station_code].append(
-                    _select_window(discharge, stations_by_code[station_code], box)
+                    _select_window(discharge, station_cells[station_code])
                 )
         for station_code, station_windows in yearly_windows.items():
             window = xr.concat(station_windows, dim=TIME)
@@ -195,24 +203,15 @@ def extract_station_windows(
     return xr.concat(windows, dim=STATION)
 
 
-def _select_window(
-    discharge: xr.DataArray, station: Station, box: DownloadBox
-) -> xr.DataArray:
-    window_size = 2 * WINDOW_RADIUS_CELLS + 1
-    row = int(np.abs(discharge["latitude"].to_numpy() - station.latitude).argmin())
-    column = int(np.abs(discharge["longitude"].to_numpy() - station.longitude).argmin())
-    window = discharge.isel(
-        latitude=slice(row - WINDOW_RADIUS_CELLS, row + WINDOW_RADIUS_CELLS + 1),
-        longitude=slice(column - WINDOW_RADIUS_CELLS, column + WINDOW_RADIUS_CELLS + 1),
-    )
-    if (
-        window.sizes["latitude"] != window_size
-        or window.sizes["longitude"] != window_size
-    ):
-        raise ValueError(
-            f"Window of station {station.code} crosses the edge of {box.name}"
-        )
-    return window.load()
+def _select_window(discharge: xr.DataArray, cell: StationCell) -> xr.DataArray:
+    """Cells outside the downloaded box are left empty."""
+    offsets = np.arange(-WINDOW_RADIUS_CELLS, WINDOW_RADIUS_CELLS + 1)
+    return discharge.reindex(
+        latitude=np.round(cell.latitude - offsets * GLOFAS_CELL_SIZE_DEGREES, 3),
+        longitude=np.round(cell.longitude + offsets * GLOFAS_CELL_SIZE_DEGREES, 3),
+        method="nearest",
+        tolerance=GLOFAS_CELL_SIZE_DEGREES / 4,
+    ).load()
 
 
 def _create_client() -> Client:

@@ -6,7 +6,6 @@ import argparse
 from dataclasses import dataclass
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -17,6 +16,12 @@ from analysis.glofas_v5_thresholds.download_reanalysis import (
     STATION,
     TIME,
     WINDOW_RADIUS_CELLS,
+)
+from analysis.glofas_v5_thresholds.gumbel import fit_gumbel, gumbel_threshold
+from analysis.glofas_v5_thresholds.station_cells import (
+    locate_station_cell,
+    RIVER_SEARCH_RADIUS_CELLS,
+    StationCell,
 )
 from analysis.glofas_v5_thresholds.stations import load_stations, Station
 from data_management.seed_data_management.flood.build_glofas_return_period_curves import (
@@ -31,6 +36,7 @@ from pipelines.flood.constants import MINIMUM_RETURN_PERIOD_YEARS
 from shared.data_helpers import get_seed_data_repo_path
 
 RESULTS_DIRECTORY = Path(__file__).parent / "results"
+COMPARISON_FILENAME = "station_threshold_comparison.csv"
 RETURN_PERIODS = [1.5, 2.0, 5.0, 10.0, 20.0]
 # The period of ECMWF's published v4 thresholds, see https://confluence.ecmwf.int/spaces/CEMS/pages/715612883/GloFAS+flood+threshold+generation
 V4_PUBLISHED_FIRST_YEAR = 1979
@@ -38,10 +44,8 @@ V4_PUBLISHED_LAST_YEAR = 2022
 V5_FIRST_YEAR = 1980
 TREND_REFERENCE_YEAR = LAST_YEAR
 RECENT_YEARS = 10
-# A v5 cell whose typical annual maximum is outside this factor of v4's suggests the station is on another river cell.
-OTHER_RIVER_CELL_FACTOR = 2.0
-# A neighbouring v5 cell this close to v4's typical annual maximum is a likely match for the station's river.
-MATCHING_CELL_FACTOR = 1.25
+# A neighbouring v5 cell with at least this many times the flow of the station's cell is the station's river in v5.
+NEIGHBOURING_RIVER_FACTOR = 2.0
 
 
 @dataclass
@@ -70,6 +74,7 @@ def main() -> None:
         [
             compare_station(
                 stations[str(code)],
+                locate_station_cell(stations[str(code)], v4_curves),
                 v5.sel({STATION: code}),
                 v4_curves,
                 (
@@ -83,8 +88,7 @@ def main() -> None:
     )
 
     RESULTS_DIRECTORY.mkdir(exist_ok=True)
-    table.to_csv(RESULTS_DIRECTORY / "station_threshold_comparison.csv", index=False)
-    plot_threshold_ratios(table, RESULTS_DIRECTORY / "threshold_ratio_by_station.png")
+    table.to_csv(RESULTS_DIRECTORY / COMPARISON_FILENAME, index=False)
     print_summary(table)
 
 
@@ -98,6 +102,7 @@ def parse_arguments() -> argparse.Namespace:
 
 def compare_station(
     station: Station,
+    cell: StationCell,
     v5: xr.Dataset,
     v4_curves: xr.Dataset,
     v4: xr.Dataset | None,
@@ -106,88 +111,69 @@ def compare_station(
         year=slice(V5_FIRST_YEAR, LAST_YEAR)
     )
     v5_centre = _centre(v5_annual_maxima)
-
-    published_curve = v4_curves.sel(
-        {LATITUDE: station.latitude, LONGITUDE: station.longitude}, method="nearest"
+    v4_cell = v4_curves.sel(
+        {LATITUDE: cell.latitude, LONGITUDE: cell.longitude}, method="nearest"
     )
-    published_location = float(published_curve[LOCATION])
-    published_scale = float(published_curve[SCALE])
+    published_location = float(v4_cell[LOCATION])
+    published_scale = float(v4_cell[SCALE])
     v4_thresholds = {
         return_period: gumbel_threshold(
             return_period, published_location, published_scale
         )
         for return_period in RETURN_PERIODS
     }
-
-    trend = adjust_for_trend(
-        v5_centre.to_numpy(), v5_centre["year"].to_numpy(), TREND_REFERENCE_YEAR
-    )
-    v5_unadjusted = fit_gumbel(v5_centre.to_numpy())
-    v5_adjusted = fit_gumbel(trend.adjusted_annual_maxima)
-    v5_unadjusted_thresholds = {
-        return_period: gumbel_threshold(return_period, *v5_unadjusted)
-        for return_period in RETURN_PERIODS
-    }
-    v5_thresholds = {
-        return_period: gumbel_threshold(return_period, *v5_adjusted)
-        for return_period in RETURN_PERIODS
-    }
-
     # The mean of the fitted v4 Gumbel distribution, so no v4 reanalysis is needed.
     v4_mean_annual_maximum = published_location + np.euler_gamma * published_scale
-    v5_to_v4_by_cell = v5_annual_maxima.mean("year") / v4_mean_annual_maximum
-    distance_by_cell = np.abs(np.log(v5_to_v4_by_cell.to_numpy()))
-    best_row, best_column = np.unravel_index(
-        np.nanargmin(distance_by_cell), distance_by_cell.shape
+
+    # The v5 thresholds are those of the station's river in v5, which can be the cell next to it.
+    v5_river_row, v5_river_column = _find_v5_river_cell(
+        v5_annual_maxima, v4_mean_annual_maximum
     )
-    centre_ratio = float(_centre(v5_to_v4_by_cell))
-    best_ratio = float(v5_to_v4_by_cell[best_row, best_column])
+    v5_river = v5_annual_maxima.isel(row=v5_river_row, column=v5_river_column)
+    v5_thresholds = compute_v5_thresholds(v5_river)
+    v5_station_cell_thresholds = compute_v5_thresholds(v5_centre)
 
     comparison: TableRow = {
         "country": station.country,
         "station_code": station.code,
         "station_name": station.name,
-        "seed_thresholds_match_v4_curve": all(
-            np.isclose(
-                station.thresholds[return_period],
-                v4_thresholds[return_period],
-                rtol=0.01,
-            )
-            for return_period in RETURN_PERIODS
-        ),
-        "v5_trend_per_decade_relative": 10
-        * trend.slope_per_year
-        / float(v5_centre.mean()),
-        "v5_trend_r_squared": trend.r_squared,
-        "v5_to_v4_mean_annual_maximum": centre_ratio,
-        "best_matching_v5_cell_offset": f"{best_row - WINDOW_RADIUS_CELLS:+d},{best_column - WINDOW_RADIUS_CELLS:+d}",
-        "best_matching_v5_to_v4_mean_annual_maximum": best_ratio,
-        "possible_other_river_cell": (
-            not 1 / OTHER_RIVER_CELL_FACTOR <= centre_ratio <= OTHER_RIVER_CELL_FACTOR
-            and 1 / MATCHING_CELL_FACTOR <= best_ratio <= MATCHING_CELL_FACTOR
-        ),
+        "latitude": station.latitude,
+        "longitude": station.longitude,
+        "cell_latitude": cell.latitude,
+        "cell_longitude": cell.longitude,
+        "placement": str(cell.placement),
+        "touching_cells": cell.touching_cells,
+        "v4_upstream_area_square_kilometres": cell.upstream_area_square_kilometres,
+        "smallest_touching_upstream_area_square_kilometres": cell.smallest_touching_upstream_area_square_kilometres,
+        "seed_thresholds_on_cell": cell.seed_thresholds_on_cell,
+        "v4_mean_annual_maximum": v4_mean_annual_maximum,
+        "v5_station_cell_mean_annual_maximum": float(v5_centre.mean()),
+        "v5_mean_annual_maximum": float(v5_river.mean()),
+        "v5_river_cell_offset": f"{v5_river_row - WINDOW_RADIUS_CELLS:+d},{v5_river_column - WINDOW_RADIUS_CELLS:+d}",
+        "v5_station_next_to_river": (v5_river_row, v5_river_column)
+        != (WINDOW_RADIUS_CELLS, WINDOW_RADIUS_CELLS),
+        "v5_trend_per_decade_relative": v5_thresholds.trend_per_decade_relative,
+        "v5_trend_r_squared": v5_thresholds.trend.r_squared,
         "v5_unadjusted_recent_trigger_years": _count_recent_trigger_years(
-            v5_centre, v5_unadjusted_thresholds[MINIMUM_RETURN_PERIOD_YEARS]
+            v5_river, v5_thresholds.unadjusted[MINIMUM_RETURN_PERIOD_YEARS]
         ),
         "v5_recent_trigger_years": _count_recent_trigger_years(
-            v5_centre, v5_thresholds[MINIMUM_RETURN_PERIOD_YEARS]
+            v5_river, v5_thresholds.adjusted[MINIMUM_RETURN_PERIOD_YEARS]
+        ),
+        # What happens when the v5 forecasts are compared with today's v4 thresholds.
+        "v5_against_v4_threshold_recent_trigger_years": _count_recent_trigger_years(
+            v5_river, v4_thresholds[MINIMUM_RETURN_PERIOD_YEARS]
         ),
         # Only where the v4 reanalysis is downloaded.
         "v4_reproduction_location_difference": np.nan,
         "v4_reproduction_scale_difference": np.nan,
         "v4_recent_trigger_years": np.nan,
-        **{
-            f"v4_rp{return_period:g}": value
-            for return_period, value in v4_thresholds.items()
-        },
-        **{
-            f"v5_unadjusted_rp{return_period:g}": value
-            for return_period, value in v5_unadjusted_thresholds.items()
-        },
-        **{
-            f"v5_rp{return_period:g}": value
-            for return_period, value in v5_thresholds.items()
-        },
+        **_by_return_period("seed", station.thresholds),
+        **_by_return_period("v4_reproduced", dict.fromkeys(RETURN_PERIODS, np.nan)),
+        **_by_return_period("v4", v4_thresholds),
+        **_by_return_period("v5_unadjusted", v5_thresholds.unadjusted),
+        **_by_return_period("v5", v5_thresholds.adjusted),
+        **_by_return_period("v5_station_cell", v5_station_cell_thresholds.adjusted),
     }
     if v4 is not None:
         v4_centre = _centre(_annual_maxima(v4[DISCHARGE]))
@@ -205,25 +191,48 @@ def compare_station(
         comparison["v4_recent_trigger_years"] = _count_recent_trigger_years(
             v4_centre, v4_thresholds[MINIMUM_RETURN_PERIOD_YEARS]
         )
+        comparison.update(
+            _by_return_period(
+                "v4_reproduced",
+                {
+                    return_period: gumbel_threshold(
+                        return_period, reproduced_location, reproduced_scale
+                    )
+                    for return_period in RETURN_PERIODS
+                },
+            )
+        )
     return comparison
 
 
-def fit_gumbel(annual_maxima: np.ndarray) -> tuple[float, float]:
-    """Location and scale from the first two sample L-moments, as in ECMWF's lisflood-utilities."""
-    sorted_maxima = np.sort(annual_maxima)
-    count = len(sorted_maxima)
-    first_probability_weighted_moment = (
-        np.sum(np.arange(count) / (count - 1) * sorted_maxima) / count
+@dataclass
+class V5Thresholds:
+    unadjusted: dict[float, float]
+    adjusted: dict[float, float]
+    trend: TrendAdjustment
+    trend_per_decade_relative: float
+
+
+def compute_v5_thresholds(annual_maxima: xr.DataArray) -> V5Thresholds:
+    """The v5 thresholds of one cell, the old way (without the trend step) and ECMWF's new way."""
+    values = annual_maxima.to_numpy()
+    trend = adjust_for_trend(
+        values, annual_maxima["year"].to_numpy(), TREND_REFERENCE_YEAR
     )
-    first_l_moment = float(np.mean(sorted_maxima))
-    second_l_moment = 2 * first_probability_weighted_moment - first_l_moment
-    scale = second_l_moment / np.log(2)
-    location = first_l_moment - np.euler_gamma * scale
-    return location, scale
-
-
-def gumbel_threshold(return_period: float, location: float, scale: float) -> float:
-    return location - scale * np.log(np.log(return_period / (return_period - 1)))
+    unadjusted = fit_gumbel(values)
+    adjusted = fit_gumbel(trend.adjusted_annual_maxima)
+    return V5Thresholds(
+        unadjusted={
+            return_period: gumbel_threshold(return_period, *unadjusted)
+            for return_period in RETURN_PERIODS
+        },
+        adjusted={
+            return_period: gumbel_threshold(return_period, *adjusted)
+            for return_period in RETURN_PERIODS
+        },
+        trend=trend,
+        trend_per_decade_relative=10 * trend.slope_per_year / float(values.mean()),
+    )
 
 
 def adjust_for_trend(
@@ -244,43 +253,6 @@ def adjust_for_trend(
     return TrendAdjustment(float(slope), float(r_squared), adjusted)
 
 
-def plot_threshold_ratios(table: pd.DataFrame, output_path: Path) -> None:
-    trigger = f"rp{MINIMUM_RETURN_PERIOD_YEARS:g}"
-    ordered = table.assign(
-        adjusted_ratio=table[f"v5_{trigger}"] / table[f"v4_{trigger}"],
-        unadjusted_ratio=table[f"v5_unadjusted_{trigger}"] / table[f"v4_{trigger}"],
-    ).sort_values(["country", "adjusted_ratio"])
-    positions = np.arange(len(ordered))
-
-    figure, axis = plt.subplots(figsize=(max(8, len(ordered) * 0.18), 5))
-    axis.scatter(
-        positions,
-        ordered["unadjusted_ratio"],
-        marker="x",
-        color="grey",
-        label="v5 without trend step",
-    )
-    axis.scatter(
-        positions,
-        ordered["adjusted_ratio"],
-        color="tab:blue",
-        label="v5 (with trend step)",
-    )
-    axis.axhline(1, color="black", linewidth=0.8)
-    axis.set_yscale("log")
-    axis.set_xticks(
-        positions,
-        ordered["country"] + " " + ordered["station_code"],
-        rotation=90,
-        fontsize=6,
-    )
-    axis.set_ylabel(f"v5 / v4 {MINIMUM_RETURN_PERIOD_YEARS:g}-year threshold (trigger)")
-    axis.legend()
-    figure.tight_layout()
-    figure.savefig(output_path, dpi=150)
-    plt.close(figure)
-
-
 def print_summary(table: pd.DataFrame) -> None:
     trigger = f"rp{MINIMUM_RETURN_PERIOD_YEARS:g}"
     ratio = table[f"v5_{trigger}"] / table[f"v4_{trigger}"]
@@ -291,23 +263,62 @@ def print_summary(table: pd.DataFrame) -> None:
         f"{table['v4_reproduction_scale_difference'].abs().max():.1%}"
     )
     print(
-        f"Seed thresholds on the v4 curve of their cell: {table['seed_thresholds_match_v4_curve'].sum()} of {len(table)}"
+        f"Seed thresholds on the v4 curve of their cell: {table['seed_thresholds_on_cell'].sum()} of {len(table)}"
     )
-    print("\nv5 / v4 trigger threshold per country (median, min, max):")
+    print("\nv5 / v4 alert threshold per country (median, min, max):")
     print(
         ratio.groupby(table["country"])
         .agg(["median", "min", "max", "count"])
         .round(2)
         .to_string()
     )
+    print(f"\nPlacement: {table['placement'].value_counts().to_dict()}")
     print(
-        f"\nPossibly on another river cell in v5: {', '.join(table.loc[table['possible_other_river_cell'], 'station_code']) or 'none'}"
+        f"Next to the river in v5: {', '.join(table.loc[table['v5_station_next_to_river'], 'station_code']) or 'none'}"
     )
     print(
-        f"Trigger years in the last {RECENT_YEARS} years, all stations: "
+        f"Years at the alert threshold in the last {RECENT_YEARS} years, all stations: "
         f"v5 without trend step {table['v5_unadjusted_recent_trigger_years'].sum()}, "
         f"v5 {table['v5_recent_trigger_years'].sum()}"
     )
+
+
+def _find_v5_river_cell(
+    annual_maxima: xr.DataArray, v4_mean_annual_maximum: float
+) -> tuple[int, int]:
+    """The station's own cell, unless a cell right next to it carries its river in v5.
+
+    That cell has much more flow than the station's own cell, and is closer to v4's flow at the station,
+    so a tributary next to a main river stays on the tributary.
+    Discharge stands in for upstream area, as the v5 upstream area map is not published yet.
+    """
+    radius = RIVER_SEARCH_RADIUS_CELLS
+    mean_by_cell = annual_maxima.mean("year").to_numpy()
+    around = mean_by_cell[
+        WINDOW_RADIUS_CELLS - radius : WINDOW_RADIUS_CELLS + radius + 1,
+        WINDOW_RADIUS_CELLS - radius : WINDOW_RADIUS_CELLS + radius + 1,
+    ]
+    with np.errstate(divide="ignore", invalid="ignore"):
+        distance_to_v4 = np.abs(np.log(around / v4_mean_annual_maximum))
+    candidates = (around >= NEIGHBOURING_RIVER_FACTOR * around[radius, radius]) & (
+        distance_to_v4 < distance_to_v4[radius, radius]
+    )
+    if not candidates.any():
+        return WINDOW_RADIUS_CELLS, WINDOW_RADIUS_CELLS
+    best_row, best_column = np.unravel_index(
+        np.nanargmin(np.where(candidates, distance_to_v4, np.inf)), around.shape
+    )
+    return (
+        WINDOW_RADIUS_CELLS - radius + int(best_row),
+        WINDOW_RADIUS_CELLS - radius + int(best_column),
+    )
+
+
+def _by_return_period(prefix: str, thresholds: dict[float, float]) -> TableRow:
+    return {
+        f"{prefix}_rp{return_period:g}": thresholds[return_period]
+        for return_period in RETURN_PERIODS
+    }
 
 
 def _annual_maxima(discharge: xr.DataArray) -> xr.DataArray:
