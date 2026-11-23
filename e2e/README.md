@@ -76,13 +76,14 @@ A run first resets the local database for all scenario countries (the
 
 ## Updating screenshots
 
-All screenshot assertions live in `nrw/tests/Visual.spec.ts`. After an
-intentional UI change, regenerate the baselines (from this directory):
+Screenshot tests are tagged `@visual` and sit in the spec of the flow they
+capture. After an intentional UI change, regenerate the baselines (from this
+directory):
 
 | Scope             | Command                                                    |
 | ----------------- | ---------------------------------------------------------- |
 | All               | `npm run test:update-snapshots`                            |
-| One file          | `npm run test:update-snapshots -- Visual`                  |
+| One file          | `npm run test:update-snapshots -- EventSelection`          |
 | One test, by name | `npm run test:update-snapshots:specific -- "event opened"` |
 
 Only screenshots that differ or are missing are rewritten. Review the changed

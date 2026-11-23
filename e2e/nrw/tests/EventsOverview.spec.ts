@@ -1,4 +1,4 @@
-import { expect, test, useScenario } from '@nrw-e2e/nrw/fixtures';
+import { expect, test, useScenario, visualTest } from '@nrw-e2e/nrw/fixtures';
 import { singleEvent } from '@nrw-e2e/nrw/scenarios';
 
 const { eventName } = singleEvent.event;
@@ -32,4 +32,9 @@ test('hovering an event marker highlights its event card', async ({
 
   // Assert
   await expect(nrwPage.eventsPanel.hoveredEventCards).toHaveCount(1);
+});
+
+test('page layout with the event marker', visualTest, async ({ nrwPage }) => {
+  // Assert
+  await expect(nrwPage.page).toHaveScreenshot('all-events.png');
 });

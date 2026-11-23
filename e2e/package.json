@@ -16,7 +16,7 @@
     "lint": "eslint \"**/*.{ts,js,mjs}\"",
     "fix": "npm run lint -- --fix",
     "test": "playwright test --config=playwright.config.ts",
-    "test:update-snapshots": "npm run test -- --update-snapshots",
+    "test:update-snapshots": "npm run test -- --update-snapshots --grep @visual",
     "test:update-snapshots:specific": "npm run test -- --update-snapshots --grep"
   },
   "devDependencies": {

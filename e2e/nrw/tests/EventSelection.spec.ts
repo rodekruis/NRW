@@ -1,4 +1,4 @@
-import { expect, test, useScenario } from '@nrw-e2e/nrw/fixtures';
+import { expect, test, useScenario, visualTest } from '@nrw-e2e/nrw/fixtures';
 import { getEvents } from '@nrw-e2e/nrw/helpers/events';
 import { singleEvent } from '@nrw-e2e/nrw/scenarios';
 
@@ -68,3 +68,19 @@ test('clicking an event marker opens the event', async ({ nrwPage }) => {
   await expect(nrwPage.eventsPanel.openButton(eventName)).toHaveCount(0);
   await expect(nrwPage.page).toHaveURL(/[?&]event=\d+/);
 });
+
+test(
+  'event opened: page layout with the map zoomed to the exposed admin areas',
+  visualTest,
+  async ({ nrwPage }) => {
+    // Arrange
+    await nrwPage.goto({ countryCodes });
+
+    // Act
+    await nrwPage.eventsPanel.openEvent(eventName);
+    await nrwPage.page.waitForLoadState('networkidle');
+
+    // Assert
+    await expect(nrwPage.page).toHaveScreenshot('event-opened.png');
+  },
+);

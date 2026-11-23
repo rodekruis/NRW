@@ -7,6 +7,12 @@ import { Scenario } from '@nrw-e2e/nrw/scenarios';
 
 export { expect } from '@playwright/test';
 
+/**
+ * Tags screenshot tests. They break on any frontend design change, so they are
+ * kept apart from functional tests and can be run or updated on their own.
+ */
+export const visualTest = { tag: '@visual' };
+
 export const test = base.extend<{ nrwPage: NrwPage }>({
   nrwPage: async ({ page }, use) => {
     await use(new NrwPage(page));
