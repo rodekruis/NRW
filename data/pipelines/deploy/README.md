@@ -87,7 +87,8 @@ Test and staging share their Batch, storage, Key Vault and Application Insights 
 - `DATA_CACHE_DIR` is a blobfuse mount of the `nrw-data-cache` blob container, so downloads and intermediate files are kept between runs.
 - A failed task is not retried by Batch. Retries happen inside the pipeline, e.g. for downloads and for countries that failed to load their data.
 - A task is stopped after 10 hours.
-- On completion, the task's `stdout.txt` and `stderr.txt` are uploaded to `nrw-data-cache/task-logs/<hazard>/<job-id>/`.
+- Before submitting a job, the scheduler creates a `job-<lowercase-job-id>` output container in the account identified by `BATCH_TASK_LOGS_STORAGE_ACCOUNT_URL` (the Blob service endpoint, ending in `/`). On completion, Batch uploads `stdout.txt` and `stderr.txt` under `<task-id>/$TaskLog/`. Names that are not valid container names use the [Batch File Conventions](https://learn.microsoft.com/en-us/dotnet/api/overview/azure/microsoft.azure.batch.conventions.files-readme#conventions) hash form.
+- The storage account must be linked to the Batch account for portal discovery. Container creation failures prevent job submission.
 
 ### Blob storage retention
 
@@ -99,9 +100,11 @@ The pipeline writes to these prefixes under `DATA_CACHE_DIR` (see `pipelines/inf
 | `glofas/country_split/{forecast_date}/`       | Country-split GloFAS data                | No limit  |
 | `glofas/country_split_alert/{forecast_date}/` | Country-split data that triggered alerts | No limit  |
 | `glofas/country_mock_data/{country}/`         | Mock GloFAS data for `--mock` runs       | No limit  |
-| `task-logs/{hazard_type}/{job_id}/`           | Batch task stdout/stderr                 | 90 days   |
+| `task-logs/{hazard_type}/{job_id}/`           | Legacy Batch task stdout/stderr          | 90 days   |
 
 A daily set of global GloFAS downloads is about 50 files of about 600 MB each (about 30 GB). The pipeline loads one file at a time, so it needs about 0.6–1 GB of working memory for them.
+
+To run the scheduler tests, install `function/requirements.txt` and `pytest` in a Python environment, then run `PYTHONPATH=function python -m pytest tests/` from this directory.
 
 ## CI/CD
 
@@ -116,7 +119,7 @@ Production does not build a new image, but copies whatever `pipelines:staging` h
 
 ## Logging and alerts
 
-- Pipeline logs go to the environment's Application Insights component with role name `nrw-pipeline`. Each log message starts with a tag (`tag_<name>`, see `LogTag` in `pipelines/infra/utils/nrw_logger.py`) and a live-or-mock marker (`data_live` / `data_mock`). The run origin (`scheduled`, `manual`, `local`) is in `customDimensions.run_origin`.
+- Pipeline logs go to the environment's Application Insights component with role name `nrw-pipeline`. NRW-tagged messages include a tag (`tag_<name>`, see `LogTag` in `pipelines/infra/utils/nrw_logger.py`), a live-or-mock marker (`data_live` / `data_mock`), and structured run origin, Batch job ID, hazard type and country code when available.
 - The Application Insights components are backed by the shared `nrw-app-law` Log Analytics workspace, so pipeline and backend logs can be queried together.
 - A metric alert on each Batch account emails the team when a task fails.
 

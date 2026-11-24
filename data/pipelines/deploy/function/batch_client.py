@@ -9,10 +9,12 @@ Targets azure-batch 15.x, the azure-core SDK generation: BatchClient takes a
 standard azure-identity TokenCredential directly.
 """
 
+import hashlib
 import os
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from urllib.parse import urlsplit
 
 from azure.batch import BatchClient
 from azure.batch.models import (
@@ -33,6 +35,7 @@ from azure.batch.models import (
 )
 from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+from azure.storage.blob import BlobServiceClient
 from pipeline_run_request import COUNTRY_CODE_PATTERN
 
 CONTAINER_IMAGE_TAG = os.environ.get("NRW_ENVIRONMENT")
@@ -103,16 +106,21 @@ def submit_pipeline_job(
 ) -> str:
     """Create one Batch job with a single container task for the given hazard."""
     job_id = build_job_id(pipeline_config, run_started_at)
-    batch_client.create_job(
-        BatchJobCreateOptions(
-            id=job_id,
-            pool_info=BatchPoolInfo(pool_id=require_app_setting("BATCH_POOL_ID")),
-            all_tasks_complete_mode=BatchAllTasksCompleteMode.TERMINATE_JOB,
-        )
+    container_name = job_output_container_name(job_id)
+    storage_account_url = task_logs_storage_account_url()
+    container_url = f"{storage_account_url}{container_name}"
+    task = build_container_task(pipeline_config, container_url, run_origin)
+    job = BatchJobCreateOptions(
+        id=job_id,
+        pool_info=BatchPoolInfo(pool_id=require_app_setting("BATCH_POOL_ID")),
+        all_tasks_complete_mode=BatchAllTasksCompleteMode.TERMINATE_JOB,
     )
-    batch_client.create_task(
-        job_id, build_container_task(pipeline_config, job_id, run_origin)
-    )
+    with BlobServiceClient(
+        account_url=storage_account_url, credential=build_token_credential()
+    ) as storage_client:
+        storage_client.create_container(container_name)
+    batch_client.create_job(job)
+    batch_client.create_task(job_id, task)
     return job_id
 
 
@@ -129,12 +137,44 @@ def build_job_id(pipeline_config: PipelineConfig, run_started_at: datetime) -> s
     return f"nrw-{pipeline_config.hazard_type}-{run_started_at:%Y%m%d-%H%M%S}"
 
 
+def job_output_container_name(job_id: str) -> str:
+    normalized_id = job_id.lower()
+    container_name = f"job-{normalized_id}"
+    if len(container_name) <= 63 and re.fullmatch(
+        r"[a-z0-9]+(?:-[a-z0-9]+)*", container_name
+    ):
+        return container_name
+
+    job_hash = hashlib.sha1(normalized_id.encode(), usedforsecurity=False).hexdigest()
+    prefix = re.sub(r"[_:-]+", "-", normalized_id).strip("-") or "job"
+    prefix = prefix[:15].rstrip("-")
+    return f"job-{prefix}-{job_hash}"
+
+
+def task_logs_storage_account_url() -> str:
+    account_url = require_app_setting("BATCH_TASK_LOGS_STORAGE_ACCOUNT_URL")
+    parsed_url = urlsplit(account_url)
+    if (
+        parsed_url.scheme not in ("http", "https")
+        or not parsed_url.netloc
+        or parsed_url.path != "/"
+        or not account_url.endswith("/")
+        or parsed_url.query
+        or parsed_url.fragment
+    ):
+        raise ValueError(
+            "BATCH_TASK_LOGS_STORAGE_ACCOUNT_URL must be a plain storage account URL ending in /."
+        )
+    return account_url
+
+
 def build_container_task(
-    pipeline_config: PipelineConfig, job_id: str, run_origin: str
+    pipeline_config: PipelineConfig, container_url: str, run_origin: str
 ) -> BatchTaskCreateOptions:
     """Container task mirroring local invocation: `pipeline --config <path>`."""
+    task_id = f"{pipeline_config.hazard_type}-task"
     return BatchTaskCreateOptions(
-        id=f"{pipeline_config.hazard_type}-task",
+        id=task_id,
         command_line=build_command_line(pipeline_config),
         container_settings=BatchTaskContainerSettings(
             image_name=CONTAINER_IMAGE,
@@ -147,7 +187,7 @@ def build_container_task(
             max_wall_clock_time=TASK_MAX_WALL_CLOCK_TIME,
             max_task_retry_count=TASK_MAX_RETRY_COUNT,
         ),
-        output_files=task_output_files(pipeline_config, job_id),
+        output_files=task_output_files(task_id, container_url),
     )
 
 
@@ -179,21 +219,18 @@ def task_environment_settings(run_origin: str) -> list[EnvironmentSetting]:
     ]
 
 
-def task_output_files(
-    pipeline_config: PipelineConfig, job_id: str
-) -> list[OutputFile] | None:
+def task_output_files(task_id: str, container_url: str) -> list[OutputFile]:
     """Write the Batch stdout.txt/stderr.txt files to blob storage"""
-    container_url = os.environ.get("BATCH_TASK_LOGS_CONTAINER_URL")
-    node_identity_resource_id = os.environ.get("BATCH_POOL_NODE_IDENTITY_RESOURCE_ID")
-    if not container_url or not node_identity_resource_id:
-        return None
+    node_identity_resource_id = require_app_setting(
+        "BATCH_POOL_NODE_IDENTITY_RESOURCE_ID"
+    )
     return [
         OutputFile(
             file_pattern="../std*.txt",
             destination=OutputFileDestination(
                 container=OutputFileBlobContainerDestination(
                     container_url=container_url,
-                    path=f"task-logs/{pipeline_config.hazard_type}/{job_id}",
+                    path=f"{task_id}/$TaskLog",
                     identity_reference=BatchNodeIdentityReference(
                         resource_id=node_identity_resource_id
                     ),

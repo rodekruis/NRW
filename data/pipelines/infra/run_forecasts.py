@@ -35,7 +35,13 @@ from pipelines.infra.utils.alert_admin_aggregation import (
 from pipelines.infra.utils.alert_centroid import compute_alert_centroid
 from pipelines.infra.utils.api_client import ApiClient
 from pipelines.infra.utils.infra_mock_generator import make_infra_mock_hazard_function
-from pipelines.infra.utils.nrw_logger import log_error, log_info, log_warning, LogTag
+from pipelines.infra.utils.nrw_logger import (
+    log_context,
+    log_error,
+    log_info,
+    log_warning,
+    LogTag,
+)
 from pipelines.tropical_cyclone.forecast import calculate_tropical_cyclone_forecasts
 
 logger = logging.getLogger(__name__)
@@ -222,68 +228,71 @@ def run_forecasts(
     pipeline_run_config = config_reader.config
 
     hazard_type = pipeline_run_config.hazard_type
-    hazard_fn = HAZARD_FUNCTIONS.get(hazard_type)
-    if hazard_fn is None:
-        msg = f"No hazard function registered for '{hazard_type}'"
-        log_error(logger, LogTag.INFRA, msg)
-        return [msg]
+    with log_context(hazard_type=hazard_type):
+        hazard_fn = HAZARD_FUNCTIONS.get(hazard_type)
+        if hazard_fn is None:
+            msg = f"No hazard function registered for '{hazard_type}'"
+            log_error(logger, LogTag.INFRA, msg)
+            return [msg]
 
-    countries = _resolve_countries(pipeline_run_config.country_configs, country_filter)
-    if isinstance(countries, str):
-        log_error(logger, LogTag.INFRA, countries)
-        return [countries]
+        countries = _resolve_countries(
+            pipeline_run_config.country_configs, country_filter
+        )
+        if isinstance(countries, str):
+            log_error(logger, LogTag.INFRA, countries)
+            return [countries]
 
-    if local_data and hazard_type != HazardType.FLOODS:
-        log_warning(
-            logger,
-            LogTag.INFRA,
-            f"--local-data is currently only supported for floods. "
-            f"Flag will be ignored for '{hazard_type}'.",
+        if local_data and hazard_type != HazardType.FLOODS:
+            log_warning(
+                logger,
+                LogTag.INFRA,
+                f"--local-data is currently only supported for floods. "
+                f"Flag will be ignored for '{hazard_type}'.",
+            )
+
+        run_origin = RunOrigin(os.environ.get("PIPELINE_RUN_ORIGIN", RunOrigin.LOCAL))
+        api_client = ApiClient(
+            run_origin=run_origin,
+            source_target=source_target.value,
         )
 
-    run_origin = RunOrigin(os.environ.get("PIPELINE_RUN_ORIGIN", RunOrigin.LOCAL))
-    api_client = ApiClient(
-        run_origin=run_origin,
-        source_target=source_target.value,
-    )
+        active_fn = hazard_fn
+        if infra_only:
+            # bypasses hazard logic in forecast.py
+            active_fn = make_infra_mock_hazard_function(mock or 0, hazard_type)
+            log_info(
+                logger,
+                LogTag.INFRA,
+                f"Skipping hazard logic (--infra-only): generating {mock or 0}"
+                f" mock alert(s) per country",
+            )
 
-    active_fn = hazard_fn
-    if infra_only:
-        # bypasses hazard logic in forecast.py
-        active_fn = make_infra_mock_hazard_function(mock or 0, hazard_type)
+        context = ForecastRunContext(
+            hazard_fn=active_fn,
+            hazard_type=hazard_type,
+            issued_at=issued_at,
+            output_mode=output_mode,
+            output_path=output_path,
+            api_client=api_client,
+            local_data=local_data,
+            local_data_date=local_data_date,
+        )
+
         log_info(
             logger,
             LogTag.INFRA,
-            f"Skipping hazard logic (--infra-only): generating {mock or 0}"
-            f" mock alert(s) per country",
+            f"Start '{hazard_type}' pipeline for '{', '.join(c.country_code_iso_3 for c in countries)}' (source target: '{source_target}'{', infra-only' if infra_only else ''})",
         )
 
-    context = ForecastRunContext(
-        hazard_fn=active_fn,
-        hazard_type=hazard_type,
-        issued_at=issued_at,
-        output_mode=output_mode,
-        output_path=output_path,
-        api_client=api_client,
-        local_data=local_data,
-        local_data_date=local_data_date,
-    )
+        results = _run_countries(context, countries)
 
-    log_info(
-        logger,
-        LogTag.INFRA,
-        f"Start '{hazard_type}' pipeline for '{', '.join(c.country_code_iso_3 for c in countries)}' (source target: '{source_target}'{', infra-only' if infra_only else ''})",
-    )
+        # Countries whose retryable data source failed transiently (e.g. a GloFAS FTP
+        # timeout) can be retried once another country has loaded data into the shared cache.
+        results = _retry_failed_data_countries(context, results)
 
-    results = _run_countries(context, countries)
+        _log_failed_countries(results)
 
-    # Countries whose retryable data source failed transiently (e.g. a GloFAS FTP
-    # timeout) can be retried once another country has loaded data into the shared cache.
-    results = _retry_failed_data_countries(context, results)
-
-    _log_failed_countries(results)
-
-    return [error for result in results for error in result.errors]
+        return [error for result in results for error in result.errors]
 
 
 def _run_countries(
@@ -292,14 +301,15 @@ def _run_countries(
 ) -> list[CountryRunResult]:
     results: list[CountryRunResult] = []
     for country in countries:
-        log_info(
-            logger,
-            LogTag.INFRA,
-            f"Forecast '{context.hazard_type}' for '{country.country_code_iso_3}'",
-        )
-        result = _run_country(context, country)
-        _log_country_result(context, result)
-        results.append(result)
+        with log_context(country_code=country.country_code_iso_3):
+            log_info(
+                logger,
+                LogTag.INFRA,
+                f"Forecast '{context.hazard_type}' for '{country.country_code_iso_3}'",
+            )
+            result = _run_country(context, country)
+            _log_country_result(context, result)
+            results.append(result)
     return results
 
 
@@ -321,11 +331,12 @@ def _log_country_result(
 def _log_failed_countries(results: list[CountryRunResult]) -> None:
     for result in results:
         if result.errors:
-            log_error(
-                logger,
-                LogTag.INFRA,
-                f"Errors for '{result.country.country_code_iso_3}': {result.errors}",
-            )
+            with log_context(country_code=result.country.country_code_iso_3):
+                log_error(
+                    logger,
+                    LogTag.INFRA,
+                    f"Errors for '{result.country.country_code_iso_3}': {result.errors}",
+                )
 
 
 def _retry_failed_data_countries(

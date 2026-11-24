@@ -1,3 +1,4 @@
+import logging
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -10,6 +11,7 @@ from pipelines.infra.data_types.data_config_types import (
     DataSource,
     DataSourceConfig,
     OutputMode,
+    PipelineRunConfig,
 )
 from pipelines.infra.data_types.enums import HazardType
 from pipelines.infra.run_forecasts import (
@@ -21,6 +23,7 @@ from pipelines.infra.run_forecasts import (
     CountryRunResult,
     ForecastRunContext,
 )
+from pipelines.infra.utils.nrw_logger import log_info, LogTag
 
 
 def _make_country(
@@ -341,6 +344,54 @@ class TestHasRetryableSourceFailure:
 
 
 class TestFailureLogging:
+    def test_country_logs_include_context_during_runs_and_deferred_failures(
+        self, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        # Arrange
+        countries = [_make_country("KEN"), _make_country("ETH")]
+        config = PipelineRunConfig(
+            hazard_type=HazardType.FLOODS,
+            country_configs={
+                country.country_code_iso_3: country for country in countries
+            },
+        )
+        reader = SimpleNamespace(config=config, load_all=lambda _path: True)
+        monkeypatch.setattr(
+            run_forecasts_module, "ConfigReader", lambda **_kwargs: reader
+        )
+        monkeypatch.setattr(run_forecasts_module, "ApiClient", MagicMock())
+        monkeypatch.setenv("AZ_BATCH_JOB_ID", "job-123")
+
+        def fake_run_country(
+            _context: ForecastRunContext, country: CountryRunConfig
+        ) -> CountryRunResult:
+            log_info(run_forecasts_module.logger, LogTag.INFRA, "inside country")
+            errors = ["failure"] if country.country_code_iso_3 == "KEN" else []
+            return CountryRunResult(country, errors, bool(errors), not errors)
+
+        monkeypatch.setattr(run_forecasts_module, "_run_country", fake_run_country)
+
+        # Act
+        with caplog.at_level(logging.INFO):
+            errors = run_forecasts_module.run_forecasts("unused")
+
+        # Assert
+        assert errors == ["failure"]
+        records = caplog.records
+        assert all(record.__dict__["job_id"] == "job-123" for record in records)
+        assert all(record.__dict__["hazard_type"] == "floods" for record in records)
+        inside = [record for record in records if "inside country" in record.message]
+        assert [record.__dict__["country_code"] for record in inside] == [
+            "KEN",
+            "ETH",
+            "KEN",
+        ]
+        failures = [record for record in records if "Errors for" in record.message]
+        assert len(failures) == 1
+        assert failures[0].__dict__["country_code"] == "KEN"
+        start = next(record for record in records if "Start 'floods'" in record.message)
+        assert not hasattr(start, "country_code")
+
     def test_recovered_country_is_not_logged_as_error(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
