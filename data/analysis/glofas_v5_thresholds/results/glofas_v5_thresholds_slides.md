@@ -24,11 +24,11 @@ style: |
 
 # GloFAS v5 thresholds for NRW, and a station fix found along the way
 
-Preview for AB#45890, 23 November 2026: our own v5 thresholds, computed with ECMWF's method. Not yet in the v5 comparison: PHL, still downloading.
+Preview for AB#45890, 24 November 2026: our own v5 thresholds, computed with ECMWF's method.
 
 **Question:** what do the GloFAS v5 thresholds mean for NRW?
 
-- **Answer:** they are lower, median ×0.65 of v4, so forecasts and thresholds must switch to v5 together.
+- **Answer:** they are lower, median ×0.67 of v4, so forecasts and thresholds must switch to v5 together.
 - Our method reproduces ECMWF's v4 thresholds exactly.
 
 **Found along the way, independent of v5:** 17 station coordinates point at the wrong cell. A small fix, now (AB#45972).
@@ -83,6 +83,7 @@ Checked for 4 stations only, to save download time.
 | ETH     | 27       | ×0.59          | ×0.14 – ×1.55 | 24          |
 | KEN     | 3        | ×0.78          | ×0.42 – ×0.88 | 3           |
 | MWI     | 4        | ×0.84          | ×0.77 – ×0.86 | 4           |
+| PHL     | 10       | ×0.90          | ×0.36 – ×1.16 | 6           |
 | SSD     | 1        | ×0.19          | ×0.19 – ×0.19 | 1           |
 | UGA     | 8        | ×0.66          | ×0.35 – ×0.96 | 8           |
 | ZMB     | 20       | ×0.69          | ×0.49 – ×2.02 | 17          |
@@ -91,13 +92,13 @@ Checked for 4 stations only, to save download time.
 
 ## Answer: switch the forecasts and the thresholds to v5 at the same moment
 
-v5 thresholds are generally lower than v4: median ×0.65, because v5 simulates lower river flows.
+v5 thresholds are generally lower than v4: median ×0.67, because v5 simulates lower river flows.
 
 | Share of years reaching the 1.5-year threshold, 2016–2025 |     |
 | --------------------------------------------------------- | --- |
 | v4 against v4 thresholds (MWI, 4 stations)                | 75% |
 | v5 against v5 thresholds                                  | 74% |
-| v5 against today's v4 thresholds                          | 32% |
+| v5 against today's v4 thresholds                          | 35% |
 
 **So v5 forecasts need v5 thresholds:** with today's thresholds, far fewer alerts.
 
@@ -107,12 +108,12 @@ v5 thresholds are generally lower than v4: median ×0.65, because v5 simulates l
 
 ## Next steps for v5
 
-| What                                     | Stations                                                                                                       | Action                                                                   |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Switch forecasts and thresholds together | All                                                                                                            | Migration process (AB#45893)                                             |
-| Large drop, below ×0.50                  | G1053, G5100, G4951, G1045, G1067, G1902, G1074, G5160, G6111, G1904, G6108, G5195, G5141, G1901, G1338, G5317 | Ask the GloFAS team (AB#45889)                                           |
-| Large rise, above ×1.50                  | G1271, G5696, G5173                                                                                            | Same                                                                     |
-| Before going live                        | All                                                                                                            | ECMWF's v5 files; update path for production, tested on test and staging |
+| What                                     | Stations                                                                                                              | Action                                                                   |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Switch forecasts and thresholds together | All                                                                                                                   | Migration process (AB#45893)                                             |
+| Large drop, below ×0.50                  | G1053, G5100, G4951, G1045, G1067, G1902, G1074, G5160, G6111, G1966, G1904, G6108, G5195, G5141, G1901, G1338, G5317 | Ask the GloFAS team (AB#45889)                                           |
+| Large rise, above ×1.50                  | G1271, G5696, G5173                                                                                                   | Same                                                                     |
+| Before going live                        | All                                                                                                                   | ECMWF's v5 files; update path for production, tested on test and staging |
 
 ---
 
@@ -131,7 +132,7 @@ v4 upstream area per cell (km²), north up, 0.05° cells. **Red dot:** seed coor
 
 ## Independent of v5, but worth fixing now
 
-**Independent of v4 or v5:** the coordinates are wrong today, and in v5 the river is in the same cell as in v4, at all 63 compared stations. So the fix holds after the switch.
+**Independent of v4 or v5:** the coordinates are wrong today, and in v5 the river is in the same cell as in v4, at all 73 compared stations. So the fix holds after the switch.
 
 **Why now, here:**
 
@@ -150,9 +151,9 @@ v4 upstream area per cell (km²), north up, 0.05° cells. **Red dot:** seed coor
 | Station   | Coordinates now   | Proposed        | Forecast cell now, km² | Proposed, km² | v4 threshold: now → fixed | v5 threshold, fixed |
 | --------- | ----------------- | --------------- | ---------------------- | ------------- | ------------------------- | ------------------- |
 | KEN G5142 | -1.0950, 37.1940  | -1.075, 37.225  | 31                     | 5,568         | 2 → 194                   | 150                 |
-| PHL G1966 | 14.8940, 120.7300 | 14.925, 120.725 | 30                     | 7,806         | 9 → 2,245                 | pending             |
-| PHL G1967 | 15.3440, 120.4650 | 15.375, 120.475 | 119                    | 267           | 41 → 94                   | pending             |
-| PHL G5368 | 8.8860, 125.5410  | 8.875, 125.575  | 30                     | 11,514        | 8 → 2,577                 | pending             |
+| PHL G1966 | 14.8940, 120.7300 | 14.925, 120.725 | 30                     | 7,806         | 9 → 2,245                 | 810                 |
+| PHL G1967 | 15.3440, 120.4650 | 15.375, 120.475 | 119                    | 267           | 41 → 94                   | 108                 |
+| PHL G5368 | 8.8860, 125.5410  | 8.875, 125.575  | 30                     | 11,514        | 8 → 2,577                 | 1,794               |
 | ETH G1045 | 11.6833, 40.9500  | 11.675, 40.975  | 30 or 58,322           | 58,322        | 1,061, same               | 212                 |
 | ETH G1603 | 8.2500, 34.5700   | 8.225, 34.575   | 30 or 23,601           | 23,601        | 1,641, same               | 1,053               |
 | ETH G4954 | 11.0500, 41.6500  | 11.075, 41.675  | 30 or 21,064           | 21,064        | 42, same                  | 50                  |
@@ -178,8 +179,8 @@ Upstream area of the cell the forecast comes from: on a boundary, either touchin
 
 ## Backup: the new model causes most of the change, not the trend step
 
-- **Model:** v5 without trend step / v4, median ×0.65.
-- **Trend step:** v5 / v5 without trend step, median ×1.00; more than 10% change at 12 of 63 stations. It is the one step we could not check against ECMWF.
+- **Model:** v5 without trend step / v4, median ×0.67.
+- **Trend step:** v5 / v5 without trend step, median ×1.00; more than 10% change at 12 of 73 stations. It is the one step we could not check against ECMWF.
 
 Where the trend step matters most, 1.5-year threshold in m³/s:
 
