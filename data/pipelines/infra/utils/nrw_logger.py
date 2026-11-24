@@ -1,8 +1,31 @@
 import logging
 import os
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from enum import StrEnum
 
 from pipelines.infra.data_types.data_config_types import RunOrigin, to_live_or_mock
+
+_log_context: ContextVar[dict[str, str] | None] = ContextVar(
+    "pipeline_log_context", default=None
+)
+
+
+@contextmanager
+def log_context(
+    *, hazard_type: str | None = None, country_code: str | None = None
+) -> Iterator[None]:
+    context = (_log_context.get() or {}).copy()
+    if hazard_type is not None:
+        context["hazard_type"] = hazard_type
+    if country_code is not None:
+        context["country_code"] = country_code
+    token = _log_context.set(context)
+    try:
+        yield
+    finally:
+        _log_context.reset(token)
 
 
 # Log tags used to help find and compare logs in Kusto
@@ -33,22 +56,23 @@ def log_with_tag(
 ) -> None:
     """
     Log a message prefixed with a tag and live-or-mock marker for fast Kusto
-    filtering and readable job stdout. Run origin is attached
-    as structured fields so logs can also be filtered by it in
-    Application Insights (but not in stdout).
+    filtering and readable task output. Run context is attached as structured
+    fields for Application Insights, but not included in the task output.
     """
     run_origin = RunOrigin(os.environ.get("PIPELINE_RUN_ORIGIN", RunOrigin.LOCAL))
     source_target = os.environ.get("PIPELINE_SOURCE_TARGET", "unknown")
     live_or_mock = to_live_or_mock(source_target)
+    extra = {"run_origin": run_origin.value, **(_log_context.get() or {})}
+    job_id = os.environ.get("AZ_BATCH_JOB_ID")
+    if job_id:
+        extra["job_id"] = job_id
     logger.log(
         level,
         "tag_%s data_%s %s",
         tag.value,
         live_or_mock,
         message,
-        extra={
-            "run_origin": run_origin.value,
-        },
+        extra=extra,
     )
 
 

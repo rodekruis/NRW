@@ -73,13 +73,27 @@ union traces, exceptions
 | order by timestamp asc
 ```
 
-Each pipeline log message starts with a tag (`tag_<name>`, see `LogTag` in `pipelines/infra/utils/nrw_logger.py`) and a live-or-mock marker (`data_live` / `data_mock`). The run origin (`scheduled`, `manual`, `local`) is in `customDimensions.run_origin`. For example, all logs of scheduled live runs:
+NRW-tagged pipeline messages start with a tag (`tag_<name>`, see `LogTag` in `pipelines/infra/utils/nrw_logger.py`) and a live-or-mock marker (`data_live` / `data_mock`). They include `customDimensions.run_origin` (`scheduled`, `manual`, `local`) and, when available, `job_id`, `hazard_type` and `country_code`. The job ID comes from Batch; local runs omit it. Hazard is available after loading the config and while processing the forecast; country is set only for a particular country's processing or failure. Startup, final summary, job-wide, third-party and older messages may therefore lack some or all of these fields.
+
+For example, all logs of scheduled live runs:
 
 ```kusto
 traces
 | where message has "data_live"
 | where customDimensions.run_origin == "scheduled"
 | order by timestamp desc
+```
+
+For a specific Batch job:
+
+```kusto
+traces
+| where cloud_RoleName == "nrw-pipeline"
+| where tostring(customDimensions.job_id) == "nrw-floods-20261124-120000"
+| project timestamp, severityLevel, message,
+          hazard = tostring(customDimensions.hazard_type),
+          country = tostring(customDimensions.country_code)
+| order by timestamp asc
 ```
 
 ### Which countries ran for a hazard
@@ -113,7 +127,7 @@ traces
 | order by lastStatus desc, country asc
 ```
 
-The `Errors for '<country>'` log line does not include the hazard. If several hazards ran in the lookback period, narrow it down to the run you are interested in.
+The query above also works for older logs. The `Errors for '<country>'` message does not include the hazard; newer tagged records have it in `customDimensions.hazard_type`. If several hazards ran in the lookback period, narrow the query down to the run you are interested in.
 
 ### Pipeline and backend logs together
 
@@ -154,7 +168,8 @@ To get new queries quickly, ask an LLM: select an existing query, add `pipelines
 The task's `stdout.txt` and `stderr.txt` contain all output of a job, including output that never reaches Application Insights, such as crashes during startup.
 
 - While the job runs, and shortly after: in the Batch account under **Jobs → job → task**.
-- After completion: in the environment's storage account, container `nrw-data-cache`, under `task-logs/<hazard>/<job-id>/`. These are kept for 90 days.
+- After completion: open **Saved logs** on the task. The files are in the Batch-linked storage account under `job-<lowercase-job-id>/<task-id>/$TaskLog/` (or the convention's hashed container name when needed). The scheduler must have permission to create containers, and the node identity must be able to upload to them. Configure retention separately for these containers.
+- Older runs remain in `nrw-data-cache/task-logs/<hazard>/<job-id>/`, subject to the existing 90-day retention rule; they are not automatically moved.
 
 ## Getting data for local debugging
 

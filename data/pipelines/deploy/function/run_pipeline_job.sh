@@ -99,7 +99,7 @@ require_azure_cli_version() {
     exit 1
   fi
   local installed_version
-  installed_version="$(az version --query '"azure-cli"' --output tsv)"
+  installed_version="$(az version --query '"azure-cli"' --output tsv | tr -d '\r')"
   if ! is_version_at_least "${installed_version}" "${minimum_version}"; then
     echo "Azure CLI ${installed_version} is too old; version ${minimum_version} or newer is needed. Update with 'az upgrade'." >&2
     exit 1
