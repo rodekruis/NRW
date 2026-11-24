@@ -90,10 +90,24 @@ def main() -> None:
         output_path = (
             arguments.download_directory / f"station_discharge_{version_name}.nc"
         )
-        extract_station_windows(
-            version, version_directory, boxes, station_cells
-        ).to_netcdf(output_path)
+        _write_merged(
+            extract_station_windows(version, version_directory, boxes, station_cells),
+            output_path,
+        )
         print(f"{version_name}: wrote {output_path}")
+
+
+def _write_merged(windows: xr.Dataset, output_path: Path) -> None:
+    """Replace only the extracted stations, so a run for some countries keeps the others."""
+    if output_path.exists():
+        with xr.open_dataset(output_path) as existing:
+            replaced = set(windows[STATION].to_numpy()) & set(
+                existing[STATION].to_numpy()
+            )
+            kept = existing.drop_sel({STATION: sorted(replaced)}).load()
+        if kept.sizes[STATION]:
+            windows = xr.concat([kept, windows], dim=STATION, join="outer")
+    windows.to_netcdf(output_path)
 
 
 def parse_arguments() -> argparse.Namespace:
