@@ -195,5 +195,6 @@ A CLIMADA notebook is about 20 lines because the package brings the rest: the fo
 - **Dependencies:** its regridding needs ESMF, which is not on PyPI.
 - **Data layout:** it wants all flood maps in one file.
 - **Licence:** CLIMADA is GPL-3, our pipeline Apache-2.0.
+- **Checked against CLIMADA:** on the Malawi forecast, with the same inputs and our rules off, both give the step 1 numbers of slide 3 (9,136, 16,273 and 1,117 people). Depths differ by at most 0.02 mm.
 
-**Proposal:** keep our own code, and check it against the prototype on one forecast. Not done yet.
+**Proposal:** keep our own code.
