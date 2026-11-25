@@ -32,10 +32,9 @@ from dotenv import load_dotenv
 from matplotlib.axes import Axes
 from pipelines.flood import forecast as flood_forecast
 from pipelines.flood.compute_flood_depth import (
-    _resolve_flood_depth_raster,
-    _resolve_requested_return_period_value,
     compute_flood_depth,
     determine_cell_return_periods,
+    resolve_station_flood_map,
 )
 from pipelines.flood.constants import (
     GLOFAS_VERSION,
@@ -567,11 +566,8 @@ def compute_todays_flood_depth(
     triggered_station: TriggeredStation, inputs: Inputs, minimum_flood_depth: float
 ) -> RasterData:
     """Today's footprint: the one flood map for the station's return period, clipped to its area."""
-    station_flood_map = _resolve_flood_depth_raster(
-        return_period=_resolve_requested_return_period_value(
-            triggered_station.time_interval_severities
-        ),
-        flood_depth_provider=inputs.flood_depth_provider,
+    station_flood_map = resolve_station_flood_map(
+        triggered_station.time_interval_severities, inputs.flood_depth_provider
     )
     flood_depth = create_raster_geometry_clipper(
         triggered_station.boundary, station_flood_map
