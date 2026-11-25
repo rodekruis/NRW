@@ -1,0 +1,7 @@
+minimum_upstream_area_square_kilometres,wet_pixels,share_in_driving_cells,share_next_to_driving_cells,share_farther_away
+0.0,57081192,1.0,0.0,0.0
+100.0,57081192,0.7,0.294,0.0059
+250.0,57081192,0.6123,0.3461,0.0416
+500.0,57081192,0.5663,0.3507,0.0829
+1000.0,57081192,0.487,0.3592,0.1539
+2000.0,57081192,0.3964,0.3441,0.2595

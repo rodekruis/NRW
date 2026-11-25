@@ -37,7 +37,12 @@ from pipelines.flood.compute_flood_depth import (
     compute_flood_depth,
     determine_cell_return_periods,
 )
-from pipelines.flood.constants import GLOFAS_VERSION, MINIMUM_FLOOD_DEPTH_METRES
+from pipelines.flood.constants import (
+    GLOFAS_VERSION,
+    MINIMUM_FLOOD_DEPTH_METRES,
+    MINIMUM_RETURN_PERIOD_YEARS,
+    MINIMUM_UPSTREAM_AREA_SQUARE_KILOMETRES,
+)
 from pipelines.flood.determine_alerts import (
     determine_temporal_extent,
     ReturnPeriodThresholds,
@@ -51,7 +56,11 @@ from pipelines.flood.extract_forecast import (
     extract_median_discharge,
     TimeIntervalDischarge,
 )
-from pipelines.flood.footprint_method import regrid_return_period, RegriddingMethod
+from pipelines.flood.footprint_method import (
+    regrid_return_period,
+    RegriddingMethod,
+    ZERO_DEPTH_RETURN_PERIOD,
+)
 from pipelines.infra.data_provider import DataProvider
 from pipelines.infra.data_submitter import DataSubmitter
 from pipelines.infra.data_types.admin_area_types import AdminAreasSet
@@ -96,6 +105,9 @@ KILOMETRES_PER_DEGREE = 111.32
 
 TODAY = "today: one flood map for the station"
 NEW = "new: return period per cell"
+# The same without one of its rules, to show what that rule does.
+NEW_SMALL_STREAMS_DRIVE = "new: return period per cell, small streams drive too"
+NEW_NO_DRY_FLOOR = "new: return period per cell, no dry floor"
 # What CLIMADA does by default: every cell drives, also small streams and near-flat curves.
 NEW_ALL_CELLS = "new: return period per cell, all cells drive"
 
@@ -109,6 +121,8 @@ FLOOD_DEPTH_COLOUR_MAP = "viridis_r"
 RETURN_PERIOD_COLOUR_MAP = "magma_r"
 BOUNDARY_COLOUR = "black"
 STATION_COLOUR = "red"
+DRIVING_CELL_COLOUR = "white"
+DRIVING_CELL_MARKER_SIZE = 9
 
 
 @dataclass
@@ -126,10 +140,24 @@ class Inputs:
 
 @dataclass
 class CellReturnPeriods:
-    """Return period per GloFAS cell at one lead time: for the cells that drive the footprint, and for all cells."""
+    """
+    Return period per GloFAS cell at one lead time: for the cells that drive the footprint, for
+    those plus the small streams, and for all cells.
+    """
 
     driving_cells: RasterData
+    driving_cells_and_small_streams: RasterData
     all_cells: RasterData
+
+
+@dataclass
+class FootprintVariant:
+    """One way to compute the new footprint, for each of its regridding methods."""
+
+    method: str
+    cell_return_periods: RasterData
+    regridding_methods: list[RegriddingMethod]
+    minimum_return_period: float = MINIMUM_RETURN_PERIOD_YEARS
 
 
 @dataclass
@@ -157,6 +185,18 @@ class FootprintColumn:
     method: str
     regridding: str
     minimum_flood_depth_metres: float
+    # Replaces the title that names the method, the regridding and the minimum depth.
+    title: str | None = None
+
+
+@dataclass
+class ReturnPeriodPanel:
+    """One way to get a return period per pixel, and the footprint it gives, for a figure that compares two."""
+
+    label: str
+    method: str
+    regridding: RegriddingMethod
+    cell_return_periods: RasterData
 
 
 @dataclass
@@ -243,22 +283,78 @@ def main() -> None:
             path=results_directory
             / f"footprint_comparison_minimum_depth_{minimum_flood_depth:g}m.png",
         )
-    # Per station, for slides: what the return period per cell changes, then what the minimum depth adds.
+    # Per station, for slides: the steps from today's footprint to the new one.
     for triggered_station in triggered_stations:
+        station_code = triggered_station.station.id
+        cell_return_periods = cell_return_periods_by_lead_time[
+            triggered_station.peak_lead_time
+        ]
         plot_footprints(
             [triggered_station],
             footprints,
             cell_return_periods_by_lead_time,
             columns=[
-                FootprintColumn(TODAY, "", minimum_flood_depth)
-                for minimum_flood_depth in MINIMUM_FLOOD_DEPTHS_METRES[:1]
-            ]
-            + [
-                FootprintColumn(NEW, RegriddingMethod.NEAREST, minimum_flood_depth)
-                for minimum_flood_depth in MINIMUM_FLOOD_DEPTHS_METRES
+                FootprintColumn(TODAY, "", 0.0, "Today\nthe 10-year flood map"),
+                FootprintColumn(
+                    NEW_NO_DRY_FLOOR,
+                    RegriddingMethod.NEAREST,
+                    0.0,
+                    "Step 1\ndepth from the return period of each cell",
+                ),
+                FootprintColumn(
+                    NEW,
+                    RegriddingMethod.NEAREST,
+                    0.0,
+                    f"Step 2\ndry below {MINIMUM_RETURN_PERIOD_YEARS:g} years",
+                ),
+                FootprintColumn(
+                    NEW,
+                    RegriddingMethod.NEAREST,
+                    MINIMUM_FLOOD_DEPTH_METRES,
+                    f"Step 3\nat least {MINIMUM_FLOOD_DEPTH_METRES:g} m deep",
+                ),
             ],
-            path=results_directory
-            / f"footprint_summary_{triggered_station.station.id}.png",
+            path=results_directory / f"footprint_steps_{station_code}.png",
+            shows_return_periods=False,
+        )
+        # Per station, one figure per rule: the footprint with the rule and without it.
+        plot_return_periods_and_footprints(
+            triggered_station,
+            footprints,
+            panels=[
+                ReturnPeriodPanel(
+                    "Small streams drive too",
+                    NEW_SMALL_STREAMS_DRIVE,
+                    RegriddingMethod.NEAREST,
+                    cell_return_periods.driving_cells_and_small_streams,
+                ),
+                ReturnPeriodPanel(
+                    f"Only cells of at least {MINIMUM_UPSTREAM_AREA_SQUARE_KILOMETRES:g} km² drive",
+                    NEW,
+                    RegriddingMethod.NEAREST,
+                    cell_return_periods.driving_cells,
+                ),
+            ],
+            path=results_directory / f"small_streams_rule_{station_code}.png",
+        )
+        plot_return_periods_and_footprints(
+            triggered_station,
+            footprints,
+            panels=[
+                ReturnPeriodPanel(
+                    "Nearest driving cell",
+                    NEW,
+                    RegriddingMethod.NEAREST,
+                    cell_return_periods.driving_cells,
+                ),
+                ReturnPeriodPanel(
+                    "Blend of the four cells around (bilinear)",
+                    NEW,
+                    RegriddingMethod.BILINEAR,
+                    cell_return_periods.driving_cells,
+                ),
+            ],
+            path=results_directory / f"regridding_{station_code}.png",
         )
 
     run_forecast(inputs, arguments.forecast_output_directory)
@@ -344,6 +440,12 @@ def compute_cell_return_periods(inputs: Inputs, lead_time: int) -> CellReturnPer
     driving_cells = determine_cell_return_periods(
         median_discharge, inputs.return_period_curves, maximum_return_period
     )
+    driving_cells_and_small_streams = determine_cell_return_periods(
+        median_discharge,
+        inputs.return_period_curves,
+        maximum_return_period,
+        minimum_upstream_area=0.0,
+    )
     all_cells = determine_cell_return_periods(
         median_discharge,
         inputs.return_period_curves,
@@ -351,11 +453,19 @@ def compute_cell_return_periods(inputs: Inputs, lead_time: int) -> CellReturnPer
         minimum_upstream_area=0.0,
         minimum_gumbel_scale=0.0,
     )
-    if driving_cells is None or all_cells is None:
+    if (
+        driving_cells is None
+        or driving_cells_and_small_streams is None
+        or all_cells is None
+    ):
         raise RuntimeError(
             "The forecast is not on the grid of the return period curves"
         )
-    return CellReturnPeriods(driving_cells=driving_cells, all_cells=all_cells)
+    return CellReturnPeriods(
+        driving_cells=driving_cells,
+        driving_cells_and_small_streams=driving_cells_and_small_streams,
+        all_cells=all_cells,
+    )
 
 
 def determine_triggered_stations(
@@ -394,6 +504,25 @@ def compute_footprints(
     cell_return_periods: CellReturnPeriods,
 ) -> list[Footprint]:
     station_code = triggered_station.station.id
+    variants = [
+        FootprintVariant(
+            NEW, cell_return_periods.driving_cells, list(RegriddingMethod)
+        ),
+        FootprintVariant(
+            NEW_SMALL_STREAMS_DRIVE,
+            cell_return_periods.driving_cells_and_small_streams,
+            [RegriddingMethod.NEAREST],
+        ),
+        FootprintVariant(
+            NEW_NO_DRY_FLOOR,
+            cell_return_periods.driving_cells,
+            [RegriddingMethod.NEAREST],
+            minimum_return_period=ZERO_DEPTH_RETURN_PERIOD,
+        ),
+        FootprintVariant(
+            NEW_ALL_CELLS, cell_return_periods.all_cells, [RegriddingMethod.BILINEAR]
+        ),
+    ]
     footprints: list[Footprint] = []
     for minimum_flood_depth in MINIMUM_FLOOD_DEPTHS_METRES:
         footprints.append(
@@ -407,18 +536,16 @@ def compute_footprints(
                 ),
             )
         )
-        for method, return_periods, regridding_methods in (
-            (NEW, cell_return_periods.driving_cells, list(RegriddingMethod)),
-            (NEW_ALL_CELLS, cell_return_periods.all_cells, [RegriddingMethod.BILINEAR]),
-        ):
-            for regridding_method in regridding_methods:
+        for variant in variants:
+            for regridding_method in variant.regridding_methods:
                 flood_depth = compute_flood_depth(
                     time_interval_severities=triggered_station.time_interval_severities,
-                    cell_return_periods=return_periods,
+                    cell_return_periods=variant.cell_return_periods,
                     boundary=triggered_station.boundary,
                     flood_depth_provider=inputs.flood_depth_provider,
                     regridding_method=regridding_method,
                     minimum_flood_depth=minimum_flood_depth,
+                    minimum_return_period=variant.minimum_return_period,
                 )
                 if flood_depth is None:
                     raise RuntimeError(
@@ -427,7 +554,7 @@ def compute_footprints(
                 footprints.append(
                     Footprint(
                         station_code,
-                        method,
+                        variant.method,
                         regridding_method,
                         minimum_flood_depth,
                         flood_depth,
@@ -542,13 +669,15 @@ def plot_footprints(
     cell_return_periods_by_lead_time: dict[int, CellReturnPeriods],
     columns: list[FootprintColumn],
     path: Path,
+    shows_return_periods: bool = True,
 ) -> None:
     """One row per station: a footprint per column, then the return periods that drive the new footprints."""
+    column_count = len(columns) + (1 if shows_return_periods else 0)
     figure, axes = plt.subplots(
         len(triggered_stations),
-        len(columns) + 1,
+        column_count,
         figsize=(
-            FIGURE_COLUMN_WIDTH_INCHES * (len(columns) + 1),
+            FIGURE_COLUMN_WIDTH_INCHES * column_count,
             FIGURE_ROW_HEIGHT_INCHES * len(triggered_stations),
         ),
         squeeze=False,
@@ -563,14 +692,12 @@ def plot_footprints(
             for severity in triggered_station.time_interval_severities
         )
         for column, footprint_column in enumerate(columns):
-            footprint = next(
-                footprint
-                for footprint in footprints
-                if footprint.station_code == station.id
-                and footprint.method == footprint_column.method
-                and footprint.regridding == footprint_column.regridding
-                and footprint.minimum_flood_depth_metres
-                == footprint_column.minimum_flood_depth_metres
+            footprint = _find_footprint(
+                footprints,
+                station.id,
+                footprint_column.method,
+                footprint_column.regridding,
+                footprint_column.minimum_flood_depth_metres,
             )
             depth_image = _plot_raster(
                 axes[row][column],
@@ -581,26 +708,27 @@ def plot_footprints(
             )
             _plot_area(axes[row][column], triggered_station)
             axes[row][column].set_title(
-                f"{station.id} at {station_return_period:g} years\n{footprint.method}"
-                + (f", {footprint.regridding}" if footprint.regridding else "")
-                + f"\ndepth of at least {footprint.minimum_flood_depth_metres:g} m",
+                footprint_column.title
+                or (
+                    f"{station.id} at {station_return_period:g} years\n{footprint.method}"
+                    + (f", {footprint.regridding}" if footprint.regridding else "")
+                    + f"\ndepth of at least {footprint.minimum_flood_depth_metres:g} m"
+                ),
                 fontsize="small",
             )
 
+        if not shows_return_periods:
+            continue
         flood_depth = footprint.flood_depth
-        cell_return_periods = cell_return_periods_by_lead_time[
-            triggered_station.peak_lead_time
-        ].driving_cells
-        pixel_return_periods = regrid_return_period(
-            cell_return_periods.array,
-            cell_return_periods.transform,
-            flood_depth.transform,
-            cast(tuple[int, int], flood_depth.array.shape),
-            RegriddingMethod.NEAREST,
-        )
         return_period_image = _plot_raster(
             axes[row][-1],
-            pixel_return_periods,
+            _regrid_to_footprint(
+                cell_return_periods_by_lead_time[
+                    triggered_station.peak_lead_time
+                ].driving_cells,
+                flood_depth,
+                RegriddingMethod.NEAREST,
+            ),
             flood_depth,
             RETURN_PERIOD_COLOUR_MAP,
             FIGURE_MAXIMUM_RETURN_PERIOD_YEARS,
@@ -612,15 +740,16 @@ def plot_footprints(
             fontsize="small",
         )
 
-    if depth_image is not None and return_period_image is not None:
+    if depth_image is not None:
         figure.colorbar(
             depth_image,
-            ax=axes[:, :-1],
+            ax=axes[:, : len(columns)],
             location="bottom",
             shrink=0.4,
             extend="max",
             label="Flood depth (m)",
         )
+    if return_period_image is not None:
         figure.colorbar(
             return_period_image,
             ax=axes[:, -1],
@@ -628,6 +757,89 @@ def plot_footprints(
             shrink=0.9,
             extend="max",
             label="Return period (years)",
+        )
+    figure.savefig(path, dpi=FIGURE_RESOLUTION_DOTS_PER_INCH)
+    plt.close(figure)
+    print(f"Wrote {path}")
+
+
+def plot_return_periods_and_footprints(
+    triggered_station: TriggeredStation,
+    footprints: list[Footprint],
+    panels: list[ReturnPeriodPanel],
+    path: Path,
+) -> None:
+    """
+    Compare two ways to get a return period per pixel. Left: the return period per pixel of each,
+    with a dot on every cell that drives. Right: the footprints they give, at the minimum depth.
+    """
+    station = triggered_station.station
+    figure, axes = plt.subplots(
+        1,
+        2 * len(panels),
+        figsize=(
+            FIGURE_COLUMN_WIDTH_INCHES * 2 * len(panels),
+            FIGURE_ROW_HEIGHT_INCHES,
+        ),
+        constrained_layout=True,
+    )
+    depth_image = None
+    return_period_image = None
+    for column, panel in enumerate(panels):
+        footprint = _find_footprint(
+            footprints,
+            station.id,
+            panel.method,
+            panel.regridding,
+            MINIMUM_FLOOD_DEPTH_METRES,
+        )
+        return_period_axis = axes[column]
+        footprint_axis = axes[column + len(panels)]
+        return_period_image = _plot_raster(
+            return_period_axis,
+            _regrid_to_footprint(
+                panel.cell_return_periods, footprint.flood_depth, panel.regridding
+            ),
+            footprint.flood_depth,
+            RETURN_PERIOD_COLOUR_MAP,
+            FIGURE_MAXIMUM_RETURN_PERIOD_YEARS,
+        )
+        _plot_driving_cells(
+            return_period_axis, panel.cell_return_periods, footprint.flood_depth
+        )
+        return_period_axis.set_title(
+            f"{panel.label}\nreturn period per pixel", fontsize="small"
+        )
+        depth_image = _plot_raster(
+            footprint_axis,
+            footprint.flood_depth.array,
+            footprint.flood_depth,
+            FLOOD_DEPTH_COLOUR_MAP,
+            FIGURE_MAXIMUM_DEPTH_METRES,
+        )
+        footprint_axis.set_title(
+            f"{panel.label}\nfootprint, depth of at least {MINIMUM_FLOOD_DEPTH_METRES:g} m",
+            fontsize="small",
+        )
+        for axis in (return_period_axis, footprint_axis):
+            _plot_area(axis, triggered_station)
+
+    if depth_image is not None and return_period_image is not None:
+        figure.colorbar(
+            return_period_image,
+            ax=axes[: len(panels)],
+            location="bottom",
+            shrink=0.5,
+            extend="max",
+            label="Return period (years); dots are the cells that drive",
+        )
+        figure.colorbar(
+            depth_image,
+            ax=axes[len(panels) :],
+            location="bottom",
+            shrink=0.5,
+            extend="max",
+            label="Flood depth (m)",
         )
     figure.savefig(path, dpi=FIGURE_RESOLUTION_DOTS_PER_INCH)
     plt.close(figure)
@@ -754,6 +966,62 @@ def _measure_flooded_area(flood_depth: RasterData) -> float:
     )
     is_flooded = (flood_depth.array > 0) & (flood_depth.array != flood_depth.nodata)
     return float((is_flooded.sum(axis=1) * pixel_areas).sum())
+
+
+def _find_footprint(
+    footprints: list[Footprint],
+    station_code: str,
+    method: str,
+    regridding: str,
+    minimum_flood_depth: float,
+) -> Footprint:
+    return next(
+        footprint
+        for footprint in footprints
+        if footprint.station_code == station_code
+        and footprint.method == method
+        and footprint.regridding == regridding
+        and footprint.minimum_flood_depth_metres == minimum_flood_depth
+    )
+
+
+def _regrid_to_footprint(
+    cell_return_periods: RasterData,
+    flood_depth: RasterData,
+    regridding_method: RegriddingMethod,
+) -> np.ndarray:
+    """The return period per pixel of a footprint."""
+    return regrid_return_period(
+        cell_return_periods.array,
+        cell_return_periods.transform,
+        flood_depth.transform,
+        cast(tuple[int, int], flood_depth.array.shape),
+        regridding_method,
+    )
+
+
+def _plot_driving_cells(
+    axes: Axes, cell_return_periods: RasterData, grid: RasterData
+) -> None:
+    """A dot on the centre of every cell that drives, inside the extent of the grid."""
+    transform = cell_return_periods.transform
+    rows, columns = np.nonzero(np.isfinite(cell_return_periods.array))
+    longitudes = transform.c + (columns + 0.5) * transform.a
+    latitudes = transform.f + (rows + 0.5) * transform.e
+    extent = get_raster_extent(grid)
+    is_inside = (
+        (longitudes >= extent["xmin"])
+        & (longitudes <= extent["xmax"])
+        & (latitudes >= extent["ymin"])
+        & (latitudes <= extent["ymax"])
+    )
+    axes.scatter(
+        longitudes[is_inside],
+        latitudes[is_inside],
+        s=DRIVING_CELL_MARKER_SIZE,
+        color=DRIVING_CELL_COLOUR,
+        linewidths=0,
+    )
 
 
 def _plot_raster(

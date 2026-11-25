@@ -1,6 +1,7 @@
 """
-Charts that explain two open decisions on the flood footprint (AB#42674): cells with a near-flat
-return period curve, and stations on a cell that does not drive the footprint.
+Charts and counts behind the open decisions on which GloFAS cells drive the flood footprint
+(AB#42674): small streams, cells with a near-flat return period curve, and stations on a cell
+that does not drive the footprint.
 
 Usage (from the data directory):
     uv run python -m analysis.flood_footprint.plot_open_decisions
@@ -25,6 +26,7 @@ from analysis.flood_footprint.check_curve_source import (
 )
 from analysis.flood_footprint.seed_repo_inputs import (
     load_admin_areas,
+    load_flood_depth_provider,
     STATION_THRESHOLDS_DIRECTORY,
 )
 from matplotlib.axes import Axes
@@ -39,18 +41,20 @@ from pipelines.infra.data_types.glofas_return_period_curves import (
     get_glofas_return_period_curves_filename,
     GlofasReturnPeriodCurves,
 )
+from pipelines.infra.data_types.loaded_data_types import RasterData
 from rasterio.features import geometry_mask
+from scipy.ndimage import maximum_filter
 from shapely.geometry import mapping
 from shapely.ops import unary_union
 from shared.data_helpers import get_seed_data_repo_path, target_countries_iso_a3
 
 DEFAULT_RESULTS_DIRECTORY = Path(__file__).parent / "results"
 
-# A river with an ordinary curve, to set a near-flat curve against.
-ORDINARY_CURVE_COUNTRY = "MWI"
-ORDINARY_CURVE_STATION_CODE = "G1724"
 # The near-flat example is the cell with the median scale among the near-flat cells of this country.
 NEAR_FLAT_CURVE_COUNTRY = "ETH"
+# The ordinary curve to set it against is of a river in the same country whose upstream area
+# differs at most this fraction.
+COMPARABLE_UPSTREAM_AREA_TOLERANCE = 0.2
 
 CURVE_RETURN_PERIODS = np.geomspace(1.5, 500, 200)
 MARKED_RETURN_PERIODS = (2, 5, 10, 20, 50, 100, 200, 500)
@@ -58,9 +62,14 @@ LOWEST_MARKED_RETURN_PERIOD, HIGHEST_MARKED_RETURN_PERIOD = 2, 500
 # Cells shown around a station, on each side of its own cell.
 NEIGHBOURHOOD_CELLS = 3
 KILOMETRES_PER_DEGREE = 111.32
+SHARE_DECIMALS = 4
+ALL_COUNTRIES = "all"
+# Bounds the memory of counting the wet pixels of a flood map per GloFAS cell.
+FLOOD_MAP_CHUNK_ROWS = 2048
 
 FIGURE_RESOLUTION_DOTS_PER_INCH = 150
-CURVE_COLOUR = "#1b6ca8"
+ORDINARY_CURVE_COLOUR = "#1b6ca8"
+NEAR_FLAT_CURVE_COLOUR = "#d1495b"
 STATION_CELL_COLOUR = "red"
 DRIVING_CELL_COLOUR = "black"
 UPSTREAM_AREA_COLOUR_MAP = "Blues"
@@ -78,11 +87,48 @@ class Cell:
 
 
 @dataclass
-class NearFlatCellCount:
+class CountryCells:
+    """Masks of the GloFAS cells inside a country: all with a curve, the large rivers, and the large rivers with a near-flat curve."""
+
+    has_curve: np.ndarray
+    is_large_river: np.ndarray
+    is_near_flat: np.ndarray
+
+
+@dataclass
+class CellCount:
     country: str
+    cells: int
     large_river_cells: int
+    # Share of all cells.
+    large_river_share: float
     near_flat_cells: int
+    # Share of the large-river cells.
     near_flat_share: float
+
+
+@dataclass
+class WetPixelCount:
+    """Where the wet pixels of a country's widest flood map lie: in a large-river cell, in a cell next to one, or farther away."""
+
+    country: str
+    flood_map_return_period: int
+    wet_pixels: int
+    wet_pixels_in_large_river_cells: int
+    wet_pixels_next_to_large_river_cells: int
+    wet_pixels_farther_away: int
+
+    @property
+    def share_in_large_river_cells(self) -> float:
+        return self.wet_pixels_in_large_river_cells / self.wet_pixels
+
+    @property
+    def share_next_to_large_river_cells(self) -> float:
+        return self.wet_pixels_next_to_large_river_cells / self.wet_pixels
+
+    @property
+    def share_farther_away(self) -> float:
+        return self.wet_pixels_farther_away / self.wet_pixels
 
 
 @dataclass
@@ -122,30 +168,36 @@ def main() -> None:
         for country in arguments.countries
     }
 
-    near_flat_masks = {
-        country: find_near_flat_cells(seed_repo_path, country, curves)
+    cells_by_country = {
+        country: find_country_cells(seed_repo_path, country, curves)
         for country, curves in curves_by_country.items()
     }
-    write_near_flat_cell_counts(
+    write_cell_counts(
         [
-            count_near_flat_cells(country, *near_flat_masks[country])
+            count_cells(country, cells_by_country[country])
             for country in arguments.countries
         ],
-        results_directory / "near_flat_curve_cells.csv",
+        results_directory / "driving_cells.csv",
+    )
+    wet_pixel_counts = [
+        count_wet_pixels(seed_repo_path, country, curves_by_country[country])
+        for country in arguments.countries
+    ]
+    write_wet_pixel_counts(
+        [*wet_pixel_counts, pool_wet_pixel_counts(wet_pixel_counts)],
+        results_directory / "flood_map_wet_pixels.csv",
+    )
+    near_flat_cell = get_median_scale_cell(
+        curves_by_country[NEAR_FLAT_CURVE_COUNTRY],
+        cells_by_country[NEAR_FLAT_CURVE_COUNTRY].is_near_flat,
     )
     plot_near_flat_curve(
-        ordinary_cell=get_station_cell(
-            curves_by_country[ORDINARY_CURVE_COUNTRY],
-            next(
-                station
-                for station in stations_by_country[ORDINARY_CURVE_COUNTRY]
-                if station["station_code"] == ORDINARY_CURVE_STATION_CODE
-            ),
-        ),
-        near_flat_cell=get_median_scale_cell(
+        ordinary_cell=get_comparable_ordinary_cell(
             curves_by_country[NEAR_FLAT_CURVE_COUNTRY],
-            near_flat_masks[NEAR_FLAT_CURVE_COUNTRY][1],
+            cells_by_country[NEAR_FLAT_CURVE_COUNTRY],
+            near_flat_cell,
         ),
+        near_flat_cell=near_flat_cell,
         path=results_directory / "near_flat_curve.png",
     )
     plot_stations_on_small_streams(
@@ -176,10 +228,9 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def find_near_flat_cells(
+def find_country_cells(
     seed_repo_path: Path, country: str, curves: GlofasReturnPeriodCurves
-) -> tuple[np.ndarray, np.ndarray]:
-    """Masks of the large-river cells inside the country, and of those with a near-flat curve."""
+) -> CountryCells:
     admin_areas = load_admin_areas(seed_repo_path, country, admin_level=0)
     country_geometry = unary_union(
         [admin_area.to_geometry() for admin_area in admin_areas.admin_areas.values()]
@@ -190,44 +241,160 @@ def find_near_flat_cells(
         transform=curves.transform,
         invert=True,
     )
+    has_curve = is_inside_country & np.isfinite(curves.scale)
     with np.errstate(invalid="ignore"):
-        is_large_river = (
-            is_inside_country
-            & np.isfinite(curves.scale)
-            & (
-                curves.upstream_area
-                >= MINIMUM_UPSTREAM_AREA_SQUARE_KILOMETRES
-                * SQUARE_METRES_PER_SQUARE_KILOMETRE
-            )
+        is_large_river = has_curve & (
+            curves.upstream_area
+            >= MINIMUM_UPSTREAM_AREA_SQUARE_KILOMETRES
+            * SQUARE_METRES_PER_SQUARE_KILOMETRE
         )
         is_near_flat = is_large_river & (
             curves.scale < MINIMUM_GUMBEL_SCALE_CUBIC_METRES_PER_SECOND
         )
-    return is_large_river, is_near_flat
-
-
-def count_near_flat_cells(
-    country: str, is_large_river: np.ndarray, is_near_flat: np.ndarray
-) -> NearFlatCellCount:
-    large_river_cells = int(is_large_river.sum())
-    near_flat_cells = int(is_near_flat.sum())
-    return NearFlatCellCount(
-        country=country,
-        large_river_cells=large_river_cells,
-        near_flat_cells=near_flat_cells,
-        near_flat_share=round(near_flat_cells / large_river_cells, 3),
+    return CountryCells(
+        has_curve=has_curve, is_large_river=is_large_river, is_near_flat=is_near_flat
     )
 
 
-def write_near_flat_cell_counts(counts: list[NearFlatCellCount], path: Path) -> None:
+def count_cells(country: str, country_cells: CountryCells) -> CellCount:
+    cells = int(country_cells.has_curve.sum())
+    large_river_cells = int(country_cells.is_large_river.sum())
+    near_flat_cells = int(country_cells.is_near_flat.sum())
+    return CellCount(
+        country=country,
+        cells=cells,
+        large_river_cells=large_river_cells,
+        large_river_share=round(large_river_cells / cells, SHARE_DECIMALS),
+        near_flat_cells=near_flat_cells,
+        near_flat_share=round(near_flat_cells / large_river_cells, SHARE_DECIMALS),
+    )
+
+
+def write_cell_counts(counts: list[CellCount], path: Path) -> None:
     with path.open("w", newline="", encoding="utf-8") as output_file:
         writer = csv.DictWriter(output_file, fieldnames=list(asdict(counts[0])))
         writer.writeheader()
         writer.writerows(asdict(count) for count in counts)
     for count in counts:
         print(
-            f"{count.country}: {count.near_flat_cells} of {count.large_river_cells} "
-            f"large-river cells have a near-flat curve ({count.near_flat_share:.0%})"
+            f"{count.country}: {count.large_river_cells} of {count.cells} cells are on a large "
+            f"river ({count.large_river_share:.1%}); {count.near_flat_cells} of those have a "
+            f"near-flat curve ({count.near_flat_share:.1%})"
+        )
+    print(f"Wrote {path}")
+
+
+def count_wet_pixels(
+    seed_repo_path: Path, country: str, curves: GlofasReturnPeriodCurves
+) -> WetPixelCount:
+    """
+    Which GloFAS cells the flooding in the flood maps belongs to: a cell on a large river, a cell
+    next to one, or a cell farther away. Counted on the widest flood map.
+    """
+    flood_depth_provider = load_flood_depth_provider(seed_repo_path, country)
+    return_period = max(flood_depth_provider.available_return_periods)
+    wet_pixels_per_cell, _ = count_pixels_per_cell(
+        flood_depth_provider.get_raster(return_period), curves
+    )
+    upstream_area = np.nan_to_num(
+        curves.upstream_area / SQUARE_METRES_PER_SQUARE_KILOMETRE
+    )
+    is_large_river = upstream_area >= MINIMUM_UPSTREAM_AREA_SQUARE_KILOMETRES
+    is_next_to_large_river = ~is_large_river & maximum_filter(is_large_river, size=3)
+    return WetPixelCount(
+        country=country,
+        flood_map_return_period=return_period,
+        wet_pixels=int(wet_pixels_per_cell.sum()),
+        wet_pixels_in_large_river_cells=int(wet_pixels_per_cell[is_large_river].sum()),
+        wet_pixels_next_to_large_river_cells=int(
+            wet_pixels_per_cell[is_next_to_large_river].sum()
+        ),
+        wet_pixels_farther_away=int(
+            wet_pixels_per_cell[~is_large_river & ~is_next_to_large_river].sum()
+        ),
+    )
+
+
+def pool_wet_pixel_counts(counts: list[WetPixelCount]) -> WetPixelCount:
+    return WetPixelCount(
+        country=ALL_COUNTRIES,
+        flood_map_return_period=counts[0].flood_map_return_period,
+        wet_pixels=sum(count.wet_pixels for count in counts),
+        wet_pixels_in_large_river_cells=sum(
+            count.wet_pixels_in_large_river_cells for count in counts
+        ),
+        wet_pixels_next_to_large_river_cells=sum(
+            count.wet_pixels_next_to_large_river_cells for count in counts
+        ),
+        wet_pixels_farther_away=sum(count.wet_pixels_farther_away for count in counts),
+    )
+
+
+def count_pixels_per_cell(
+    flood_map: RasterData, curves: GlofasReturnPeriodCurves
+) -> tuple[np.ndarray, np.ndarray]:
+    """Per GloFAS cell, the number of wet flood map pixels and the number of flood map pixels."""
+    row_count, column_count = flood_map.array.shape
+    pixel_latitudes = (
+        flood_map.transform.f + (np.arange(row_count) + 0.5) * flood_map.transform.e
+    )
+    pixel_longitudes = (
+        flood_map.transform.c + (np.arange(column_count) + 0.5) * flood_map.transform.a
+    )
+    cell_rows = np.floor(
+        (pixel_latitudes - curves.transform.f) / curves.transform.e
+    ).astype(int)
+    cell_columns = np.floor(
+        (pixel_longitudes - curves.transform.c) / curves.transform.a
+    ).astype(int)
+    # Pixels are ordered, so each cell is one run of rows and one run of columns.
+    column_run_starts = np.flatnonzero(np.diff(cell_columns, prepend=-1))
+    row_run_starts = np.flatnonzero(np.diff(cell_rows, prepend=-1))
+
+    wet_pixels_per_row = np.zeros((row_count, len(column_run_starts)), dtype=np.int64)
+    for start_row in range(0, row_count, FLOOD_MAP_CHUNK_ROWS):
+        rows = slice(start_row, start_row + FLOOD_MAP_CHUNK_ROWS)
+        depth = flood_map.array[rows]
+        is_wet = (depth > 0) & (depth != flood_map.nodata)
+        wet_pixels_per_row[rows] = np.add.reduceat(
+            is_wet, column_run_starts, axis=1, dtype=np.int64
+        )
+
+    cells_in_flood_map = np.ix_(
+        cell_rows[row_run_starts], cell_columns[column_run_starts]
+    )
+    wet_pixels_per_cell = np.zeros(curves.location.shape, dtype=np.int64)
+    wet_pixels_per_cell[cells_in_flood_map] = np.add.reduceat(
+        wet_pixels_per_row, row_run_starts, axis=0
+    )
+    pixels_per_cell = np.zeros(curves.location.shape, dtype=np.int64)
+    pixels_per_cell[cells_in_flood_map] = np.outer(
+        np.diff(row_run_starts, append=row_count),
+        np.diff(column_run_starts, append=column_count),
+    )
+    return wet_pixels_per_cell, pixels_per_cell
+
+
+def write_wet_pixel_counts(counts: list[WetPixelCount], path: Path) -> None:
+    shares = (
+        "share_in_large_river_cells",
+        "share_next_to_large_river_cells",
+        "share_farther_away",
+    )
+    with path.open("w", newline="", encoding="utf-8") as output_file:
+        writer = csv.DictWriter(output_file, fieldnames=[*asdict(counts[0]), *shares])
+        writer.writeheader()
+        writer.writerows(
+            asdict(count)
+            | {share: round(getattr(count, share), SHARE_DECIMALS) for share in shares}
+            for count in counts
+        )
+    for count in counts:
+        print(
+            f"{count.country}: of the wet pixels in the {count.flood_map_return_period}-year "
+            f"flood map, {count.share_in_large_river_cells:.0%} lie in a large-river cell, "
+            f"{count.share_next_to_large_river_cells:.0%} in a cell next to one and "
+            f"{count.share_farther_away:.0%} farther away"
         )
     print(f"Wrote {path}")
 
@@ -238,6 +405,25 @@ def get_median_scale_cell(
     rows, columns = np.nonzero(is_near_flat)
     median_index = np.argsort(curves.scale[rows, columns])[len(rows) // 2]
     return get_cell(curves, int(rows[median_index]), int(columns[median_index]))
+
+
+def get_comparable_ordinary_cell(
+    curves: GlofasReturnPeriodCurves, country_cells: CountryCells, near_flat_cell: Cell
+) -> Cell:
+    """The cell with the median scale among the ordinary large rivers of about the same upstream area."""
+    upstream_area = curves.upstream_area / SQUARE_METRES_PER_SQUARE_KILOMETRE
+    with np.errstate(invalid="ignore"):
+        is_comparable = (
+            country_cells.is_large_river
+            & ~country_cells.is_near_flat
+            & (
+                np.abs(
+                    upstream_area / near_flat_cell.upstream_area_square_kilometres - 1
+                )
+                <= COMPARABLE_UPSTREAM_AREA_TOLERANCE
+            )
+        )
+    return get_median_scale_cell(curves, is_comparable)
 
 
 def get_station_cell(curves: GlofasReturnPeriodCurves, station: dict) -> Cell:
@@ -277,45 +463,39 @@ def get_cell(curves: GlofasReturnPeriodCurves, row: int, column: int) -> Cell:
 
 
 def plot_near_flat_curve(ordinary_cell: Cell, near_flat_cell: Cell, path: Path) -> None:
-    figure, axes = plt.subplots(1, 2, figsize=(11, 4.2), constrained_layout=True)
-    for axis, cell, title in (
-        (
-            axes[0],
-            ordinary_cell,
-            f"An ordinary curve, at {ORDINARY_CURVE_COUNTRY} {ORDINARY_CURVE_STATION_CODE}",
-        ),
-        (
-            axes[1],
-            near_flat_cell,
-            (
-                f"A near-flat curve, in {NEAR_FLAT_CURVE_COUNTRY} at "
-                f"{near_flat_cell.latitude:.3f}, {near_flat_cell.longitude:.3f}"
-            ),
-        ),
+    """Both curves on one discharge axis: the near-flat one hardly rises from a 2-year to a 500-year flood."""
+    figure, axis = plt.subplots(figsize=(5.6, 5.0), constrained_layout=True)
+    for cell, name, colour in (
+        (ordinary_cell, "Ordinary curve", ORDINARY_CURVE_COLOUR),
+        (near_flat_cell, "Near-flat curve", NEAR_FLAT_CURVE_COLOUR),
     ):
-        axis.plot(
-            CURVE_RETURN_PERIODS,
-            get_gumbel_discharge(cell, CURVE_RETURN_PERIODS),
-            color=CURVE_COLOUR,
-            linewidth=2,
-        )
         discharge_range = float(
             get_gumbel_discharge(cell, np.array([HIGHEST_MARKED_RETURN_PERIOD]))[0]
             - get_gumbel_discharge(cell, np.array([LOWEST_MARKED_RETURN_PERIOD]))[0]
         )
-        axis.set_title(
-            f"{title} (upstream area {cell.upstream_area_square_kilometres:,.0f} km²)\n"
-            f"from a {LOWEST_MARKED_RETURN_PERIOD}-year to a {HIGHEST_MARKED_RETURN_PERIOD}-year "
-            f"flood takes {_format_discharge(discharge_range)} m³/s more",
-            fontsize="medium",
+        axis.plot(
+            CURVE_RETURN_PERIODS,
+            get_gumbel_discharge(cell, CURVE_RETURN_PERIODS),
+            color=colour,
+            linewidth=3,
+            label=(
+                f"{name}: {_format_discharge(discharge_range)} m³/s more from a\n"
+                f"{LOWEST_MARKED_RETURN_PERIOD}-year to a {HIGHEST_MARKED_RETURN_PERIOD}-year flood "
+                f"(upstream area {cell.upstream_area_square_kilometres:,.0f} km²)"
+            ),
         )
-        axis.set_xscale("log")
-        axis.set_xticks(MARKED_RETURN_PERIODS, [str(r) for r in MARKED_RETURN_PERIODS])
-        axis.minorticks_off()
-        axis.set_xlabel("Return period (years)")
-        axis.set_ylabel("Discharge (m³/s)")
-        axis.set_ylim(bottom=0)
-        axis.grid(alpha=0.3)
+    axis.set_title(
+        f"Two rivers in {NEAR_FLAT_CURVE_COUNTRY} of about the same size",
+        fontsize="large",
+    )
+    axis.set_xscale("log")
+    axis.set_xticks(MARKED_RETURN_PERIODS, [str(r) for r in MARKED_RETURN_PERIODS])
+    axis.minorticks_off()
+    axis.set_xlabel("Return period (years)", fontsize="large")
+    axis.set_ylabel("Discharge (m³/s)", fontsize="large")
+    axis.set_ylim(bottom=0)
+    axis.grid(alpha=0.3)
+    figure.legend(loc="outside lower center", fontsize="medium", frameon=False)
     figure.savefig(path, dpi=FIGURE_RESOLUTION_DOTS_PER_INCH, bbox_inches="tight")
     plt.close(figure)
     print(f"Wrote {path}")

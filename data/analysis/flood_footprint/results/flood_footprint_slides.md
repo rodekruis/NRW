@@ -14,76 +14,51 @@ style: |
 
 # The flood footprint now follows the rivers that are in flood
 
-First implementation of the CLIMADA method in the NRW flood pipeline, one slice of AB#42674. Draft of 18 November 2026: not merged, and the settings are not agreed.
+Draft of 25 November 2026 for AB#42674, the CLIMADA method in the NRW flood pipeline. Not merged; the settings are not agreed.
 
-**The alert does not change.** The station still decides whether there is an alert. On the Malawi forecast of 2 September 2026, old and new code give the same three alerts, with the same severities and discharge chart.
-
-**The footprint is new**, in three steps:
-
-1. **Return period per GloFAS cell**, on the cell's own curve, on the day the station peaks.
-2. **Onto the flood map.** Each 90 m pixel takes the return period of the nearest cell on a large river (upstream area of at least 500 km²).
-3. **Depth.** Interpolated between the JRC flood maps, from zero at 1 year. Below 1.5 years a pixel stays dry.
-
-**The curves are ECMWF's own**, for GloFAS v4. All 73 station thresholds lie exactly on the v4 curve of their cell, so the trigger and the footprint use the same curves. Where our thresholds came from was not known before.
+- **The alert does not change.** The station still decides. On the Malawi forecast of 2 September 2026, old and new code give the same three alerts.
+- **The footprint is new.** Each GloFAS cell gets a return period from its own curve. That return period sets the depth of the flood map pixels around it.
+- **The curves are ECMWF's, for GloFAS v4.** All 73 station thresholds lie exactly on them.
 
 ---
 
-<!-- _class: chart -->
+## Malawi, 2 September: from today's footprint to the new one in three steps
 
-## Malawi, 2 September: the calm river drops out, and the water is shallow
+![w:1170](footprint_steps_G2001.png)
 
-![w:1170](footprint_summary_G2001.png)
+Station G2001, in alert at 2 years.
 
-Station G2001, in alert at 2 years. Today's footprint is the whole 10-year map, up to 5.2 m deep. The new one leaves out the tributary in the west, which is at base flow, and is at most 0.7 m deep: at 2 years the depth is about a seventh of the 10-year depth. The straight edges are the borders between GloFAS cells.
+1. **Depth from the return period of each cell.** The same extent as today, but much shallower.
+2. **Dry below 1.5 years.** The rivers at base flow drop out.
+3. **At least 0.2 m deep.** Thin water drops out.
 
 ---
 
 <!-- _class: small -->
 
-## Fewer people exposed, and only a minimum depth makes that number follow severity
+## Only step 3 makes the number of people exposed follow severity
 
-Exposed population for the three alerts, all at 2 years:
+Exposed population after each step, for the three alerts, all at 2 years:
 
-| Station  |  Today | New, any depth | New, at least 0.2 m |
-| -------- | -----: | -------------: | ------------------: |
-| G1724    |  9,136 |          2,166 |                 381 |
-| G2001    | 16,273 |         10,568 |               1,294 |
-| Chikwawa |  1,117 |            741 |                 138 |
+| Station  |  Today | Step 1 | Step 2 | Step 3 |
+| -------- | -----: | -----: | -----: | -----: |
+| G1724    |  9,136 |  9,136 |  2,166 |    381 |
+| G2001    | 16,273 | 16,273 | 10,568 |  1,294 |
+| Chikwawa |  1,117 |  1,117 |    741 |    138 |
 
-The same forecast for G1724 with the discharge multiplied, to mimic a larger flood on the Shire:
+G1724 again, with the discharge multiplied to mimic a larger flood, for a range of minimum depths:
 
-| Return period at the station's cell | 2.2 years | 5.1 years | 8.9 years | 21.3 years |
-| ----------------------------------- | --------: | --------: | --------: | ---------: |
-| New, any depth                      |     2,166 |     2,166 |     2,166 |      2,362 |
-| New, at least 0.2 m                 |       381 |     1,589 |     1,859 |      2,129 |
+| Return period at the station | 2.2 years | 5.1 years | 8.9 years | 21.3 years |
+| ---------------------------- | --------: | --------: | --------: | ---------: |
+| No minimum depth (step 2)    |     2,166 |     2,166 |     2,166 |      2,362 |
+| At least 0.1 m               |     1,304 |     1,890 |     2,059 |      2,267 |
+| At least 0.2 m (step 3)      |       381 |     1,589 |     1,859 |      2,129 |
+| At least 0.3 m               |        84 |     1,373 |     1,662 |      1,983 |
+| At least 0.5 m               |         3 |       850 |     1,448 |      1,765 |
 
-- **Which rivers flood** changes the footprint with or without a minimum depth: calm cells are dry.
-- **How severe the flood is** only changes the depth below 10 years, not the extent. Without a minimum depth, a 2-year and a 9-year flood on one river expose the same people.
-- The test keeps the tributaries calm. In a real larger event more rivers would pass 1.5 years.
-
----
-
-<!-- _class: small -->
-
-## From prototype to pipeline: importing CLIMADA would save 230 of 3,500 lines
-
-A CLIMADA run in a notebook is about 20 lines because the package (about 1,700 lines) brings the rest: it downloads the forecast, its own flood maps (the older JRC maps, about 1 km) and its own curves (fitted at ETH on GloFAS 1979–2015).
-
-| Part                                                  | Lines | With CLIMADA imported                                   |
-| ----------------------------------------------------- | ----: | ------------------------------------------------------- |
-| The method: return period, regridding, depth          |   230 | Replaced, plus an adapter                               |
-| Wiring into the pipeline, fallbacks, empty footprints |   360 | Stays                                                   |
-| The curves as an input: seed script, file, loader     |   410 | Stays; CLIMADA's curves are not those of our thresholds |
-| Unit tests                                            | 1,300 | Mostly stays                                            |
-| Comparison and curve check, not part of the pipeline  | 1,190 | Stays                                                   |
-
-**What importing costs:**
-
-- **Dependencies.** CLIMADA's regridding needs ESMF, which is not on PyPI, so it does not fit our `uv` image as it is.
-- **Data layout.** It wants all flood maps merged into one file; ours loads only the maps it needs, inside the alert's area.
-- **Licence.** CLIMADA is GPL-3, our pipeline is Apache-2.0.
-
-**Proposal:** keep our own implementation, and check it against the prototype on one forecast. Not done yet.
+- **Step 2 decides which rivers count.** A 2-year and a 9-year flood on one river still expose the same people.
+- **Step 3 adds severity.** With it in place, leaving out step 2 gives the same numbers in this test.
+- **The value matters most for low alerts.** From 0.2 to 0.3 m: 381 to 84 at 2.2 years, 1,859 to 1,662 at 8.9 years.
 
 ---
 
@@ -91,63 +66,134 @@ A CLIMADA run in a notebook is about 20 lines because the package (about 1,700 l
 
 ## To decide
 
-Tested so far on one forecast only: Malawi, 2 September 2026, three alerts at 2 years.
+Tested on one forecast only: Malawi, 2 September 2026.
 
-| Decision                      | Now in the draft                                                 | Why it needs a decision                                                                                   |
-| ----------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Minimum depth**             | 0.2 m, for the map and for exposed population                    | Exposed population falls to 4–12% of today's at 2 years. Without it, the number ignores severity.         |
-| **Near-flat curves**          | Cells with a curve scale below 1 m³/s do not drive the footprint | Not in the original plan. It concerns 17–40% of the large-river cells in Ethiopia, Kenya and South Sudan. |
-| **Stations on small streams** | Their own cell does not drive the footprint                      | Four stations. Three sit one cell beside a large river, so this is about where the station is placed.     |
-| **Empty footprint**           | The alert stays, with its whole area and nobody exposed          | Not yet checked in the API and the front end.                                                             |
-| **Import CLIMADA**            | Own implementation                                               | See the previous slide.                                                                                   |
+| Decision                | Now in the draft                               | Why it needs a decision                                                               |
+| ----------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Dry below 1.5 years** | Step 2                                         | With step 3 in place it changes nothing in the test.                                  |
+| **Minimum depth**       | Step 3, at 0.2 m                               | A definition of exposed. At a 2-year alert each 0.1 m changes the number severalfold. |
+| **Small streams**       | Cells below 500 km² do not drive the footprint | Two questions: have the rule at all, and from which size.                             |
+| **Regridding**          | A pixel takes the nearest cell                 | CLIMADA blends cells, which exposes up to a third fewer people.                       |
+| **Empty footprint**     | The alert stays, with nobody exposed           | Today an alert without flood depth is dropped. The app can show either.               |
+| **Import CLIMADA**      | Own implementation                             | Importing replaces 230 of 1,000 lines of pipeline code and adds heavy dependencies.   |
 
-**Before merging:** the seven curve files (4.7 MB) go into the seed repo first. Without them the flood pipeline fails for every country.
-
-The next three slides explain the rows on near-flat curves, stations on small streams and the empty footprint.
-
----
-
-<!-- _class: small -->
-
-## Near-flat curves: a trickle turns a 2-year flood into a 500-year one
-
-![h:240](near_flat_curve.png)
-
-- **The curve of a cell** turns discharge into a return period. Its scale says how much the yearly peak varies. In dry riverbeds the scale is almost zero, so a trickle more water moves the cell from 2 to 500 years.
-- **The rule in the draft:** a cell with a scale below 1 m³/s does not drive the footprint. Its pixels take the nearest cell that does.
-- **Large-river cells this switches off:** Kenya 40%, Ethiopia 22%, South Sudan 17%, Uganda 5%, Zambia 1%, Malawi and the Philippines none.
-- **To decide:** whether to have the rule, and at which value. Its cost is that a real flash flood in such a riverbed does not show in the footprint.
+**Before merging:** the curve files have to merge into the seed repo first (draft PR). The next six slides take the last four rows in order.
 
 ---
 
 <!-- _class: small -->
 
-## Stations on small streams: three of the four sit one cell beside a large river
+## Small streams, 1: their pixels follow the large river beside them
 
-![w:1020](stations_on_small_streams.png)
+![w:820](small_streams_rule_G2001.png)
 
-Upstream area in km² around each station. Red: the station's cell. Black: the nearest cell that drives the footprint.
+- **The rule:** a cell with an upstream area below 500 km² does not drive. Its pixels take the nearest cell that does (the dots).
+- **What that does:** the pixels get the large river's return period. That is higher than the stream's own when the stream is calm (left, as in this test), and lower when the stream jumps on a small change in the forecast (why the rule was proposed).
 
-- **The alert uses the red cell and the footprint the black one.** For G5142, G1966 and G5368 a stream of 30 km² triggers the alert, and the footprint follows the river of 5,000 to 12,000 km² beside it.
-- **These three look like stations for the large river, placed one cell off**, as the name Athi Munyu suggests. This is not checked against the real station locations. G1967 is on a small stream of its own.
-- **To decide:** where these stations belong. That is about station placement more than about the footprint, and moving them changes their thresholds.
+| Where the flooding in the flood maps lies (seven countries) | Share of the wet pixels |
+| ----------------------------------------------------------- | ----------------------: |
+| In a cell of a large river (500 km² or more)                |                     57% |
+| In a small-stream cell next to a large-river cell           |                     35% |
+| Farther from a large river                                  |                      8% |
+
+- **For:** the 35% is floodplain of the large river, in a cell that GloFAS counts as a small stream.
+- **Against:** in the 8%, the rule overrides a small river's own flood.
 
 ---
 
 <!-- _class: small -->
 
-## Empty footprint: the alert stays, with nobody exposed
+## Small streams, 2: the flood maps start at about 500 km²
 
-**When it happens:** the station is in alert, but no pixel in its area floods. Either no driving cell in its area reaches 1.5 years, or the water is nowhere deeper than 0.2 m. It did not happen in the Malawi test.
+![bg right:50% fit](flooded_cells_by_upstream_area.png)
 
-|                              | Alert with a footprint        | Alert with an empty footprint |
-| ---------------------------- | ----------------------------- | ----------------------------- |
-| Severity and discharge chart | As today                      | As today                      |
-| Admin areas listed           | Those the footprint touches   | All areas of the alert        |
-| Exposed population           | Per area                      | 0 for each area               |
-| Flood map                    | Depth inside the alert's area | Blank                         |
+- **Two datasets meet here.** A GloFAS cell's return period sets the depth of the flood-map pixels around it. That only fits where the flooding there is that cell's own river.
+- **The flood maps start at about 500 km².** From 600 km², 89–99% of the cells have flooding. Below 500 km² it is 14–38%, and most of that flooding lies next to a large-river cell (35% against 8%, previous slide).
+- **Documented:** the method behind the flood maps uses rivers from 500 km² (stated for the European maps, Dottori et al. 2022).
+- **GloFAS itself starts lower:** it shows its own forecasts for rivers from 250 km² (dotted line). Between 250 and 500 km² there is a forecast but hardly a flood map.
 
-- **Why the alert stays:** the station is the trigger, so an alert must not disappear because of the footprint.
-- **What does not change:** an alert is still skipped when the flood maps do not cover its area at all, as decided earlier (#443).
-- **Checked:** a unit test runs such an alert through the forecast and the pipeline's integrity checks.
-- **Not checked:** whether the API accepts a blank flood map and how the front end shows it. That needs one test on a local or test environment before merging.
+---
+
+<!-- _class: small -->
+
+## Small streams, 3: from which size cells drive
+
+| Cells drive from                                | No rule | 100 km² | 250 km² | 500 km² (draft) | 1,000 km² | 2,000 km² |
+| ----------------------------------------------- | ------: | ------: | ------: | --------------: | --------: | --------: |
+| People exposed at 0.2 m: G1724                  |     218 |     221 |     222 |             381 |       447 |       447 |
+| People exposed at 0.2 m: G2001                  |     839 |   1,273 |   1,293 |           1,294 |     1,373 |     1,373 |
+| People exposed at 0.2 m: Chikwawa               |     137 |     138 |     138 |             138 |       138 |       138 |
+| Flooding more than one cell from a driving cell |      0% |      1% |      4% |              8% |       15% |       26% |
+
+- **500 km² matches the flood maps** (previous slide), and the result is stable from there up: 381 to 447 for G1724.
+- **100 or 250 km² interferes less:** only 1–4% of the flooding takes its return period from a cell more than one cell away, against 8%.
+- **But it also does less:** G1724 stays at 221–222, against 218 with no rule. The cells of 250–500 km² beside the Shire still drive.
+- **To decide:** the size.
+
+---
+
+<!-- _class: small -->
+
+## Regridding: one river per pixel, or a blend of its neighbours
+
+![w:900](regridding_G2001.png)
+
+| People exposed at 0.2 m | Nearest (draft) | Bilinear |
+| ----------------------- | --------------: | -------: |
+| G1724                   |             381 |      250 |
+| G2001                   |           1,294 |    1,070 |
+| Chikwawa                |             138 |      133 |
+
+- **Nearest:** a pixel takes one cell (the dots), so one river. The borders are sharp.
+- **Bilinear:** a pixel blends the four cells around it, as CLIMADA does by default. The flood gets wider and thinner.
+- **To decide:** nearest fits "a pixel takes the river that floods it". Bilinear softens the borders, where the nearest cell is only a guess.
+
+---
+
+<!-- _class: small -->
+
+## Empty footprint: today the alert is dropped, the draft keeps it
+
+| Why no pixel floods                                                                  | Today         | In the draft                      |
+| ------------------------------------------------------------------------------------ | ------------- | --------------------------------- |
+| **The flood maps do not cover the alert's area.** A data error, at 1 of 71 stations. | Dropped       | Dropped                           |
+| **Nothing floods:** no cell at 1.5 years, or no water at the minimum depth.          | Cannot happen | Kept, with its areas at 0 exposed |
+
+Of the other 70 stations, those with an empty footprint when every cell in their area is at one return period:
+
+| Minimum depth | 0.1 m | 0.2 m (draft) | 0.3 m | 0.5 m |
+| ------------- | ----: | ------------: | ----: | ----: |
+| At 1.5 years  |     1 |             2 |     6 |    23 |
+| At 2 years    |     0 |             1 |     1 |     3 |
+| At 5 years    |     0 |             0 |     0 |     1 |
+
+Checked in the app with a made-up forecast, for the stations in the 0.2 m column at their country's lowest alert level:
+
+| Station                     | Alert level | What the app shows                                                      |
+| --------------------------- | ----------: | ----------------------------------------------------------------------- |
+| Woltkite, Ethiopia          |     2 years | Event "Low": 1 exposed woreda, 0 exposed people, no water on the map    |
+| Manafwa at Butaleja, Uganda |   1.5 years | Event "Low": 6 exposed districts, 0 exposed people, no water on the map |
+
+- **Keep, as in the draft:** it works without errors, but the app lists areas as exposed with nobody in them.
+- **Drop, as today:** no flood depth, no alert. The minimum depth then also decides whether a low alert shows.
+
+---
+
+<!-- _class: small -->
+
+## Import CLIMADA: it would replace 230 of the 1,000 lines of pipeline code
+
+A CLIMADA notebook is about 20 lines because the package brings the rest: the forecast download, its own flood maps (older, about 1 km) and its own curves.
+
+| Part                   | Lines | What it is                                                             | With CLIMADA imported                                   |
+| ---------------------- | ----: | ---------------------------------------------------------------------- | ------------------------------------------------------- |
+| The method             |   230 | Pipeline code: return period, regridding, depth                        | Replaced, plus an adapter                               |
+| Wiring                 |   360 | Pipeline code: from forecast to alert, with the fallbacks              | Stays                                                   |
+| The curves as an input |   410 | Pipeline code and the script that builds the files                     | Stays; CLIMADA's curves are not those of our thresholds |
+| Unit tests             | 1,330 | Automatic checks of that code on small made-up inputs, run on every PR | Mostly stays                                            |
+
+- **Dependencies:** its regridding needs ESMF, which is not on PyPI.
+- **Data layout:** it wants all flood maps in one file.
+- **Licence:** CLIMADA is GPL-3, our pipeline Apache-2.0.
+
+**Proposal:** keep our own code, and check it against the prototype on one forecast. Not done yet.
