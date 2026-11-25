@@ -1,4 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
+import * as request from 'supertest';
 
 import {
   AlertClass,
@@ -39,6 +40,25 @@ describe('/ Alert Configs', () => {
     triggerLeadTimeDuration: 'P7D',
   };
 
+  const spatialExtentGeometry = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [34.0, -14.0],
+        [34.5, -14.0],
+        [34.5, -13.5],
+        [34.0, -14.0],
+      ],
+    ],
+  };
+
+  function getFloodAlertConfigs(): request.Test {
+    return getServer()
+      .get('/alert-configs')
+      .query({ countryCodeIso3: 'MWI', hazardType: HazardType.floods })
+      .set('Cookie', [accessToken]);
+  }
+
   describe('POST /alert-configs', () => {
     it('should create alert configs', async () => {
       const response = await getServer()
@@ -53,6 +73,117 @@ describe('/ Alert Configs', () => {
       expect(response.body[0].spatialExtentName).toBe('TEST_STATION');
       expect(response.body[0].spatialExtentPlaceCodes).toEqual(['MW101']);
     });
+
+    it('should create and return an alert config with a spatial extent geometry', async () => {
+      // Arrange
+      const alertConfig = {
+        ...validAlertConfig,
+        spatialExtentName: 'GEOMETRY_STATION',
+        spatialExtentGeometry,
+      };
+
+      // Act
+      const createResponse = await getServer()
+        .post('/alert-configs')
+        .set('Cookie', [accessToken])
+        .send([alertConfig]);
+      const getResponse = await getFloodAlertConfigs();
+
+      // Assert
+      expect(createResponse.status).toBe(HttpStatus.CREATED);
+      expect(createResponse.body[0].spatialExtentGeometry).toEqual(
+        spatialExtentGeometry,
+      );
+      const createdAlertConfig = getResponse.body.find(
+        (config: { id: number }) => config.id === createResponse.body[0].id,
+      );
+      expect(createdAlertConfig.spatialExtentGeometry).toEqual(
+        spatialExtentGeometry,
+      );
+    });
+
+    it('should create and return an alert config without a spatial extent geometry', async () => {
+      // Arrange
+      const alertConfig = {
+        ...validAlertConfig,
+        spatialExtentName: 'NO_GEOMETRY_STATION',
+      };
+
+      // Act
+      const createResponse = await getServer()
+        .post('/alert-configs')
+        .set('Cookie', [accessToken])
+        .send([alertConfig]);
+      const getResponse = await getFloodAlertConfigs();
+
+      // Assert
+      expect(createResponse.status).toBe(HttpStatus.CREATED);
+      expect(createResponse.body[0].spatialExtentGeometry).toBeNull();
+      const createdAlertConfig = getResponse.body.find(
+        (config: { id: number }) => config.id === createResponse.body[0].id,
+      );
+      expect(createdAlertConfig.spatialExtentGeometry).toBeNull();
+    });
+
+    it.each([
+      {
+        name: 'a Point',
+        invalidGeometry: { type: 'Point', coordinates: [34.0, -14.0] },
+      },
+      {
+        name: 'a Polygon that is not closed',
+        invalidGeometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              ...spatialExtentGeometry.coordinates[0].slice(0, -1),
+              [34.0, -13.5],
+            ],
+          ],
+        },
+      },
+      {
+        // The same area as spatialExtentGeometry, but in EPSG:3857
+        name: 'a Polygon in metres',
+        invalidGeometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [3784863, -1574216],
+              [3840522, -1574216],
+              [3840522, -1516914],
+              [3784863, -1574216],
+            ],
+          ],
+        },
+      },
+      { name: 'a string', invalidGeometry: 'Polygon' },
+    ])(
+      'should reject a spatial extent geometry that is $name',
+      async ({ invalidGeometry }) => {
+        // Arrange
+        const spatialExtentName = 'INVALID_GEOMETRY_STATION';
+        const alertConfig = {
+          ...validAlertConfig,
+          spatialExtentName,
+          spatialExtentGeometry: invalidGeometry,
+        };
+
+        // Act
+        const createResponse = await getServer()
+          .post('/alert-configs')
+          .set('Cookie', [accessToken])
+          .send([alertConfig]);
+        const getResponse = await getFloodAlertConfigs();
+
+        // Assert
+        expect(createResponse.status).toBe(HttpStatus.BAD_REQUEST);
+        const spatialExtentNames = getResponse.body.map(
+          (config: { spatialExtentName: string }) => config.spatialExtentName,
+        );
+        expect(spatialExtentNames).not.toContain(spatialExtentName);
+      },
+    );
 
     it('should reject invalid hazard type', async () => {
       const response = await getServer()

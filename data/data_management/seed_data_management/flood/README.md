@@ -23,6 +23,30 @@ uv run python -m data_management.seed_data_management.flood.build_flood_depth_so
 uv run python -m data_management.seed_data_management.flood.convert_flood_depth_to_png
 ```
 
+# Flood GloFAS station spatial extents
+
+`build_station_spatial_extents.py` builds `hazard/flood/glofas-stations/{ISO3}_station_spatial_extents.geojson` in the seed repo: one area per GloFAS station, derived from river basins. It comes next to the `pcodes` of the station; nothing reads it yet.
+
+For each station, the script:
+
+1. Finds the [HydroBASINS](https://www.hydrosheds.org/products/hydrobasins) level-7 polygon the station lies in.
+2. Adds the polygons downstream of it along the river (`NEXT_DOWN`), up to 200 km. It stops before a polygon that holds another station, of any country.
+3. Clips the result to the country and simplifies it to about 100 m.
+
+Stations in the same polygon get the same area. A station whose area lies entirely outside its country gets none; the script names those stations. The level and the distance are a candidate from the station basin analysis of spike AB#42674, not a decision.
+
+The HydroBASINS archives (v1.c, standard variant) go in `data/data/hydrobasins/`, which is not tracked. The Philippines is in the Australasia archive.
+
+```bash
+cd data
+mkdir -p data/hydrobasins
+curl --fail -o data/hydrobasins/hybas_af_lev01-12_v1c.zip https://data.hydrosheds.org/file/hydrobasins/standard/hybas_af_lev01-12_v1c.zip
+curl --fail -o data/hydrobasins/hybas_au_lev01-12_v1c.zip https://data.hydrosheds.org/file/hydrobasins/standard/hybas_au_lev01-12_v1c.zip
+uv run python -m data_management.seed_data_management.flood.build_station_spatial_extents
+```
+
+The output is written into the local seed repo (`SEED_DATA_REPO_ROOT` in `data/.env`, or `--seed-repository`). Use `--output-directory` to write elsewhere for review. Rerun the script when station locations change.
+
 # Flood GloFAS station-area mapping
 
 ## Spatial migration

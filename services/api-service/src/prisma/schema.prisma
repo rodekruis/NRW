@@ -354,6 +354,7 @@ model AlertConfig {
   hazardType                HazardType
   spatialExtentName         String
   spatialExtentPlaceCodes   String[] // soft FK to admin-area.placeCode
+  spatialExtentGeometry     Json? // GeoJSON Polygon or MultiPolygon in EPSG:4326
   temporalExtents           Json
   severityClassLevels       Json
   // TODO: the classification fields below are currently duplicated per row (they are hazard-type-level, not per-station). Handle differently later.

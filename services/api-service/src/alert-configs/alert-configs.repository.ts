@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import type { MultiPolygon, Polygon } from 'geojson';
 
 import { AlertConfigCreateDto } from '@api-service/src/alert-configs/dto/alert-config-create.dto';
 import { AlertConfigResponseDto } from '@api-service/src/alert-configs/dto/alert-config-response.dto';
@@ -26,6 +27,8 @@ export class AlertConfigsRepository {
       hazardType: row.hazardType,
       spatialExtentName: row.spatialExtentName,
       spatialExtentPlaceCodes: row.spatialExtentPlaceCodes,
+      spatialExtentGeometry: row.spatialExtentGeometry as unknown as
+        Polygon | MultiPolygon | null,
       temporalExtents: row.temporalExtents as unknown as Record<
         string,
         string[] | number[]
@@ -80,6 +83,9 @@ export class AlertConfigsRepository {
               hazardType: dto.hazardType,
               spatialExtentName: dto.spatialExtentName,
               spatialExtentPlaceCodes: dto.spatialExtentPlaceCodes,
+              spatialExtentGeometry: dto.spatialExtentGeometry
+                ? (dto.spatialExtentGeometry as unknown as Prisma.InputJsonValue)
+                : Prisma.DbNull,
               temporalExtents:
                 dto.temporalExtents as unknown as Prisma.InputJsonValue,
               severityClassLevels:

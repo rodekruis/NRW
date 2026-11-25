@@ -1,3 +1,5 @@
+import type { MultiPolygon, Polygon } from 'geojson';
+
 import {
   AlertClass,
   AlertClassificationLevel,
@@ -14,6 +16,7 @@ export interface SeedAlertConfig {
   readonly hazardType: HazardType;
   readonly spatialExtentName: string;
   readonly spatialExtentPlaceCodes: string[];
+  readonly spatialExtentGeometry?: Polygon | MultiPolygon | null;
   readonly temporalExtents: Record<string, string[] | number[]>[];
   readonly severityClassLevels: ClassLevel[];
   readonly probabilityClassLevels: ClassLevel[];

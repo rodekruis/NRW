@@ -2910,6 +2910,51 @@
           "hazardTypeDetails"
         ]
       },
+      "SpatialExtentGeometryDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Polygon",
+              "MultiPolygon"
+            ],
+            "example": "Polygon"
+          },
+          "coordinates": {
+            "type": "array",
+            "description": "Coordinates array in EPSG:4326, as [longitude, latitude]; structure depends on geometry type.",
+            "example": [
+              [
+                [
+                  34,
+                  -14
+                ],
+                [
+                  34.5,
+                  -14
+                ],
+                [
+                  34.5,
+                  -13.5
+                ],
+                [
+                  34,
+                  -14
+                ]
+              ]
+            ],
+            "items": {
+              "type": "array",
+              "items": {}
+            }
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
       "ClassLevelDto": {
         "type": "object",
         "properties": {
@@ -2976,6 +3021,16 @@
             "items": {
               "type": "string"
             }
+          },
+          "spatialExtentGeometry": {
+            "description": "GeoJSON Polygon or MultiPolygon geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SpatialExtentGeometryDto"
+              }
+            ]
           },
           "temporalExtents": {
             "example": [
