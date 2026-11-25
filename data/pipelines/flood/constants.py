@@ -1,4 +1,5 @@
-MINIMUM_RETURN_PERIOD = "1.5yr"
+MINIMUM_RETURN_PERIOD_YEARS = 1.5
+MINIMUM_RETURN_PERIOD = f"{MINIMUM_RETURN_PERIOD_YEARS:g}yr"
 
 # Version of the return period curves. ECMWF has not published the v5 curves yet.
 GLOFAS_VERSION = "v4"
