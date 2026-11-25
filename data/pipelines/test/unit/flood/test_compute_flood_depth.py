@@ -172,6 +172,36 @@ def test_flood_depth_is_empty_when_no_cell_reaches_the_minimum_return_period():
     assert not flood_depth.array.any()
 
 
+def test_flood_depth_follows_the_minimum_return_period():
+    # Arrange: the west cell is at 1.4 years, below the default minimum of 1.5 years
+    provider = _make_provider({10: 1.0})
+    cell_return_periods = _make_cell_return_periods(1.4, 1.0)
+
+    # Act
+    with_default_minimum = compute_flood_depth(
+        time_interval_severities=_make_severities(2.0),
+        cell_return_periods=cell_return_periods,
+        boundary=_WHOLE_MAP,
+        flood_depth_provider=provider,
+        minimum_flood_depth=0.0,
+    )
+    with_lower_minimum = compute_flood_depth(
+        time_interval_severities=_make_severities(2.0),
+        cell_return_periods=cell_return_periods,
+        boundary=_WHOLE_MAP,
+        flood_depth_provider=provider,
+        minimum_flood_depth=0.0,
+        minimum_return_period=1.0,
+    )
+
+    # Assert: 0.4 years above the zero-depth return period, of the 9 years up to the 10-year map
+    assert with_default_minimum is not None
+    assert with_lower_minimum is not None
+    assert not with_default_minimum.array.any()
+    np.testing.assert_allclose(with_lower_minimum.array[:, :2], 0.4 / 9, atol=1e-6)
+    np.testing.assert_allclose(with_lower_minimum.array[:, 2:], 0.0)
+
+
 @pytest.mark.parametrize(
     "cell_return_periods", [None, _make_cell_return_periods(np.nan, np.nan)]
 )

@@ -92,11 +92,12 @@ def compute_flood_depth(
     flood_depth_provider: FloodDepthProvider,
     regridding_method: RegriddingMethod = REGRIDDING_METHOD,
     minimum_flood_depth: float = MINIMUM_FLOOD_DEPTH_METRES,
+    minimum_return_period: float = MINIMUM_RETURN_PERIOD_YEARS,
 ) -> RasterData | None:
     """
     Compute the flood depth inside the boundary of an alert: each pixel takes the return period
-    of the GloFAS cells around it, and its depth is interpolated between the flood maps. Depths
-    below minimum_flood_depth are left out.
+    of the GloFAS cells around it, and its depth is interpolated between the flood maps. Pixels
+    below minimum_return_period stay dry, and depths below minimum_flood_depth are left out.
 
     Returns None when the flood map for the station's return period shows no flooding inside the
     boundary: the station is mapped to an area the flood maps do not cover.
@@ -124,7 +125,7 @@ def compute_flood_depth(
             return_period, flood_depth_provider, clipper
         ),
         available_return_periods=flood_depth_provider.available_return_periods,
-        minimum_return_period=MINIMUM_RETURN_PERIOD_YEARS,
+        minimum_return_period=minimum_return_period,
     )
     flood_depth[flood_depth < minimum_flood_depth] = 0.0
 

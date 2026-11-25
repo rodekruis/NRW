@@ -21,10 +21,17 @@ WATER_DISCHARGE_HIGH_PERCENTILE = 90
 # v5 is pre-operational; ECMWF has not published its curves yet.
 GLOFAS_VERSION = "v4"
 
-# Cells below these do not drive the footprint: a small forecast change moves them several
-# return periods. Their pixels take the return period of the nearest cell that does.
+# Cells below this do not drive the footprint: the flood maps hold few floods of rivers that
+# small, so the flooding around such a cell mostly belongs to a larger river. Their pixels take
+# the return period of the nearest cell that does. The method behind the flood maps uses rivers
+# from 500 km2 (Dottori et al. 2022, https://doi.org/10.5194/essd-14-1549-2022, for the European
+# maps). Not agreed (AB#42674); see analysis/flood_footprint/check_sensitivity.py.
 MINIMUM_UPSTREAM_AREA_SQUARE_KILOMETRES = 500.0
-MINIMUM_GUMBEL_SCALE_CUBIC_METRES_PER_SECOND = 1.0
+# Cells with a flatter curve do not drive the footprint either: on such a curve, no water at all
+# reads as a flood. Provisional (AB#42674): in the one forecast checked, 0.1 switches off only
+# cells without water, while 1.0 also switches off cells with real flow. See
+# analysis/flood_footprint/check_sensitivity.py.
+MINIMUM_GUMBEL_SCALE_CUBIC_METRES_PER_SECOND = 0.1
 
 REGRIDDING_METHOD = RegriddingMethod.NEAREST
 
