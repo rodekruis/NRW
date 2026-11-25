@@ -24,6 +24,8 @@ GLOFAS_VERSION = "v4"
 # flood maps cover rivers from 500 km2 (Dottori et al. 2022, https://doi.org/10.5194/essd-14-1549-2022).
 MINIMUM_UPSTREAM_AREA_SQUARE_KILOMETRES = 500.0
 # Cells with a flatter curve do not drive either: on such a curve, even no water reads as a flood.
+# GloFAS uses the same value on the forecast discharge: it only shows a flood signal where the
+# discharge exceeds 0.1 m3/s (https://confluence.ecmwf.int/display/CEMS/GloFAS+Flood+Summary).
 MINIMUM_GUMBEL_SCALE_CUBIC_METRES_PER_SECOND = 0.1
 
 REGRIDDING_METHOD = RegriddingMethod.NEAREST
