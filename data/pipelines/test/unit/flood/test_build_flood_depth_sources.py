@@ -10,14 +10,15 @@ from data_management.seed_data_management.flood.build_flood_depth_sources import
     PERMANENT_WATER_FILL_DEPTH_METRES,
     Tile,
 )
+from rasterio.profiles import Profile
 from rasterio.transform import from_origin
 from shapely.geometry import box
 
 _PERMANENT_WATER_NODATA = 255
 
 
-def _grid_profile(left: float = 0.0, top: float = 2.0) -> dict:
-    return {"crs": "EPSG:4326", "transform": from_origin(left, top, 1, 1)}
+def _grid_profile(left: float = 0.0, top: float = 2.0) -> Profile:
+    return Profile(crs="EPSG:4326", transform=from_origin(left, top, 1, 1))
 
 
 def _write_permanent_water_tile(
