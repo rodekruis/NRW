@@ -1,0 +1,67 @@
+# See: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+
+name: 'Test: Data management'
+
+on:
+  workflow_dispatch:
+  merge_group:
+    types: [checks_requested]
+  pull_request:
+    paths:
+      - '.github/workflows/test_data_management.yml'
+      - 'data/data_management/**'
+      - 'data/shared/**'
+      - 'data/pyproject.toml'
+      - 'data/uv.lock'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: data
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      # The same system dependencies as the other Python workflows
+      - name: Get Ubuntu version
+        id: ubuntu-version
+        run: |
+          . /etc/os-release
+          echo "version=${VERSION_ID}" >> "$GITHUB_OUTPUT"
+
+      - name: Set apt cache permissions
+        run: sudo chown -R "$(id -u)" /var/cache/apt/archives
+
+      - name: Cache apt packages
+        uses: actions/cache@v6
+        with:
+          path: /var/cache/apt/archives
+          key: apt-gdal-${{ runner.os }}-${{ steps.ubuntu-version.outputs.version }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdal-bin libgdal-dev
+          sudo chown -R "$(id -u)" /var/cache/apt/archives
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: ./uv-sync.sh
+
+      # The data management scripts need no API or database, unlike the pipeline tests.
+      - name: Run data management tests
+        run: uv run -m pytest data_management/test/

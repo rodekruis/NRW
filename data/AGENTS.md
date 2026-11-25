@@ -6,6 +6,7 @@
 - `pipelines/<hazard-type>/` — hazard-specific pipeline implementations (flood, drought)
 - `pipelines/deploy/` — Azure Batch deployment and manual job-submission helpers (architecture: `pipelines/deploy/README.md`, operations: `pipelines/deploy/operations.md`)
 - `pipelines/test/` — tests: unit, infra-integration, pipeline-integration
+- `data_management/test/` — unit tests of the data management scripts; they run in their own CI workflow, without the API
 - `data_management/` — scripts for managing seed data
 
 ## Running Pipelines
@@ -49,4 +50,5 @@ cd data
 uv run pytest pipelines/test/unit/                  # unit tests
 uv run pytest pipelines/test/unit/ -k test_integrity # specific test
 uv run pytest pipelines/test/integration_infra/     # infra integration tests
+uv run pytest data_management/test/                 # data management unit tests
 ```
