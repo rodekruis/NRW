@@ -1,0 +1,57 @@
+dimension,series,parameter,rule,stations_with_unit,median_unit_area_km2,largest_unit_area_km2,units_over_20000_km2,units_under_100_km2,units_over_1_percent_outside_country,stations_depending_on_other_stations,median_share_of_footprint_in_unit,station_flooded_area_kept,country_flooded_area_kept,share_of_flood_map_in_units,share_of_flood_map_in_footprints_today,share_of_land_in_units,share_of_land_in_footprints_today
+start_level,PR rule,4,"alone, start level 4",73,6071.2,48974.3,18,2,29,31,0.3303,0.2353,0.3534,0.1549,0.2634,0.2056,0.2027
+start_level,PR rule,5,"alone, start level 5",73,6071.2,48974.3,18,2,29,31,0.3303,0.2353,0.3534,0.1549,0.2634,0.2056,0.2027
+start_level,PR rule,6,"alone, start level 6",73,5250.4,46924.1,12,2,27,26,0.3046,0.2091,0.3244,0.126,0.2634,0.1548,0.2027
+start_level,PR rule,7,"alone, start level 7",73,2411.4,8366.4,0,3,21,6,0.2126,0.112,0.1623,0.0575,0.2634,0.0571,0.2027
+start_level,PR rule,8,"alone, start level 8",73,905.8,7083.3,0,7,17,0,0.0462,0.0735,0.0915,0.0306,0.2634,0.0232,0.2027
+start_level,PR rule,9,"alone, start level 9",73,309.5,1899.7,0,12,13,0,0.0212,0.0365,0.0448,0.0138,0.2634,0.0072,0.2027
+area_cap,PR rule,"5,000","alone, area cap 5,000",73,1764.5,4886.7,0,4,19,2,0.0805,0.0913,0.1286,0.0419,0.2634,0.0347,0.2027
+area_cap,PR rule,"10,000","alone, area cap 10,000",73,2590.4,9487.8,0,3,22,8,0.2126,0.1299,0.2173,0.0761,0.2634,0.0636,0.2027
+area_cap,PR rule,"20,000","alone, area cap 20,000",73,3527.7,19710.4,0,3,24,18,0.2145,0.1485,0.2477,0.0915,0.2634,0.0958,0.2027
+area_cap,PR rule,"50,000","alone, area cap 50,000",73,6071.2,48974.3,18,2,29,31,0.3303,0.2353,0.3534,0.1549,0.2634,0.2056,0.2027
+area_cap,PR rule,"100,000","alone, area cap 100,000",73,6664.2,95248.8,21,2,30,42,0.4166,0.3628,0.4861,0.2562,0.2634,0.2696,0.2027
+area_cap,PR rule,none,"alone, area cap none",73,6664.2,552624.9,23,2,31,65,0.4358,0.3972,0.5357,0.3157,0.2634,0.3519,0.2027
+minimum_area,PR rule,0,"alone, minimum area 0",73,6071.2,48974.3,18,2,29,31,0.3303,0.2353,0.3534,0.1549,0.2634,0.2056,0.2027
+minimum_area,PR rule,100,"alone, minimum area 100",71,6350.3,48974.3,18,0,28,29,0.3384,0.2351,0.3532,0.1549,0.2634,0.2056,0.2027
+minimum_area,PR rule,250,"alone, minimum area 250",70,6507.25,48974.3,18,0,28,28,0.3488,0.2345,0.3522,0.1546,0.2634,0.2055,0.2027
+minimum_area,PR rule,500,"alone, minimum area 500",68,6855.95,48974.3,18,0,27,26,0.3879,0.2329,0.3506,0.1541,0.2634,0.2054,0.2027
+minimum_area,PR rule,"1,000","alone, minimum area 1,000",65,7529.7,48974.3,18,0,26,23,0.4189,0.2294,0.3452,0.1527,0.2634,0.2049,0.2027
+minimum_area,PR rule,"2,500","alone, minimum area 2,500",51,10527.2,48974.3,18,0,22,10,0.4612,0.2061,0.3189,0.1435,0.2634,0.1979,0.2027
+station_scope,PR rule,own country,"alone, other stations of own country",73,6071.2,48974.3,18,2,29,31,0.3303,0.2353,0.3534,0.1549,0.2634,0.2056,0.2027
+station_scope,PR rule,all seven countries,"alone, other stations of all seven countries",73,5171.9,48974.3,16,2,28,33,0.3168,0.2339,0.3519,0.1531,0.2634,0.2009,0.2027
+coastal_units,PR rule,allowed,"alone, lumped coastal units allowed",73,6071.2,48974.3,18,2,29,31,0.3303,0.2353,0.3534,0.1549,0.2634,0.2056,0.2027
+coastal_units,PR rule,excluded,"alone, lumped coastal units excluded",73,5820.9,48974.3,17,2,28,29,0.3303,0.2339,0.349,0.1523,0.2634,0.2009,0.2027
+uniqueness,station must be alone (PR rule from this level),5,alone from level 5,73,6071.2,48974.3,18,2,29,31,0.3303,0.2353,0.3534,0.1549,0.2634,0.2056,0.2027
+uniqueness,stations may share (fixed level),5,"shared, fixed level 5",73,47770.5,119412.9,63,0,47,0,0.8035,0.6111,0.7063,0.3863,0.2634,0.4236,0.2027
+uniqueness,station must be alone (PR rule from this level),6,alone from level 6,73,5250.4,46924.1,12,2,27,26,0.3046,0.2091,0.3244,0.126,0.2634,0.1548,0.2027
+uniqueness,stations may share (fixed level),6,"shared, fixed level 6",73,11671.8,46924.1,20,0,32,0,0.503,0.2753,0.3868,0.15,0.2634,0.184,0.2027
+uniqueness,station must be alone (PR rule from this level),7,alone from level 7,73,2411.4,8366.4,0,3,21,6,0.2126,0.112,0.1623,0.0575,0.2634,0.0571,0.2027
+uniqueness,stations may share (fixed level),7,"shared, fixed level 7",73,2885.7,8368.3,0,2,22,0,0.2222,0.1198,0.1689,0.0598,0.2634,0.0602,0.2027
+uniqueness,station must be alone (PR rule from this level),8,alone from level 8,73,905.8,7083.3,0,7,17,0,0.0462,0.0735,0.0915,0.0306,0.2634,0.0232,0.2027
+uniqueness,stations may share (fixed level),8,"shared, fixed level 8",73,905.8,7083.3,0,7,17,0,0.0462,0.0735,0.0915,0.0306,0.2634,0.0232,0.2027
+uniqueness,station must be alone (PR rule from this level),9,alone from level 9,73,309.5,1899.7,0,12,13,0,0.0212,0.0365,0.0448,0.0138,0.2634,0.0072,0.2027
+uniqueness,stations may share (fixed level),9,"shared, fixed level 9",73,309.5,1899.7,0,12,13,0,0.0212,0.0365,0.0448,0.0138,0.2634,0.0072,0.2027
+downstream,level 7 polygons,0,"downstream 0 km, level 7",73,2885.7,8368.3,0,2,22,0,0.2222,0.1198,0.1689,0.0598,0.2634,0.0602,0.2027
+downstream,level 7 polygons,50,"downstream 50 km, level 7",73,2989.9,9390.6,0,1,26,3,0.2222,0.1456,0.2015,0.0697,0.2634,0.0647,0.2027
+downstream,level 7 polygons,100,"downstream 100 km, level 7",73,4524.2,15081.3,0,1,28,6,0.2682,0.2013,0.2782,0.0941,0.2634,0.0788,0.2027
+downstream,level 7 polygons,200,"downstream 200 km, level 7",73,6454.6,18314.1,0,0,33,21,0.3168,0.276,0.3652,0.1282,0.2634,0.0995,0.2027
+downstream,level 7 polygons,300,"downstream 300 km, level 7",73,7399.5,24516.1,3,0,35,28,0.3168,0.2788,0.3958,0.1594,0.2634,0.1146,0.2027
+downstream,level 7 polygons,500,"downstream 500 km, level 7",73,8964.4,32210.2,11,0,35,30,0.3361,0.2841,0.4057,0.186,0.2634,0.1238,0.2027
+downstream,level 8 polygons,0,"downstream 0 km, level 8",73,905.8,7083.3,0,7,17,0,0.0462,0.0735,0.0915,0.0306,0.2634,0.0232,0.2027
+downstream,level 8 polygons,50,"downstream 50 km, level 8",73,1751.2,7647.7,0,0,21,5,0.084,0.1169,0.1521,0.0493,0.2634,0.0306,0.2027
+downstream,level 8 polygons,100,"downstream 100 km, level 8",73,2371.9,8460.4,0,0,23,12,0.1311,0.1729,0.2286,0.0746,0.2634,0.041,0.2027
+downstream,level 8 polygons,200,"downstream 200 km, level 8",73,4191.4,13569.9,0,0,30,19,0.1808,0.2503,0.3265,0.11,0.2634,0.057,0.2027
+downstream,level 8 polygons,300,"downstream 300 km, level 8",73,4933.7,15716.3,0,0,31,28,0.1811,0.2523,0.353,0.1282,0.2634,0.0648,0.2027
+downstream,level 8 polygons,500,"downstream 500 km, level 8",73,5277.7,19643.8,0,0,34,30,0.182,0.2571,0.3615,0.1571,0.2634,0.0714,0.2027
+downstream,level 10 polygons,0,"downstream 0 km, level 10",73,148.1,991.3,0,17,12,0,0.0107,0.0194,0.0233,0.0076,0.2634,0.0031,0.2027
+downstream,level 10 polygons,50,"downstream 50 km, level 10",73,558.0,1285.1,0,0,20,3,0.0318,0.0672,0.0916,0.0293,0.2634,0.0099,0.2027
+downstream,level 10 polygons,100,"downstream 100 km, level 10",73,1036.8,1981.1,0,0,24,11,0.0468,0.1109,0.1552,0.0499,0.2634,0.0154,0.2027
+downstream,level 10 polygons,200,"downstream 200 km, level 10",73,1776.0,3139.6,0,0,31,20,0.0596,0.1605,0.2297,0.0752,0.2634,0.0224,0.2027
+downstream,level 10 polygons,300,"downstream 300 km, level 10",73,2212.2,4022.1,0,0,32,29,0.0596,0.164,0.2522,0.0905,0.2634,0.0266,0.2027
+downstream,level 10 polygons,500,"downstream 500 km, level 10",73,2212.2,6182.5,0,0,34,30,0.0625,0.1674,0.2596,0.1094,0.2634,0.0304,0.2027
+downstream,level 12 polygons,0,"downstream 0 km, level 12",73,138.3,247.4,0,19,12,0,0.01,0.0177,0.0203,0.0066,0.2634,0.0025,0.2027
+downstream,level 12 polygons,50,"downstream 50 km, level 12",73,519.9,942.5,0,0,20,3,0.0334,0.0684,0.0914,0.029,0.2634,0.0092,0.2027
+downstream,level 12 polygons,100,"downstream 100 km, level 12",73,1004.4,1675.9,0,0,24,11,0.0468,0.1102,0.1534,0.0489,0.2634,0.0145,0.2027
+downstream,level 12 polygons,200,"downstream 200 km, level 12",73,1747.8,3139.6,0,0,30,20,0.0596,0.1587,0.2269,0.0739,0.2634,0.0215,0.2027
+downstream,level 12 polygons,300,"downstream 300 km, level 12",73,2212.2,3842.1,0,0,31,29,0.0596,0.1624,0.2472,0.0898,0.2634,0.0255,0.2027
+downstream,level 12 polygons,500,"downstream 500 km, level 12",73,2212.2,6004.8,0,0,33,30,0.0625,0.1658,0.2546,0.1065,0.2634,0.0291,0.2027

@@ -1,0 +1,19 @@
+country,station_code,station_name,current_admin_area_count,current_footprint_part_count,current_footprint_admin_areas_per_part,smallest_gap_between_footprint_parts_km,largest_gap_between_footprint_parts_km
+ETH,G5141,Na,2,2,1+1,219.2858,219.2858
+ZMB,G1344,NgwerereConfluence,91,2,62+29,164.716,164.716
+ZMB,G1351,Nyimba,78,2,40+38,126.6619,126.6619
+ZMB,G1353,Kasaka60334977,66,2,50+16,95.1074,95.1074
+ETH,G1067,Melka Sedi,7,2,6+1,53.6834,53.6834
+KEN,G5195,NZOIA AT RUAMBWA FERRY (1EF01),8,2,6+2,52.6969,52.6969
+ZMB,G1312,Mpatamato,173,2,147+26,50.7867,50.7867
+ETH,G1074,Metahara,3,2,2+1,34.8978,34.8978
+ETH,G5173,Na,2,2,1+1,32.0196,32.0196
+ZMB,G1319,KabompoPontoon60380051,69,2,38+31,26.1783,26.1783
+UGA,G5230,SIO RIVER (1AH01),25,2,24+1,19.7338,19.7338
+ETH,G6109,Asetndabo,5,2,4+1,19.235,19.235
+ETH,G4954,Na,2,2,1+1,16.6064,16.6064
+ETH,G1603,Gambella,4,2,3+1,14.6889,14.6889
+ETH,G5068,Na,2,2,1+1,14.6426,14.6426
+ETH,G5076,Na,3,2,2+1,14.5767,14.5767
+ETH,G1901,Omo River Delta,9,2,8+1,6.6148,6.6148
+UGA,G5189,Muzizi (85211),30,2,20+10,3.2041,3.2041
