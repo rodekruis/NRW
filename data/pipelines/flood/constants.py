@@ -1,5 +1,8 @@
 MINIMUM_RETURN_PERIOD = "1.5yr"
 
+# Version of the return period curves. ECMWF has not published the v5 curves yet.
+GLOFAS_VERSION = "v4"
+
 # Flood depth greyscale 1..255 maps linearly to 0..this depth; must match the API's flood depth colorization config.
 FLOOD_DEPTH_GREYSCALE_MAX_METRES = 10.0
 
