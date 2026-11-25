@@ -1,0 +1,3 @@
+country,station_code,station_name,basin_level,hybas_id,basin_area_km2,limited_by,all_countries_run_basin_level,all_countries_run_hybas_id,all_countries_run_basin_area_km2,all_countries_run_limited_by
+KEN,G5195,NZOIA AT RUAMBWA FERRY (1EF01),6,1061135480,21345.9,"area cap: level-5 basin is 119,413 km²",7,1071141280,1307.1,"other station: level-6 basin (21,346 km²) also holds G5230"
+UGA,G5230,SIO RIVER (1AH01),6,1061135480,21345.9,"area cap: level-5 basin is 119,413 km²",7,1071141980,2103.6,"other station: level-6 basin (21,346 km²) also holds G5195"

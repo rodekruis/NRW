@@ -16,6 +16,10 @@ A collection of scripts to upload or transform data, including populating the se
 
 Classes and utils shared between the python projects.
 
+### Analysis
+
+One-off research analyses that are not part of the deployed pipelines, such as the [station basin analysis](./analysis/station_basins/README.md).
+
 ## Prerequisites
 
 - **Python:** Install 3.12 or higher. Normally it's best to grab latest 3.x (unless we find there is a breaking change).

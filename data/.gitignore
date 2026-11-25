@@ -29,6 +29,8 @@ npm-debug.log*
 data/
 pipelines/output/
 *.nc
+# Slide deck exports; the Markdown source is tracked
+analysis/**/results/*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
