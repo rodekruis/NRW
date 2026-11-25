@@ -3013,15 +3013,6 @@
             "type": "string",
             "example": "G5142"
           },
-          "spatialExtentPlaceCodes": {
-            "example": [
-              "KEN.10_1"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "spatialExtentGeometry": {
             "description": "GeoJSON Polygon or MultiPolygon geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member",
             "nullable": true,
@@ -3108,7 +3099,6 @@
           "countryCodeIso3",
           "hazardType",
           "spatialExtentName",
-          "spatialExtentPlaceCodes",
           "temporalExtents",
           "severityClassLevels",
           "probabilityClassLevels"

@@ -18,6 +18,7 @@
       "typeCheck": true,
       "options": {
         "extensions": [".js", ".ts"],
+        "copyFiles": true,
         "swcrcPath": ".swcrc"
       }
     }

@@ -13,7 +13,6 @@ const alertConfigWithoutGeometry: AlertConfigCreateDto = {
   countryCodeIso3: 'MWI',
   hazardType: HazardType.floods,
   spatialExtentName: 'G1',
-  spatialExtentPlaceCodes: ['MW101'],
   temporalExtents: [{ 'lead-time-spectrum': ['0-day', '1-day'] }],
   severityClassLevels: [
     { label: AlertClassificationLevel.singleThreshold, threshold: 5 },

@@ -26,7 +26,6 @@ export class AlertConfigsRepository {
       countryCodeIso3: row.countryCodeIso3,
       hazardType: row.hazardType,
       spatialExtentName: row.spatialExtentName,
-      spatialExtentPlaceCodes: row.spatialExtentPlaceCodes,
       spatialExtentGeometry: row.spatialExtentGeometry as unknown as
         Polygon | MultiPolygon | null,
       temporalExtents: row.temporalExtents as unknown as Record<
@@ -82,7 +81,6 @@ export class AlertConfigsRepository {
               countryCodeIso3: dto.countryCodeIso3,
               hazardType: dto.hazardType,
               spatialExtentName: dto.spatialExtentName,
-              spatialExtentPlaceCodes: dto.spatialExtentPlaceCodes,
               spatialExtentGeometry: dto.spatialExtentGeometry
                 ? (dto.spatialExtentGeometry as unknown as Prisma.InputJsonValue)
                 : Prisma.DbNull,

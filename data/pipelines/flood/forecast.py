@@ -31,7 +31,7 @@ from pipelines.infra.utils.exposure import (
     aggregate_population_exposed,
     compute_population_exposed,
 )
-from pipelines.infra.utils.nrw_logger import log_error, log_info, log_warning, LogTag
+from pipelines.infra.utils.nrw_logger import log_info, log_warning, LogTag
 from pipelines.infra.utils.raster import (
     get_bounding_box,
     get_raster_extent,
@@ -77,17 +77,6 @@ def calculate_flood_forecasts(
         )
         return
 
-    alert_config_place_code_errors = validate_alert_config_place_codes(
-        alert_configs,
-        target_admin_areas,
-        country,
-    )
-    if alert_config_place_code_errors:
-        for error in alert_config_place_code_errors:
-            log_error(logger, LogTag.FLOOD_LOGIC, error)
-            data_submitter.add_error(error)
-        return
-
     population_raster: RasterData | None = None
 
     glofas_netcdf_paths = _get_glofas_discharge_paths(data_provider)
@@ -127,6 +116,13 @@ def calculate_flood_forecasts(
     # REQUIRED: loop over spatial extents (alert configs)
     for config in alert_configs:
         station_code = config.spatial_extent_name
+        if config.spatial_extent_geometry is None:
+            log_warning(
+                logger,
+                LogTag.FLOOD_LOGIC,
+                f"No spatial extent geometry for station '{station_code}', skipping",
+            )
+            continue
         station = glofas_stations.get(station_code)
         if station is None:
             log_warning(
@@ -167,11 +163,9 @@ def calculate_flood_forecasts(
 
             ### Step 6 - Determine spatial extent
             clipped_flood_depth, place_codes_exposed = determine_spatial_extent(
-                station=station,
-                station_place_codes=config.spatial_extent_place_codes,
+                spatial_extent_geometry=config.spatial_extent_geometry,
                 admin_areas=target_admin_areas,
                 flood_depth_raster=flood_depth,
-                spatial_extent_geometry=config.spatial_extent_geometry,
             )
 
             if not place_codes_exposed or clipped_flood_depth is None:
@@ -279,36 +273,6 @@ def calculate_flood_forecasts(
             ### Step 9 - Actions after alert submitted ###
             # Save the source GloFAS data to a folder with longer retention
             archive_alert_glofas_files(country_sliced_netcdf_paths)
-
-
-def validate_alert_config_place_codes(
-    alert_configs: list[AlertConfig],
-    target_admin_areas: AdminAreasSet,
-    country: str,
-) -> list[str]:
-    errors: list[str] = []
-    available_place_codes = set(target_admin_areas.admin_areas)
-
-    for alert_config in alert_configs:
-        missing_place_codes = sorted(
-            set(alert_config.spatial_extent_place_codes) - available_place_codes
-        )
-        if not missing_place_codes:
-            continue
-
-        sample = ", ".join(missing_place_codes[:10])
-        suffix = (
-            f" and {len(missing_place_codes) - 10} more"
-            if len(missing_place_codes) > 10
-            else ""
-        )
-        errors.append(
-            f"{country} flood alert config '{alert_config.spatial_extent_name}' references "
-            f"{len(missing_place_codes)} place code(s) not present in target admin areas: "
-            f"{sample}{suffix}"
-        )
-
-    return errors
 
 
 def _get_glofas_discharge_paths(data_provider: DataProvider) -> list[str]:

@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass
 
 import numpy as np
+from pipelines.constants import MINIMUM_ADMIN_AREA_SHARE_IN_SPATIAL_EXTENT
 from pipelines.infra.data_types.admin_area_types import AdminAreasSet
 from pipelines.infra.data_types.loaded_data_types import AlertConfig, RasterData
 from pipelines.infra.utils.nrw_logger import log_warning, LogTag
@@ -352,11 +353,20 @@ def get_place_codes_for_alert_config(
     admin_areas: AdminAreasSet,
     target_admin_level: int,
 ) -> list[str]:
-    """Return place codes for an alert config's spatial extent.
-    If the config specifies explicit place codes, those are returned.
-    Otherwise returns all admin areas at the target admin level."""
-    if config.spatial_extent_place_codes:
-        return config.spatial_extent_place_codes
+    """Return place codes for an alert config's spatial extent: the admin areas at the target
+    admin level that its geometry overlaps, or all of them when it has no geometry."""
+    if config.spatial_extent_geometry is not None:
+        return get_place_codes_overlapping_geometry(
+            geometry=config.spatial_extent_geometry,
+            admin_areas=AdminAreasSet(
+                admin_areas={
+                    place_code: admin_area
+                    for place_code, admin_area in admin_areas.admin_areas.items()
+                    if admin_area.properties.admin_level == target_admin_level
+                }
+            ),
+            minimum_share_of_admin_area=MINIMUM_ADMIN_AREA_SHARE_IN_SPATIAL_EXTENT,
+        )
     return [
         pcode
         for pcode, area in admin_areas.admin_areas.items()

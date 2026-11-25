@@ -24,7 +24,6 @@ describe('/ Alert Configs', () => {
     countryCodeIso3: 'MWI',
     hazardType: HazardType.floods,
     spatialExtentName: 'TEST_STATION',
-    spatialExtentPlaceCodes: ['MW101'],
     temporalExtents: [{ 'lead-time-spectrum': ['0-day', '1-day', '2-day'] }],
     severityClassLevels: [
       { label: AlertClassificationLevel.low, threshold: 100 },
@@ -71,7 +70,6 @@ describe('/ Alert Configs', () => {
       expect(response.body[0].countryCodeIso3).toBe('MWI');
       expect(response.body[0].hazardType).toBe(HazardType.floods);
       expect(response.body[0].spatialExtentName).toBe('TEST_STATION');
-      expect(response.body[0].spatialExtentPlaceCodes).toEqual(['MW101']);
     });
 
     it('should create and return an alert config with a spatial extent geometry', async () => {

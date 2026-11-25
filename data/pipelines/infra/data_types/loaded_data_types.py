@@ -14,18 +14,14 @@ from shared.crs_helpers import is_in_longitude_latitude_range, validate_crs
 @dataclass
 class AlertConfig:
     spatial_extent_name: str
-    spatial_extent_place_codes: list[str]
     temporal_extents: list[dict[str, list]]
-    # When present, the area of the alert instead of its place codes (GeoJSON Polygon or MultiPolygon)
+    # The area of the alert (GeoJSON Polygon or MultiPolygon); None means the whole country
     spatial_extent_geometry: BaseGeometry | None = None
 
     @staticmethod
     def from_api(raw: dict) -> AlertConfig:
         return AlertConfig(
             spatial_extent_name=str(raw["spatialExtentName"]),
-            spatial_extent_place_codes=[
-                str(p) for p in raw.get("spatialExtentPlaceCodes", [])
-            ],
             temporal_extents=raw.get("temporalExtents", []),
             spatial_extent_geometry=(
                 shape(raw["spatialExtentGeometry"])

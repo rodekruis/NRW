@@ -65,8 +65,9 @@ interface StationSpatialExtentFeatureCollection {
   readonly crs?: unknown;
 }
 
+// TODO: Point back at refs/heads/main once rodekruis/NRW-seed-data#26 is merged.
 const SEED_REPO_RAW_BASE_URL =
-  'https://raw.githubusercontent.com/rodekruis/NRW-seed-data/refs/heads/main';
+  'https://raw.githubusercontent.com/rodekruis/NRW-seed-data/refs/heads/jannisvisser/feat.station-spatial-extents';
 
 const ADMIN_AREAS_PATH = '/admin-areas/processed';
 const GLOFAS_STATIONS_PATH = '/hazard/flood/glofas-stations';
@@ -365,7 +366,7 @@ export class SeedInit {
       )
     ).flat();
 
-    // Drought: spatial extents are climate regions defined in code (seed-alert-configs.const.ts)
+    // Drought: spatial extents are climate regions defined in code (seed-alert-configs.const.ts and seed-alert-config-spatial-extents.json)
     // TODO: move drought alert configs to an external source (seed-data repo or similar)
     const droughtConfigs = SEED_DROUGHT_ALERT_CONFIGS.filter((c) =>
       countryCodesForHazard(HazardType.drought).includes(c.countryCodeIso3),
@@ -399,7 +400,6 @@ export class SeedInit {
         countryCodeIso3: config.countryCodeIso3,
         hazardType: config.hazardType as HazardType,
         spatialExtentName: config.spatialExtentName,
-        spatialExtentPlaceCodes: config.spatialExtentPlaceCodes,
         spatialExtentGeometry: config.spatialExtentGeometry,
         temporalExtents: config.temporalExtents,
         severityClassLevels: config.severityClassLevels,
@@ -414,29 +414,6 @@ export class SeedInit {
   private async loadFloodAlertConfigsFromSeedRepo(
     country: SeedCountry,
   ): Promise<SeedAlertConfig[]> {
-    // Each GloFAS station becomes one alert-config spatial extent.
-    // The station_thresholds.json maps stations to downstream admin-area place codes.
-    const seedRepoPath = getStationThresholdsFilePath(country.countryCodeIso3);
-    this.logger.log(
-      `Load GloFAS station thresholds for ${country.countryCodeIso3} from ${getSeedRepoLocation(seedRepoPath)}...`,
-    );
-
-    const entries =
-      await readSeedRepoJson<StationThresholdEntry[]>(seedRepoPath);
-    if (!entries) {
-      this.logger.warn(`No station thresholds for ${country.countryCodeIso3}`);
-      return [];
-    }
-    const targetAdminLevel = String(country.deepestAdminLevel);
-
-    const stationMap = new Map<string, string[]>();
-    for (const entry of entries) {
-      if (!stationMap.has(entry.station_code)) {
-        const placeCodes = entry.pcodes[targetAdminLevel] ?? [];
-        stationMap.set(entry.station_code, placeCodes);
-      }
-    }
-
     const classificationConfig =
       FLOOD_CLASSIFICATION_BY_COUNTRY[country.countryCodeIso3];
     if (!classificationConfig) {
@@ -446,27 +423,23 @@ export class SeedInit {
       return [];
     }
 
+    // Each GloFAS station with a spatial extent becomes one alert config
     const spatialExtentGeometries =
       await this.loadStationSpatialExtentGeometries(country.countryCodeIso3);
 
-    const configs: SeedAlertConfig[] = [];
-    for (const [stationCode, placeCodes] of stationMap) {
-      if (placeCodes.length === 0) {
-        continue;
-      }
-      configs.push({
+    const configs: SeedAlertConfig[] = [...spatialExtentGeometries].map(
+      ([stationCode, spatialExtentGeometry]) => ({
         countryCodeIso3: country.countryCodeIso3,
         hazardType: HazardType.floods,
         spatialExtentName: stationCode,
-        spatialExtentPlaceCodes: placeCodes,
-        spatialExtentGeometry: spatialExtentGeometries.get(stationCode) ?? null,
+        spatialExtentGeometry,
         temporalExtents: [{ 'lead-time-spectrum': FLOOD_LEAD_TIME_SPECTRUM }],
         severityClassLevels: classificationConfig.severityClassLevels,
         probabilityClassLevels: classificationConfig.probabilityClassLevels,
         triggerAlertClass: classificationConfig.triggerAlertClass,
         triggerLeadTimeDuration: classificationConfig.triggerLeadTimeDuration,
-      });
-    }
+      }),
+    );
 
     this.logger.log(
       `Loaded ${configs.length} flood alert configs for ${country.countryCodeIso3}`,
@@ -474,19 +447,23 @@ export class SeedInit {
     return configs;
   }
 
-  // The spatial extents file is optional: it can be absent for a country, or have no feature for a station
   private async loadStationSpatialExtentGeometries(
     countryCodeIso3: string,
   ): Promise<Map<string, Polygon | MultiPolygon>> {
     const geometries = new Map<string, Polygon | MultiPolygon>();
     const seedRepoPath = getStationSpatialExtentsFilePath(countryCodeIso3);
+    this.logger.log(
+      `Load GloFAS station spatial extents for ${countryCodeIso3} from ${getSeedRepoLocation(seedRepoPath)}...`,
+    );
 
     const geojson =
       await readSeedRepoJson<StationSpatialExtentFeatureCollection>(
         seedRepoPath,
       );
     if (!geojson) {
-      this.logger.log(`No station spatial extents for ${countryCodeIso3}`);
+      this.logger.warn(
+        `No station spatial extents for ${countryCodeIso3} — skipping flood alert configs`,
+      );
       return geometries;
     }
     if (geojson.type !== 'FeatureCollection' || !geojson.features) {
@@ -503,6 +480,10 @@ export class SeedInit {
       const stationCode = feature.properties?.station_code;
       if (stationCode && feature.geometry) {
         geometries.set(stationCode, feature.geometry);
+      } else {
+        this.logger.warn(
+          `Skipping a feature in ${seedRepoPath} without a station code or geometry`,
+        );
       }
     }
     this.logger.log(

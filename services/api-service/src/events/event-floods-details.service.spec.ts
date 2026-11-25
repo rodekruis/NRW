@@ -168,7 +168,6 @@ describe('EventFloodsDetailsService', () => {
           countryCodeIso3: 'ETH',
           hazardType: HazardType.floods,
           spatialExtentName: 'G1',
-          spatialExtentPlaceCodes: [],
           temporalExtents: [],
           severityClassLevels: [
             { label: AlertClassificationLevel.low, threshold: 2 },
@@ -372,7 +371,6 @@ describe('EventFloodsDetailsService', () => {
           countryCodeIso3: 'ETH',
           hazardType: HazardType.floods,
           spatialExtentName: 'G1',
-          spatialExtentPlaceCodes: [],
           temporalExtents: [],
           severityClassLevels: [
             { label: AlertClassificationLevel.low, threshold: 2 },
@@ -439,7 +437,6 @@ describe('EventFloodsDetailsService', () => {
           countryCodeIso3: 'ETH',
           hazardType: HazardType.floods,
           spatialExtentName: 'G1',
-          spatialExtentPlaceCodes: [],
           temporalExtents: [],
           severityClassLevels: [
             { label: AlertClassificationLevel.low, threshold: 2 },
@@ -572,7 +569,6 @@ describe('EventFloodsDetailsService', () => {
           countryCodeIso3: 'ETH',
           hazardType: HazardType.floods,
           spatialExtentName: 'G1',
-          spatialExtentPlaceCodes: [],
           temporalExtents: [],
           severityClassLevels: [
             { label: AlertClassificationLevel.low, threshold: 2 },

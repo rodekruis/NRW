@@ -31,11 +31,6 @@ export class AlertConfigCreateDto {
   @IsString()
   public readonly spatialExtentName: string;
 
-  @ApiProperty({ type: [String], example: ['KEN.10_1'] })
-  @IsArray()
-  @IsString({ each: true })
-  public readonly spatialExtentPlaceCodes: string[];
-
   @ApiPropertyOptional({
     description:
       "GeoJSON Polygon or MultiPolygon geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member",

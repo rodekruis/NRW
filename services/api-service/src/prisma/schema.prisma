@@ -353,7 +353,6 @@ model AlertConfig {
   country                   Country  @relation(fields: [countryCodeIso3], references: [countryCodeIso3])
   hazardType                HazardType
   spatialExtentName         String
-  spatialExtentPlaceCodes   String[] // soft FK to admin-area.placeCode
   spatialExtentGeometry     Json? // GeoJSON Polygon or MultiPolygon in EPSG:4326
   temporalExtents           Json
   severityClassLevels       Json

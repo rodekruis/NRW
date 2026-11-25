@@ -182,7 +182,7 @@ describe('SeedInit', () => {
       },
     );
 
-    it('should give a flood alert config the geometry of its station, and null when the station has no feature', async () => {
+    it('should seed one flood alert config per station that has a spatial extent, with its geometry', async () => {
       // Arrange
       mockSeedRepoFiles({
         [STATION_THRESHOLDS_FILE]: [
@@ -204,14 +204,10 @@ describe('SeedInit', () => {
           spatialExtentName: 'G1',
           spatialExtentGeometry: STATION_GEOMETRY,
         }),
-        expect.objectContaining({
-          spatialExtentName: 'G2',
-          spatialExtentGeometry: null,
-        }),
       ]);
     });
 
-    it('should seed flood alert configs without a geometry when the country has no spatial extents file', async () => {
+    it('should seed no flood alert configs when the country has no spatial extents file', async () => {
       // Arrange
       mockSeedRepoFiles({
         [STATION_THRESHOLDS_FILE]: [createStationThresholds('G1')],
@@ -224,12 +220,7 @@ describe('SeedInit', () => {
       });
 
       // Assert
-      expect(createAlertConfigsMock).toHaveBeenCalledWith([
-        expect.objectContaining({
-          spatialExtentName: 'G1',
-          spatialExtentGeometry: null,
-        }),
-      ]);
+      expect(createAlertConfigsMock).toHaveBeenCalledWith([]);
     });
 
     it("should reject a spatial extents file with a 'crs' member", async () => {

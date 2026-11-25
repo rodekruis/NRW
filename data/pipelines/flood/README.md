@@ -20,9 +20,8 @@ This folder contains the flood-specific forecast logic used by the pipeline fram
   - Selects the highest matched return period, falls back to the closest lower return period, then to `*_empty.tif`.
 
 - `determine_exposure.py`
-  - Reads the station-to-admin-area mapping and filters to place codes present in the loaded admin areas.
-  - Clips the selected flood depth raster to affected admin areas for raster exposure output.
-  - When the alert config has a spatial extent geometry (an area derived from river basins), clips to that geometry instead, and takes the admin areas with at least 1% of their area inside it as place codes. The station-to-admin-area mapping is then not used.
+  - Clips the selected flood depth raster to the station's spatial extent geometry (an area derived from river basins), for raster exposure output.
+  - Takes the admin areas with at least 1% of their area inside that geometry as the place codes of the alert. A station without a geometry is skipped.
   - Computes an exposed-population raster and aggregates exposed population per place code.
 
 - `pipelines/infra/utils/raster.py`
@@ -59,7 +58,7 @@ GloFAS discharge NetCDF files are sourced either from:
 
 4. Build alert payload
    - Select the flood depth raster based on the matched return periods.
-   - Clip the flood depth to mapped admin areas, or to the spatial extent geometry when the alert config has one, and collect exposed place codes.
+   - Clip the flood depth to the station's spatial extent geometry and collect the admin areas it overlaps as exposed place codes.
    - Compute the exposed-population raster and aggregate exposed population per place code.
 
 5. Compute exposure

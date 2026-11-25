@@ -65,8 +65,9 @@ describe('POST /reset', () => {
         expect(config.countryCodeIso3).toBe(countryCodeIso3);
         expect(config.hazardType).toBe(HazardType.floods);
         expect(config.spatialExtentName).toBeTruthy();
-        expect(Array.isArray(config.spatialExtentPlaceCodes)).toBe(true);
-        expect(config.spatialExtentPlaceCodes.length).toBeGreaterThan(0);
+        expect(['Polygon', 'MultiPolygon']).toContain(
+          config.spatialExtentGeometry.type,
+        );
       }
     });
   });
@@ -88,6 +89,9 @@ describe('POST /reset', () => {
         expect(config.countryCodeIso3).toBe(countryCodeIso3);
         expect(config.hazardType).toBe(HazardType.drought);
         expect(config.spatialExtentName).toBeTruthy();
+        expect(['Polygon', 'MultiPolygon']).toContain(
+          config.spatialExtentGeometry.type,
+        );
         expect(Array.isArray(config.temporalExtents)).toBe(true);
         expect(config.temporalExtents.length).toBeGreaterThan(0);
       }
