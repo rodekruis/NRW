@@ -15,25 +15,18 @@ GLOFAS_MIN_ENSEMBLE_COUNT = 34  # 2/3 of the total number of ensemble members
 WATER_DISCHARGE_LOW_PERCENTILE = 10
 WATER_DISCHARGE_HIGH_PERCENTILE = 90
 
-# --- Flood footprint: a return period per GloFAS cell (AB#42674) ---
+# --- Flood footprint: a return period per GloFAS cell ---
 
-# GloFAS version of the return period curves (Gumbel parameters and upstream area per cell).
-# v5 is pre-operational; ECMWF has not published its curves yet.
+# Version of the return period curves. ECMWF has not published the v5 curves yet.
 GLOFAS_VERSION = "v4"
 
-# Cells below this do not drive the footprint: the flood maps hold few floods of rivers that
-# small, so the flooding around such a cell mostly belongs to a larger river. Their pixels take
-# the return period of the nearest cell that does. The method behind the flood maps uses rivers
-# from 500 km2 (Dottori et al. 2022, https://doi.org/10.5194/essd-14-1549-2022, for the European
-# maps). Not agreed (AB#42674); see analysis/flood_footprint/check_sensitivity.py.
+# Smaller cells do not drive the footprint; their pixels take the nearest cell that does. The
+# flood maps cover rivers from 500 km2 (Dottori et al. 2022, https://doi.org/10.5194/essd-14-1549-2022).
 MINIMUM_UPSTREAM_AREA_SQUARE_KILOMETRES = 500.0
-# Cells with a flatter curve do not drive the footprint either: on such a curve, no water at all
-# reads as a flood. Provisional (AB#42674): in the one forecast checked, 0.1 switches off only
-# cells without water, while 1.0 also switches off cells with real flow. See
-# analysis/flood_footprint/check_sensitivity.py.
+# Cells with a flatter curve do not drive either: on such a curve, even no water reads as a flood.
 MINIMUM_GUMBEL_SCALE_CUBIC_METRES_PER_SECOND = 0.1
 
 REGRIDDING_METHOD = RegriddingMethod.NEAREST
 
-# Shallower water is left out of the footprint and of the exposed population. Proposed, not agreed.
+# Shallower water is left out of the footprint and of the exposed population.
 MINIMUM_FLOOD_DEPTH_METRES = 0.2

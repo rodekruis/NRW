@@ -16,7 +16,6 @@ from pipelines.infra.data_types.glofas_return_period_curves import (
 from pipelines.infra.data_types.loaded_data_types import DataType, LoadedDataSource
 from pipelines.infra.utils.data_provider_fetchers import (
     _load_seed_repo_glofas_return_period_curves,
-    GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY_VARIABLE,
 )
 from rasterio.transform import from_origin
 from shared.country_data import CountryCodeIso3
@@ -123,7 +122,6 @@ def test_aligned_to_rejects_a_grid_whose_cells_do_not_line_up(grid_transform):
 def test_loads_curves_from_the_seed_repo(tmp_path: Path, monkeypatch):
     # Arrange
     monkeypatch.setenv("GITHUB_DATA_BASE_URL", _MOCK_SEED_REPO_BASE_URL)
-    monkeypatch.delenv(GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY_VARIABLE, raising=False)
     content = _write_curves(tmp_path).read_bytes()
     container = _make_container()
 
@@ -144,25 +142,18 @@ def test_loads_curves_from_the_seed_repo(tmp_path: Path, monkeypatch):
     assert container.data.location.shape == (2, 3)
 
 
-def test_loads_curves_from_a_local_directory(tmp_path: Path, monkeypatch):
+def test_raises_when_the_curves_cannot_be_downloaded(monkeypatch):
     # Arrange
-    monkeypatch.setenv(GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY_VARIABLE, str(tmp_path))
-    _write_curves(tmp_path)
-    container = _make_container()
-
-    # Act
-    _load_seed_repo_glofas_return_period_curves(_make_config(), container)
-
-    # Assert
-    assert isinstance(container.data, GlofasReturnPeriodCurves)
-
-
-def test_raises_when_the_curves_are_missing(tmp_path: Path, monkeypatch):
-    # Arrange
-    monkeypatch.setenv(GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY_VARIABLE, str(tmp_path))
+    monkeypatch.setenv("GITHUB_DATA_BASE_URL", _MOCK_SEED_REPO_BASE_URL)
     container = _make_container()
 
     # Act / Assert
-    with pytest.raises(FileNotFoundError, match="return period curves"):
+    with (
+        patch(
+            "pipelines.infra.utils.data_provider_fetchers.download_object",
+            return_value=None,
+        ),
+        pytest.raises(FileNotFoundError, match="return period curves"),
+    ):
         _load_seed_repo_glofas_return_period_curves(_make_config(), container)
     assert container.error is not None

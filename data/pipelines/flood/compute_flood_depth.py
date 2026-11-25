@@ -14,6 +14,11 @@ from pipelines.flood.constants import (
 )
 from pipelines.flood.determine_alerts import TimeIntervalReturnPeriodSeverity
 from pipelines.flood.determine_exposure import has_flooded_cells
+from pipelines.flood.extract_forecast import (
+    determine_peak_lead_time,
+    extract_median_discharge,
+    TimeIntervalDischarge,
+)
 from pipelines.flood.footprint_method import (
     compute_return_period,
     interpolate_flood_depth,
@@ -36,6 +41,40 @@ logger = logging.getLogger(__name__)
 _SQUARE_METRES_PER_SQUARE_KILOMETRE = 1_000_000.0
 
 
+class CellReturnPeriodsPerLeadTime:
+    """
+    Return periods per GloFAS cell on the day a station peaks, computed once per lead time:
+    stations that peak on the same day share them.
+    """
+
+    def __init__(
+        self,
+        netcdf_paths: list[str],
+        return_period_curves: GlofasReturnPeriodCurves,
+        maximum_return_period: float,
+    ) -> None:
+        self._netcdf_paths = netcdf_paths
+        self._return_period_curves = return_period_curves
+        self._maximum_return_period = maximum_return_period
+        self._by_lead_time: dict[int, RasterData | None] = {}
+
+    def on_peak_day(
+        self,
+        time_interval_discharges: list[TimeIntervalDischarge],
+        temporal_extent: dict[str, list],
+    ) -> RasterData | None:
+        lead_time = determine_peak_lead_time(time_interval_discharges, temporal_extent)
+        if lead_time not in self._by_lead_time:
+            self._by_lead_time[lead_time] = determine_cell_return_periods(
+                median_discharge=extract_median_discharge(
+                    netcdf_paths=self._netcdf_paths, lead_time=lead_time
+                ),
+                return_period_curves=self._return_period_curves,
+                maximum_return_period=self._maximum_return_period,
+            )
+        return self._by_lead_time[lead_time]
+
+
 def determine_cell_return_periods(
     median_discharge: RasterData | None,
     return_period_curves: GlofasReturnPeriodCurves,
@@ -47,8 +86,7 @@ def determine_cell_return_periods(
     Return period per GloFAS cell, each on its own Gumbel curve. Cells that do not drive the
     footprint are NaN: no discharge, no curve, a small stream or a near-flat curve.
 
-    Returns None when there is no gridded forecast on the grid of the curves, as with the mock
-    forecasts. The footprint then falls back to the station's return period.
+    Returns None without a gridded forecast on the grid of the curves, as with the mock forecasts.
     """
     if median_discharge is None:
         return None
@@ -98,16 +136,16 @@ def compute_flood_depth(
     Compute the flood depth inside the boundary of an alert: each pixel takes the return period
     of the GloFAS cells around it, and its depth is interpolated between the flood maps. Pixels
     below minimum_return_period stay dry, and depths below minimum_flood_depth are left out.
+    Without return periods per cell, the whole area takes the station's return period.
 
-    Returns None when the flood map for the station's return period shows no flooding inside the
-    boundary: the station is mapped to an area the flood maps do not cover.
+    Returns None when the station's flood map shows no flooding inside the boundary: the flood
+    maps do not cover the area.
     """
     station_return_period = _resolve_requested_return_period_value(
         time_interval_severities
     )
-    station_flood_map = _resolve_flood_depth_raster(
-        return_period=station_return_period,
-        flood_depth_provider=flood_depth_provider,
+    station_flood_map = resolve_station_flood_map(
+        time_interval_severities, flood_depth_provider
     )
     clipper = create_raster_geometry_clipper(boundary, station_flood_map)
     if not has_flooded_cells(clipper.clip(station_flood_map)):
@@ -173,6 +211,17 @@ def _load_clipped_flood_map(
     flood_map = clipper.clip(flood_depth_provider.get_raster(return_period))
     flood_map.array[flood_map.array == flood_map.nodata] = 0.0
     return flood_map.array
+
+
+def resolve_station_flood_map(
+    time_interval_severities: list[TimeIntervalReturnPeriodSeverity],
+    flood_depth_provider: FloodDepthProvider,
+) -> RasterData:
+    """The flood map for the station's highest return period, used to check coverage."""
+    return _resolve_flood_depth_raster(
+        return_period=_resolve_requested_return_period_value(time_interval_severities),
+        flood_depth_provider=flood_depth_provider,
+    )
 
 
 def _resolve_requested_return_period_value(

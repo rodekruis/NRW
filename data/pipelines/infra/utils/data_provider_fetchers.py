@@ -6,7 +6,6 @@ See the readme for more details on adding new data sources.
 
 import logging
 import os
-from pathlib import Path
 
 import numpy as np
 from pipelines.flood.constants import GLOFAS_VERSION
@@ -50,9 +49,6 @@ SEED_REPO_FLOOD_DEPTH_DATA_PNG_PATH = "/hazard/flood/flood-extents/data-png/"
 SEED_REPO_GLOFAS_RETURN_PERIOD_CURVES_PATH = (
     "/hazard/flood/glofas-return-period-curves/"
 )
-# Draft (AB#42674): the curves are not in the seed repo yet. Until they are, point this at the
-# directory that build_glofas_return_period_curves.py wrote them to.
-GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY_VARIABLE = "GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY"
 
 
 def _get_seed_repo_uri() -> str:
@@ -274,20 +270,10 @@ def _load_seed_repo_glofas_return_period_curves(
     filename = get_glofas_return_period_curves_filename(
         config.country_code_iso_3, GLOFAS_VERSION
     )
-    local_directory = os.environ.get(GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY_VARIABLE)
-    if local_directory:
-        location = str(Path(local_directory) / filename)
-        content = Path(location).read_bytes() if Path(location).exists() else None
-    else:
-        location = (
-            _get_seed_repo_uri() + SEED_REPO_GLOFAS_RETURN_PERIOD_CURVES_PATH + filename
-        )
-        content = download_object(location)
-
+    url = _get_seed_repo_uri() + SEED_REPO_GLOFAS_RETURN_PERIOD_CURVES_PATH + filename
+    content = download_object(url)
     if content is None:
-        container.error = (
-            f"Failed to load GloFAS return period curves from '{location}'"
-        )
+        container.error = f"Failed to download GloFAS return period curves from '{url}'"
         raise FileNotFoundError(container.error)
 
     container.data = GlofasReturnPeriodCurves.from_geotiff(content)

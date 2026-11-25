@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from unittest.mock import patch
 
 import numpy as np
 import pytest
 from pipelines.constants import DEFAULT_CRS
 from pipelines.flood.compute_flood_depth import (
+    CellReturnPeriodsPerLeadTime,
     compute_flood_depth,
     determine_cell_return_periods,
 )
@@ -321,3 +323,30 @@ def test_cell_return_periods_are_none_when_the_forecast_is_half_a_cell_off():
 
     # Assert
     assert cell_return_periods is None
+
+
+def test_stations_that_peak_on_the_same_day_share_the_cell_return_periods():
+    # Arrange: both stations peak at lead time 2
+    cell_return_periods = CellReturnPeriodsPerLeadTime(
+        netcdf_paths=["forecast.nc"],
+        return_period_curves=_make_curves(),
+        maximum_return_period=_MAXIMUM_RETURN_PERIOD,
+    )
+
+    # Act
+    with (
+        patch(
+            "pipelines.flood.compute_flood_depth.determine_peak_lead_time",
+            return_value=2,
+        ),
+        patch(
+            "pipelines.flood.compute_flood_depth.extract_median_discharge",
+            return_value=_make_discharge(west=1000.0, east=1300.0),
+        ) as extract,
+    ):
+        first_station = cell_return_periods.on_peak_day([], {})
+        second_station = cell_return_periods.on_peak_day([], {})
+
+    # Assert
+    extract.assert_called_once_with(netcdf_paths=["forecast.nc"], lead_time=2)
+    assert first_station is second_station

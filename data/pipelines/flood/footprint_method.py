@@ -1,13 +1,12 @@
 """
-Flood footprint from a return period per GloFAS cell (AB#42674), in three steps:
+Flood footprint from a return period per GloFAS cell, in three steps:
 
 1. discharge to return period, on each cell's own Gumbel curve of annual peak discharge;
 2. return period from the GloFAS grid onto the flood map grid;
 3. return period to depth, interpolated between the flood maps.
 
-The method is the one of CLIMADA's GloFAS river flood module (rp_comp, regrid and flood_depth in
-climada_petals.hazard.rf_glofas.transform_ops). This is our own implementation of it. The module
-only knows arrays and grids, so it is the one place to swap if we import CLIMADA instead.
+Our own implementation of CLIMADA's GloFAS river flood module (rp_comp, regrid and flood_depth in
+climada_petals.hazard.rf_glofas.transform_ops), on plain arrays and grids.
 """
 
 from __future__ import annotations

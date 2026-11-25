@@ -4,8 +4,8 @@ import logging
 from typing import cast
 
 from pipelines.flood.compute_flood_depth import (
+    CellReturnPeriodsPerLeadTime,
     compute_flood_depth,
-    determine_cell_return_periods,
 )
 from pipelines.flood.constants import (
     FLOOD_DEPTH_GREYSCALE_MAX_METRES,
@@ -18,14 +18,13 @@ from pipelines.flood.determine_alerts import (
     ReturnPeriodThresholdValue,
 )
 from pipelines.flood.determine_exposure import (
+    aggregate_alert_population_exposed,
     determine_spatial_extent,
     has_flooded_cells,
 )
 from pipelines.flood.extract_forecast import (
     build_water_discharge_time_series,
-    determine_peak_lead_time,
     extract_discharge_glofas_station,
-    extract_median_discharge,
 )
 from pipelines.infra.data_provider import DataProvider
 from pipelines.infra.data_submitter import DataSubmitter
@@ -39,10 +38,7 @@ from pipelines.infra.data_types.glofas_return_period_curves import (
 )
 from pipelines.infra.data_types.loaded_data_types import AlertConfig, RasterData
 from pipelines.infra.data_types.location_point import LocationPoint
-from pipelines.infra.utils.exposure import (
-    aggregate_population_exposed,
-    compute_population_exposed,
-)
+from pipelines.infra.utils.exposure import compute_population_exposed
 from pipelines.infra.utils.nrw_logger import log_error, log_info, log_warning, LogTag
 from pipelines.infra.utils.raster import (
     get_bounding_box,
@@ -105,7 +101,6 @@ def calculate_flood_forecasts(
         return
 
     population_raster: RasterData | None = None
-    cell_return_periods_by_lead_time: dict[int, RasterData | None] = {}
 
     glofas_netcdf_paths = _get_glofas_discharge_paths(data_provider)
 
@@ -139,6 +134,12 @@ def calculate_flood_forecasts(
                 archivable_output_path,
             )
             country_sliced_netcdf_paths.append(country_sliced_path)
+
+    cell_return_periods = CellReturnPeriodsPerLeadTime(
+        netcdf_paths=country_sliced_netcdf_paths,
+        return_period_curves=glofas_return_period_curves,
+        maximum_return_period=max(flood_depth_provider.available_return_periods),
+    )
 
     ### Step 3 - Loop through alert configs (spatial extents / stations) ###
     # REQUIRED: loop over spatial extents (alert configs)
@@ -190,29 +191,13 @@ def calculate_flood_forecasts(
                 )
                 continue
 
-            ### Step 6 - Compute flood depth - a return period per GloFAS cell, depth interpolated between the flood maps
-            # All cells are taken on the day the station peaks. Stations that peak on the same day share the return periods.
-            peak_lead_time = determine_peak_lead_time(
-                time_interval_discharges=discharges.get(station_code, []),
-                temporal_extent=temporal_extent,
-            )
-            if peak_lead_time not in cell_return_periods_by_lead_time:
-                cell_return_periods_by_lead_time[peak_lead_time] = (
-                    determine_cell_return_periods(
-                        median_discharge=extract_median_discharge(
-                            netcdf_paths=country_sliced_netcdf_paths,
-                            lead_time=peak_lead_time,
-                        ),
-                        return_period_curves=glofas_return_period_curves,
-                        maximum_return_period=max(
-                            flood_depth_provider.available_return_periods
-                        ),
-                    )
-                )
-
+            ### Step 6 - Compute flood depth from the return period per GloFAS cell, on the day the station peaks
             clipped_flood_depth = compute_flood_depth(
                 time_interval_severities=time_interval_severities,
-                cell_return_periods=cell_return_periods_by_lead_time[peak_lead_time],
+                cell_return_periods=cell_return_periods.on_peak_day(
+                    time_interval_discharges=discharges.get(station_code, []),
+                    temporal_extent=temporal_extent,
+                ),
                 boundary=boundary,
                 flood_depth_provider=flood_depth_provider,
             )
@@ -230,8 +215,8 @@ def calculate_flood_forecasts(
                 log_warning(
                     logger,
                     LogTag.FLOOD_LOGIC,
-                    f"Empty flood extent for station {station_code}: no GloFAS cell in its area reaches {MINIMUM_RETURN_PERIOD}, "
-                    f"or no flood depth reaches {MINIMUM_FLOOD_DEPTH_METRES:g} m. The alert is kept without exposed population.",
+                    f"Empty footprint for station {station_code}: no cell reaches {MINIMUM_RETURN_PERIOD} "
+                    f"or {MINIMUM_FLOOD_DEPTH_METRES:g} m. The alert is kept with nobody exposed.",
                 )
 
             ### Step 7 - Compute exposure within the flood depth ###
@@ -255,12 +240,9 @@ def calculate_flood_forecasts(
                 continue
 
             ### Step 8 - Aggregate population exposed per place_code ###
-            population_exposed = aggregate_population_exposed(
+            population_exposed = aggregate_alert_population_exposed(
                 population_exposed_raster, place_codes_exposed, target_admin_areas
             )
-            if not population_exposed:
-                # An alert needs admin areas: without a footprint in any, report its whole area with nobody exposed.
-                population_exposed = dict.fromkeys(place_codes_exposed, 0.0)
 
             ### Step 9 - Create alert and submit severity/exposure payloads ###
             event_name = station.name if station.name.lower() != "na" else station_code

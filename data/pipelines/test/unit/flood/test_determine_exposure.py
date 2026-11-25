@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 from pipelines.constants import DEFAULT_CRS, POPULATION_NODATA_VALUE
 from pipelines.flood.determine_exposure import (
+    aggregate_alert_population_exposed,
     determine_spatial_extent,
     has_flooded_cells,
 )
@@ -169,6 +170,37 @@ def test_aggregate_population_exposed_keeps_flooded_area_without_population():
 
     # Act
     population = aggregate_population_exposed(
+        population_exposed_raster=population_exposed_raster,
+        place_codes_exposed=["PC001"],
+        admin_areas=_build_admin_areas(),
+    )
+
+    # Assert
+    assert population == {"PC001": 0.0}
+
+
+def test_aggregate_alert_population_exposed_reports_an_empty_footprint_as_nobody_exposed():
+    # Arrange: no pixel of the footprint is flooded
+    population_data = RasterData(
+        array=np.array([[10.0, 20.0], [30.0, 40.0]], dtype=np.float32),
+        transform=from_origin(0, 2, 1, 1),
+        crs=DEFAULT_CRS,
+        nodata=POPULATION_NODATA_VALUE,
+    )
+    flood_depth_data = RasterData(
+        array=np.zeros((2, 2), dtype=np.float32),
+        transform=from_origin(0, 2, 1, 1),
+        crs=DEFAULT_CRS,
+        nodata=POPULATION_NODATA_VALUE,
+    )
+    population_exposed_raster = compute_population_exposed(
+        population_raster=population_data,
+        hazard_spatial_extent_raster=flood_depth_data,
+    )
+    assert population_exposed_raster is not None
+
+    # Act
+    population = aggregate_alert_population_exposed(
         population_exposed_raster=population_exposed_raster,
         place_codes_exposed=["PC001"],
         admin_areas=_build_admin_areas(),

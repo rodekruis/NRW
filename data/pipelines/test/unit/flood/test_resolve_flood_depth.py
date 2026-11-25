@@ -6,7 +6,7 @@ import numpy as np
 from pipelines.constants import DEFAULT_CRS, POPULATION_NODATA_VALUE
 from pipelines.flood.compute_flood_depth import (
     _resolve_flood_depth_raster,
-    _resolve_requested_return_period_value,
+    resolve_station_flood_map,
 )
 from pipelines.flood.determine_alerts import TimeIntervalReturnPeriodSeverity
 from pipelines.infra.data_types.flood_depth_provider import FloodDepthProvider
@@ -48,10 +48,8 @@ def test_returns_exact_matching_return_period():
     time_interval_severities = _build_time_interval_severities(50)
 
     with patch.object(provider, "get_raster", return_value=_MOCK_RASTER) as mock:
-        selected = _resolve_flood_depth_raster(
-            return_period=_resolve_requested_return_period_value(
-                time_interval_severities
-            ),
+        selected = resolve_station_flood_map(
+            time_interval_severities=time_interval_severities,
             flood_depth_provider=provider,
         )
 
@@ -64,10 +62,8 @@ def test_falls_back_to_closest_lower_return_period():
     time_interval_severities = _build_time_interval_severities(50)
 
     with patch.object(provider, "get_raster", return_value=_MOCK_RASTER) as mock:
-        selected = _resolve_flood_depth_raster(
-            return_period=_resolve_requested_return_period_value(
-                time_interval_severities
-            ),
+        selected = resolve_station_flood_map(
+            time_interval_severities=time_interval_severities,
             flood_depth_provider=provider,
         )
 
@@ -80,10 +76,8 @@ def test_falls_back_to_lowest_available_when_no_lower_return_period_exists():
     time_interval_severities = _build_time_interval_severities(10)
 
     with patch.object(provider, "get_raster", return_value=_MOCK_RASTER) as mock:
-        selected = _resolve_flood_depth_raster(
-            return_period=_resolve_requested_return_period_value(
-                time_interval_severities
-            ),
+        selected = resolve_station_flood_map(
+            time_interval_severities=time_interval_severities,
             flood_depth_provider=provider,
         )
 
@@ -96,10 +90,8 @@ def test_falls_back_to_lowest_available_among_multiple_maps():
     time_interval_severities = _build_time_interval_severities(5)
 
     with patch.object(provider, "get_raster", return_value=_MOCK_RASTER) as mock:
-        selected = _resolve_flood_depth_raster(
-            return_period=_resolve_requested_return_period_value(
-                time_interval_severities
-            ),
+        selected = resolve_station_flood_map(
+            time_interval_severities=time_interval_severities,
             flood_depth_provider=provider,
         )
 
@@ -112,10 +104,8 @@ def test_returns_empty_raster_when_no_threshold_exceeded():
     time_interval_severities = _build_time_interval_severities(0)
 
     with patch.object(provider, "get_raster", return_value=_MOCK_RASTER) as mock:
-        selected = _resolve_flood_depth_raster(
-            return_period=_resolve_requested_return_period_value(
-                time_interval_severities
-            ),
+        selected = resolve_station_flood_map(
+            time_interval_severities=time_interval_severities,
             flood_depth_provider=provider,
         )
 
@@ -128,10 +118,8 @@ def test_non_integer_return_period_falls_back_to_closest_lower():
     time_interval_severities = _build_time_interval_severities(7.5)
 
     with patch.object(provider, "get_raster", return_value=_MOCK_RASTER) as mock:
-        selected = _resolve_flood_depth_raster(
-            return_period=_resolve_requested_return_period_value(
-                time_interval_severities
-            ),
+        selected = resolve_station_flood_map(
+            time_interval_severities=time_interval_severities,
             flood_depth_provider=provider,
         )
 

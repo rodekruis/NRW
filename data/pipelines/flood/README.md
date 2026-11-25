@@ -34,19 +34,17 @@ This folder contains the flood-specific forecast logic used by the pipeline fram
 
 ## Flood footprint
 
-The station decides whether there is an alert. The footprint of that alert comes from the GloFAS cells in its area (AB#42674), following the method of [CLIMADA's GloFAS river flood module](https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/hazard/rf_glofas/transform_ops.py) in our own implementation:
+The station decides whether there is an alert. The footprint of that alert comes from the GloFAS cells in its area, following the method of [CLIMADA's GloFAS river flood module](https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/hazard/rf_glofas/transform_ops.py) in our own implementation:
 
 1. **Return period per cell.** Each cell has its own Gumbel curve of annual peak discharge. Its ensemble-median discharge on the day the station's median discharge peaks gives a return period: `1 / (1 - exp(-exp(-(q - mu) / sigma)))`.
 2. **Onto the flood map grid.** Each flood map pixel takes the return period of the nearest cell (`REGRIDDING_METHOD`). Small streams (`MINIMUM_UPSTREAM_AREA_SQUARE_KILOMETRES`) do not drive the footprint, and neither do cells whose curve is so flat that no water reads as a flood (`MINIMUM_GUMBEL_SCALE_CUBIC_METRES_PER_SECOND`); their pixels take the nearest cell that does.
 3. **Depth.** Depth is interpolated linearly in return period between the flood maps, from zero depth at 1 year. Pixels below `MINIMUM_RETURN_PERIOD` stay dry, and depths below `MINIMUM_FLOOD_DEPTH_METRES` are left out.
 
-The footprint is computed inside the boundary of the alert's area, which today is its list of admin areas. Only the flood maps that some pixel lies between are loaded, plus the map for the station's return period, which decides as before whether the flood maps cover the area at all.
+The footprint is computed inside the boundary of the alert's admin areas. If the flood map for the station's return period shows no flooding there, the flood maps do not cover the area and there is no alert.
 
 A triggered station keeps its alert when its footprint is empty: the alert then reports its whole area with nobody exposed. Without a gridded forecast on the grid of the curves, as with the mock forecasts, the whole area takes the station's return period.
 
 The curves (`mu`, `sigma` and upstream area per cell, for `GLOFAS_VERSION`) are per-country files in the seed repo, built with `data_management/seed_data_management/flood/build_glofas_return_period_curves.py`.
-
-> **Draft:** the curves are not in the seed repo yet. Until they are, build them into a local directory and set `GLOFAS_RETURN_PERIOD_CURVES_DIRECTORY` to it.
 
 ## GloFAS discharge data
 

@@ -32,7 +32,7 @@ Each file has three bands on the GloFAS grid (0.05°), clipped to the country an
 - `location` and `scale`: the Gumbel parameters `mu` and `sigma` of annual peak discharge (m³/s).
 - `upstream_area`: the upstream area (m²).
 
-The station thresholds in `glofas-stations/` lie on the v4 curve of each station's cell (see `analysis/flood_footprint/check_curve_source.py`), so curves and thresholds must stay on the same GloFAS version. To add a version, add its global files to `GLOBAL_FILES_BY_GLOFAS_VERSION` and set `GLOFAS_VERSION` in `pipelines/flood/constants.py`.
+The station thresholds in `glofas-stations/` lie on the v4 curve of each station's cell, so curves and thresholds must stay on the same GloFAS version. To add a version, add its global files to `GLOBAL_FILES_BY_GLOFAS_VERSION` and set `GLOFAS_VERSION` in `pipelines/flood/constants.py`.
 
 Where files go:
 
