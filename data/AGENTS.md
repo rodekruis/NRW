@@ -7,6 +7,7 @@
 - `pipelines/deploy/` — Azure Batch deployment and manual job-submission helpers (architecture: `pipelines/deploy/README.md`, operations: `pipelines/deploy/operations.md`)
 - `pipelines/test/` — tests: unit, infra-integration, pipeline-integration
 - `data_management/` — scripts for managing seed data
+- `analysis/` — one-off research analyses; not part of the deployed pipelines (see `analysis/README.md`)
 
 ## Running Pipelines
 
