@@ -321,7 +321,6 @@ def write_spatial_extents(
                 "type": "Feature",
                 "properties": {
                     "station_code": spatial_extent.station_code,
-                    "hydrobasins_level": HYDROBASINS_LEVEL,
                     "hydrobasins_ids": spatial_extent.hydrobasins_ids,
                 },
                 "geometry": mapping(spatial_extent.geometry),

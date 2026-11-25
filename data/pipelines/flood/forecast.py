@@ -171,6 +171,7 @@ def calculate_flood_forecasts(
                 station_place_codes=config.spatial_extent_place_codes,
                 admin_areas=target_admin_areas,
                 flood_depth_raster=flood_depth,
+                spatial_extent_geometry=config.spatial_extent_geometry,
             )
 
             if not place_codes_exposed or clipped_flood_depth is None:

@@ -14,6 +14,7 @@ from rasterio.warp import reproject
 from rasterio.windows import from_bounds as window_from_bounds
 from rasterstats import zonal_stats
 from shapely.geometry import mapping
+from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
 logger = logging.getLogger(__name__)
@@ -250,9 +251,20 @@ def create_raster_admin_area_clipper(
         return None
 
     # unary_union: much faster than a sequential .union() loop for large place_codes lists
-    combined_geom = unary_union(shapely_geometries)
+    return create_raster_geometry_clipper(
+        geometry=unary_union(shapely_geometries),
+        raster=raster,
+        all_touched=all_touched,
+    )
 
-    minx, miny, maxx, maxy = combined_geom.bounds
+
+def create_raster_geometry_clipper(
+    geometry: BaseGeometry,
+    raster: RasterData,
+    all_touched: bool = False,
+) -> RasterAdminAreaClipper:
+    """Clipper for any boundary geometry on the grid of the given raster."""
+    minx, miny, maxx, maxy = geometry.bounds
     window = window_from_bounds(minx, miny, maxx, maxy, raster.transform)
     row_off = max(int(np.floor(window.row_off)), 0)
     col_off = max(int(np.floor(window.col_off)), 0)
@@ -270,7 +282,7 @@ def create_raster_admin_area_clipper(
         row_end - row_off,
     )
 
-    geometries = [mapping(combined_geom)]
+    geometries = [mapping(geometry)]
     mask_array = geometry_mask(
         geometries,
         out_shape=cropped_array.shape,
@@ -290,6 +302,27 @@ def create_raster_admin_area_clipper(
         cropped_transform=cropped_transform,
         mask_array=mask_array,
     )
+
+
+def get_place_codes_overlapping_geometry(
+    geometry: BaseGeometry,
+    admin_areas: AdminAreasSet,
+    minimum_share_of_admin_area: float,
+) -> list[str]:
+    """Place codes of the admin areas that have at least the given share of their
+    area inside the geometry. Shares are measured in degrees: both areas lie at the
+    same latitude, so the distortion cancels out."""
+    place_codes: list[str] = []
+    for place_code, admin_area in admin_areas.admin_areas.items():
+        admin_area_geometry = admin_area.to_geometry()
+        if admin_area_geometry.area == 0 or not admin_area_geometry.intersects(
+            geometry
+        ):
+            continue
+        overlap = admin_area_geometry.intersection(geometry).area
+        if overlap / admin_area_geometry.area >= minimum_share_of_admin_area:
+            place_codes.append(place_code)
+    return place_codes
 
 
 def get_admin_area_geometries(

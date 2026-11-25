@@ -20,6 +20,7 @@ from pipelines.infra.utils.exposure import (
     compute_population_exposed,
 )
 from rasterio.transform import from_origin
+from shapely.geometry import box
 
 
 def _build_admin_areas() -> AdminAreasSet:
@@ -321,3 +322,129 @@ def test_determine_spatial_extent_returns_early_when_place_codes_empty():
 
     assert valid_codes == []
     assert clipped is None
+
+
+def _build_two_admin_areas() -> AdminAreasSet:
+    """Two admin areas side by side: PC001 from x=0 to 1, PC002 from x=1 to 2."""
+    return AdminAreasSet(
+        admin_areas={
+            place_code: AdminArea(
+                properties=AdminAreaProperties(
+                    pcode=place_code,
+                    name=place_code,
+                    admin_level=1,
+                    country_code="PC",
+                ),
+                geometry_type="Polygon",
+                coordinates=[
+                    [
+                        [left, 0.0],
+                        [left, 2.0],
+                        [left + 1.0, 2.0],
+                        [left + 1.0, 0.0],
+                        [left, 0.0],
+                    ]
+                ],
+            )
+            for place_code, left in (("PC001", 0.0), ("PC002", 1.0))
+        },
+    )
+
+
+def _build_flood_depth_two_by_two() -> RasterData:
+    return RasterData(
+        array=np.array([[1, 2], [3, 4]], dtype=np.float32),
+        transform=from_origin(0, 2, 1, 1),
+        crs=DEFAULT_CRS,
+        nodata=POPULATION_NODATA_VALUE,
+    )
+
+
+def test_determine_spatial_extent_uses_the_geometry_instead_of_the_place_codes():
+    # Arrange
+    spatial_extent_geometry = box(0.0, 0.0, 1.0, 2.0)
+
+    # Act
+    clipped, place_codes = determine_spatial_extent(
+        station=_build_station(),
+        station_place_codes=["PC002"],
+        admin_areas=_build_two_admin_areas(),
+        flood_depth_raster=_build_flood_depth_two_by_two(),
+        spatial_extent_geometry=spatial_extent_geometry,
+    )
+
+    # Assert
+    assert place_codes == ["PC001"]
+    assert clipped is not None
+    assert clipped.array.tolist() == [[1.0], [3.0]]
+
+
+def test_determine_spatial_extent_leaves_out_admin_areas_with_a_sliver_inside_the_geometry():
+    # Arrange
+    spatial_extent_geometry = box(0.0, 0.0, 1.001, 2.0)
+
+    # Act
+    _, place_codes = determine_spatial_extent(
+        station=_build_station(),
+        station_place_codes=[],
+        admin_areas=_build_two_admin_areas(),
+        flood_depth_raster=_build_flood_depth_two_by_two(),
+        spatial_extent_geometry=spatial_extent_geometry,
+    )
+
+    # Assert
+    assert place_codes == ["PC001"]
+
+
+def test_determine_spatial_extent_returns_early_when_the_geometry_overlaps_no_admin_area():
+    # Arrange
+    spatial_extent_geometry = box(10.0, 10.0, 11.0, 11.0)
+
+    # Act
+    clipped, place_codes = determine_spatial_extent(
+        station=_build_station(),
+        station_place_codes=["PC001"],
+        admin_areas=_build_two_admin_areas(),
+        flood_depth_raster=_build_flood_depth_two_by_two(),
+        spatial_extent_geometry=spatial_extent_geometry,
+    )
+
+    # Assert
+    assert place_codes == []
+    assert clipped is None
+
+
+def test_alert_config_from_api_reads_the_spatial_extent_geometry():
+    # Arrange
+    raw = {
+        "spatialExtentName": "station-1",
+        "spatialExtentPlaceCodes": ["PC001"],
+        "temporalExtents": [],
+        "spatialExtentGeometry": {
+            "type": "Polygon",
+            "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
+        },
+    }
+
+    # Act
+    config = AlertConfig.from_api(raw)
+
+    # Assert
+    assert config.spatial_extent_geometry is not None
+    assert config.spatial_extent_geometry.equals(box(0, 0, 1, 1))
+
+
+def test_alert_config_from_api_without_spatial_extent_geometry_has_none():
+    # Arrange
+    raw = {
+        "spatialExtentName": "station-1",
+        "spatialExtentPlaceCodes": ["PC001"],
+        "temporalExtents": [],
+        "spatialExtentGeometry": None,
+    }
+
+    # Act
+    config = AlertConfig.from_api(raw)
+
+    # Assert
+    assert config.spatial_extent_geometry is None

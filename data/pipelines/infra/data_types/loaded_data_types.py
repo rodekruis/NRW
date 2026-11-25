@@ -6,6 +6,8 @@ from enum import StrEnum
 import numpy as np
 from pipelines.infra.data_types.data_config_types import DataSource
 from rasterio.transform import Affine, xy
+from shapely.geometry import shape
+from shapely.geometry.base import BaseGeometry
 from shared.crs_helpers import is_in_longitude_latitude_range, validate_crs
 
 
@@ -14,6 +16,8 @@ class AlertConfig:
     spatial_extent_name: str
     spatial_extent_place_codes: list[str]
     temporal_extents: list[dict[str, list]]
+    # When present, the area of the alert instead of its place codes (GeoJSON Polygon or MultiPolygon)
+    spatial_extent_geometry: BaseGeometry | None = None
 
     @staticmethod
     def from_api(raw: dict) -> AlertConfig:
@@ -23,6 +27,11 @@ class AlertConfig:
                 str(p) for p in raw.get("spatialExtentPlaceCodes", [])
             ],
             temporal_extents=raw.get("temporalExtents", []),
+            spatial_extent_geometry=(
+                shape(raw["spatialExtentGeometry"])
+                if raw.get("spatialExtentGeometry")
+                else None
+            ),
         )
 
 
