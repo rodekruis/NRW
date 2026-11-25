@@ -67,7 +67,7 @@ dev = [
 ]
 
 [tool.deptry]
-known_first_party = ["pipelines", "data_management", "shared"]
+known_first_party = ["pipelines", "data_management", "analysis", "shared"]
 # pipelines/deploy/function is a standalone Azure Functions project with its own
 # requirements.txt; it is not part of the uv-managed data package. The other
 # entries are deptry's defaults, repeated because setting `exclude` overrides
@@ -77,7 +77,7 @@ per_rule_ignores = { DEP002 = ["cfgrib", "netCDF4", "scipy", "rasterstats", "sha
 
 [tool.vulture]
 # The paths we want vulture to check for dead code.
-paths = ["pipelines", "data_management", "shared", "python-knip.py", "vulture_whitelist.py"]
+paths = ["pipelines", "data_management", "analysis", "shared", "python-knip.py", "vulture_whitelist.py"]
 min_confidence = 60
 # ISO country code enums: members are looked up dynamically, never referenced by name
 exclude = ["shared/country_data.py"]

@@ -12,6 +12,10 @@ Pipeline code used for creating forecasts. See [pipelines/README.md](pipelines/R
 
 A collection of scripts to upload or transform data, including populating the seed data repo, and for develop/test/prototype purposes, populating the DB used for NRW. See the [data_management/README](./data_management/README.md) for more details.
 
+### Analysis
+
+One-off research analyses that are not part of the deployed pipelines, such as the [GloFAS v5 threshold analysis](./analysis/glofas_v5_thresholds/README.md).
+
 ### Shared
 
 Classes and utils shared between the python projects.
