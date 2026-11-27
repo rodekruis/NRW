@@ -9,6 +9,7 @@ Per country and return period, it:
 1. Selects the JRC tiles intersecting the country's adm0 bounding box (via `tile_extents.geojson`).
 2. Merges the `_depth.tif` tiles, cropped to that bounding box.
 3. Masks lakes from [HydroLAKES](https://www.hydrosheds.org/products/hydrolakes) as nodata (`-9999`).
+4. Masks JRC's permanent-water fill as nodata: pixels where the `Permanent_WaterBodies` tile is `1` and the depth is exactly 1.00 m. JRC writes that constant on permanent water where its flood model has no depth, so it is a placeholder and not a flood depth. Modelled depths on permanent water are kept.
 
 Where files go:
 
