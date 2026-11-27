@@ -113,28 +113,36 @@ jobs:
         run: |
           cp services/.env.example services/.env
 
-      - name: Run Services with Docker
+      # Start the services in the background, so the frontend build and the
+      # Playwright install can run meanwhile. "Wait for the services" collects the result.
+      - name: Start Services with Docker (in background)
         run: |
-          npm run start:services:ci:production
-
-      - name: Run database migrations
-        working-directory: ./services
-        run: |
-          docker compose exec api-service npm run prisma:migrate:deploy
+          (npm run start:services:ci:production > services-start-logs.txt 2>&1; echo $? > services-start-exit-code.txt) &
 
       - name: Clone go-web-app
+        id: go-web-app
         uses: actions/checkout@v7
         with:
           repository: rodekruis/go-web-app
           ref: nrw-develop
           path: ${{ env.goWebAppPath }}
 
+      # The build only depends on the go-web-app commit and the APP_* variables in this workflow.
+      - name: Restore go-web-app build from cache
+        id: go-web-app-build-cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.goWebAppPath }}/build
+          key: go-web-app-build-${{ steps.go-web-app.outputs.commit }}-${{ hashFiles('.github/workflows/test_e2e_portal.yml') }}
+
       - name: Set up pnpm (for the frontend)
+        if: steps.go-web-app-build-cache.outputs.cache-hit != 'true'
         uses: pnpm/action-setup@v6
         with:
           package_json_file: ${{ env.goWebAppPath }}/package.json
 
       - name: Set up Node.js for go-web-app
+        if: steps.go-web-app-build-cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@v7
         with:
           node-version-file: '${{ env.goWebAppPath }}/.nvmrc'
@@ -142,24 +150,38 @@ jobs:
           cache-dependency-path: '${{ env.goWebAppPath }}/pnpm-lock.yaml'
 
       - name: Install go-web-app dependencies
+        if: steps.go-web-app-build-cache.outputs.cache-hit != 'true'
         working-directory: ${{ env.goWebAppPath }}
         env:
           FONTAWESOME_API_KEY: ${{ secrets.FONTAWESOME_API_KEY }}
         run: pnpm install --frozen-lockfile
 
       - name: Build go-web-app
+        if: steps.go-web-app-build-cache.outputs.cache-hit != 'true'
         working-directory: ${{ env.goWebAppPath }}
         run: pnpm build
 
+      # A static server, so a cached build does not need the go-web-app dependencies.
       - name: Serve the frontend
-        working-directory: ${{ env.goWebAppPath }}
+        working-directory: ${{ env.e2eTestsPath }}
         run: |
-          pnpm preview --port 5173 --strictPort --host 0.0.0.0 > frontend-logs.txt 2>&1 &
+          npx --yes serve@14 ../${{ env.goWebAppPath }}/build --single --listen tcp://0.0.0.0:5173 > ../${{ env.goWebAppPath }}/frontend-logs.txt 2>&1 &
 
       - name: Install E2E-Tests runtime-dependencies
         working-directory: ${{ env.e2eTestsPath }}
         run: |
           npx playwright install chromium --with-deps --no-shell
+
+      - name: Wait for the services
+        run: |
+          timeout 600s sh -c 'until [ -f services-start-exit-code.txt ]; do echo "Waiting for the services to be running..."; sleep 5; done'
+          cat services-start-logs.txt
+          exit "$(cat services-start-exit-code.txt)"
+
+      - name: Run database migrations
+        working-directory: ./services
+        run: |
+          docker compose exec api-service npm run prisma:migrate:deploy
 
       - name: Wait for the frontend
         run: |
