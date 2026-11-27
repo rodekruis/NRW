@@ -46,15 +46,7 @@ const EXPECTED_CLASSIFICATION_PER_EVENT: Record<
   'Mayanja (83218)': {
     alertClass: high,
     trigger: true,
-    alertClassPerDay: {
-      0: high,
-      1: high,
-      2: high,
-      3: medium,
-      4: medium,
-      5: medium,
-      6: low,
-    },
+    alertClassPerDay: { 5: high, 6: medium, 7: low },
   },
   'Manafwa at Butaleja (82212)': {
     alertClass: high,
@@ -63,7 +55,7 @@ const EXPECTED_CLASSIFICATION_PER_EVENT: Record<
   },
   'ATHI MUNYU (3DA02)': {
     alertClass: high,
-    trigger: true,
+    trigger: false,
     alertClassPerDay: {
       1: high,
       2: high,
@@ -77,7 +69,16 @@ const EXPECTED_CLASSIFICATION_PER_EVENT: Record<
   Adaitu: {
     alertClass: low,
     trigger: false,
-    alertClassPerDay: { 4: low, 5: low, 6: low, 7: low },
+    alertClassPerDay: {
+      0: low,
+      1: low,
+      2: low,
+      3: low,
+      4: low,
+      5: low,
+      6: low,
+      7: low,
+    },
   },
   Tendaho: {
     alertClass: medium,
@@ -95,16 +96,12 @@ const EXPECTED_CLASSIFICATION_PER_EVENT: Record<
   G1904: {
     alertClass: high,
     trigger: true,
-    alertClassPerDay: {
-      0: high,
-      1: high,
-      2: high,
-      3: high,
-      4: high,
-      5: high,
-      6: high,
-      7: high,
-    },
+    alertClassPerDay: { 7: high },
+  },
+  Gambella: {
+    alertClass: high,
+    trigger: false,
+    alertClassPerDay: { 6: high, 7: high },
   },
   KelongwaSchool60334550: {
     alertClass: low,
@@ -118,7 +115,7 @@ const EXPECTED_CLASSIFICATION_PER_EVENT: Record<
   },
   ItezhiTezhi: {
     alertClass: high,
-    trigger: true,
+    trigger: false,
     alertClassPerDay: {
       0: high,
       1: high,
@@ -130,19 +127,24 @@ const EXPECTED_CLASSIFICATION_PER_EVENT: Record<
       7: low,
     },
   },
-  G5100: {
+  ChungaRanch: {
     alertClass: high,
     trigger: true,
+    alertClassPerDay: { 7: high },
+  },
+  G5100: {
+    alertClass: high,
+    trigger: false,
     alertClassPerDay: { 3: high, 4: high, 5: high, 6: high, 7: high },
   },
   Chikwawa: {
     alertClass: high,
     trigger: true,
-    alertClassPerDay: { 2: high, 3: high, 4: high, 5: high, 6: high, 7: high },
+    alertClassPerDay: { 6: high, 7: high },
   },
   Nabua: {
     alertClass: high,
-    trigger: true,
+    trigger: false,
     alertClassPerDay: { 2: high, 3: high, 4: high, 5: high, 6: high, 7: high },
   },
 };

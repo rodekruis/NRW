@@ -66,7 +66,8 @@ export function buildMalawiFloodAlerts(issuedAt: Date): MockFloodAlert[] {
             issuedAt,
             geoFeatureId: 'G5694',
             medianDischarge: 3860.89,
-            onset: { startDay: 2, dischargeBeforeStart: 1580.98 },
+            // Starts at exactly the MWI trigger lead time (P6D), so that it triggers (asserted in e2e/nrw/tests/Alerts.spec.ts)
+            onset: { startDay: 6, dischargeBeforeStart: 1580.98 },
           }),
         ],
         rasters: [

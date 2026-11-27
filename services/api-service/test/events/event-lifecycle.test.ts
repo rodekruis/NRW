@@ -1,4 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
+import { addDays } from 'date-fns';
 
 import {
   AlertClass,
@@ -51,7 +52,7 @@ describe('GET /events - lifecycle across multiple forecasts', () => {
     });
 
     // Same station, upgraded severity: median=25 → severity 'high', prob=1.0 → 'single'
-    // matrix[high][single] = 'high', within P5D of issuedAt → trigger true
+    // matrix[high][single] = 'high', but reached closer than the trigger lead time P5D of issuedAt → trigger false
     const alertAUpgraded = buildAlert({
       eventName: 'station-A',
       severity: buildSeverityData({
@@ -63,7 +64,7 @@ describe('GET /events - lifecycle across multiple forecasts', () => {
     });
 
     // Different station: median=10 → severity 'high', prob=1.0 → 'single'
-    // matrix[high][single] = 'high', within P5D of issuedAt → trigger true
+    // matrix[high][single] = 'high', but reached closer than the trigger lead time P5D of issuedAt → trigger false
     const alertB = buildAlert({
       eventName: 'station-B',
       severity: buildSeverityData({
@@ -135,7 +136,7 @@ describe('GET /events - lifecycle across multiple forecasts', () => {
     expect(response.body[0]).toMatchObject({
       eventName: 'station-A',
       alertClass: AlertClass.high,
-      trigger: true,
+      trigger: false,
       firstIssuedAt: '2026-03-23T12:00:00.000Z',
       lastUpdatedAt: '2026-03-24T12:00:00.000Z',
       eventStatus: EventStatus.ongoing,
@@ -665,5 +666,122 @@ describe('GET /events - lifecycle across multiple forecasts', () => {
     );
     expect(oldFloodsEvent).toBeUndefined();
     expect(oldDroughtEvent).toBeDefined();
+  });
+
+  // UGA: trigger alertClass 'high' (median return period >= 5), trigger lead time P5D, daily forecasts.
+  // Each forecast predicts the same flood day, so the lead time shrinks by one day per day of issuedAt.
+  describe('trigger across forecasts', () => {
+    const eventName = 'station-trigger';
+    const floodDay = new Date('2026-04-06T00:00:00Z');
+    const highReturnPeriod = 10;
+    const mediumReturnPeriod = 2;
+
+    async function createFloodForecast({
+      issuedAt,
+      returnPeriod,
+    }: {
+      issuedAt: string;
+      returnPeriod: number;
+    }): Promise<void> {
+      const alert = buildAlert({
+        eventName,
+        severity: buildSeverityData({
+          start: floodDay,
+          end: addDays(floodDay, 1),
+          medianValue: returnPeriod,
+          runValues: [returnPeriod, returnPeriod, returnPeriod],
+        }),
+      });
+      await createAlerts({
+        forecast: buildForecast({
+          alerts: [alert],
+          overrides: { countryCodeIso3, issuedAt: new Date(issuedAt) },
+        }),
+      });
+    }
+
+    async function getEvent(timestamp: string): Promise<{
+      alertClass: AlertClass;
+      trigger: boolean;
+    }> {
+      const response = await getActiveEvents({
+        accessToken,
+        countryCodesIso3: [countryCodeIso3],
+        timestamp,
+      });
+      expect(response.status).toBe(HttpStatus.OK);
+      expect(response.body).toHaveLength(1);
+      return response.body[0];
+    }
+
+    it('should keep the trigger when the lead time moves below the trigger lead time', async () => {
+      // Arrange
+      const triggerForecastIssuedAt = '2026-04-01T00:00:00Z'; // 5 days ahead
+      const nextForecastIssuedAt = '2026-04-02T00:00:00Z'; // 4 days ahead
+      await createFloodForecast({
+        issuedAt: triggerForecastIssuedAt,
+        returnPeriod: highReturnPeriod,
+      });
+      const eventAtTriggerForecast = await getEvent(triggerForecastIssuedAt);
+
+      // Act
+      await createFloodForecast({
+        issuedAt: nextForecastIssuedAt,
+        returnPeriod: highReturnPeriod,
+      });
+
+      // Assert
+      expect(eventAtTriggerForecast.trigger).toBe(true);
+      expect(await getEvent(nextForecastIssuedAt)).toMatchObject({
+        alertClass: AlertClass.high,
+        trigger: true,
+      });
+    });
+
+    it('should not trigger when the lead time skips the trigger lead time', async () => {
+      // Arrange
+      const tooEarlyForecastIssuedAt = '2026-03-31T00:00:00Z'; // 6 days ahead
+      const tooLateForecastIssuedAt = '2026-04-02T00:00:00Z'; // 4 days ahead
+      await createFloodForecast({
+        issuedAt: tooEarlyForecastIssuedAt,
+        returnPeriod: highReturnPeriod,
+      });
+      const eventAtTooEarlyForecast = await getEvent(tooEarlyForecastIssuedAt);
+
+      // Act
+      await createFloodForecast({
+        issuedAt: tooLateForecastIssuedAt,
+        returnPeriod: highReturnPeriod,
+      });
+
+      // Assert
+      expect(eventAtTooEarlyForecast.trigger).toBe(false);
+      expect(await getEvent(tooLateForecastIssuedAt)).toMatchObject({
+        alertClass: AlertClass.high,
+        trigger: false,
+      });
+    });
+
+    it('should keep the trigger when the forecast drops below the trigger alert class', async () => {
+      // Arrange
+      const triggerForecastIssuedAt = '2026-04-01T00:00:00Z'; // 5 days ahead
+      const droppedForecastIssuedAt = '2026-04-02T00:00:00Z';
+      await createFloodForecast({
+        issuedAt: triggerForecastIssuedAt,
+        returnPeriod: highReturnPeriod,
+      });
+
+      // Act
+      await createFloodForecast({
+        issuedAt: droppedForecastIssuedAt,
+        returnPeriod: mediumReturnPeriod,
+      });
+
+      // Assert
+      expect(await getEvent(droppedForecastIssuedAt)).toMatchObject({
+        alertClass: AlertClass.medium,
+        trigger: true,
+      });
+    });
   });
 });

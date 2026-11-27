@@ -104,7 +104,7 @@ export class AlertToEventService {
     latestAlert,
     forecast,
   }: {
-    existingEvent: Pick<Event, 'id' | 'firstIssuedAt'>;
+    existingEvent: Pick<Event, 'id' | 'firstIssuedAt' | 'trigger'>;
     latestAlert: ClassificationResult;
     forecast: ForecastMetadata;
   }): Promise<void> {
@@ -119,7 +119,8 @@ export class AlertToEventService {
       data: {
         forecastSources: forecast.forecastSources,
         alertClass: latestAlert.alertClass!,
-        trigger: latestAlert.trigger,
+        // Once given, the trigger stays until the event closes, as only the forecast at the exact trigger lead time gives a trigger
+        trigger: existingEvent.trigger || latestAlert.trigger,
         startAt,
         reachesPeakAlertClassAt: latestAlert.reachesPeakAlertClassAt,
         endAt: this.resolveEndAt({ classification: latestAlert, forecast }),
