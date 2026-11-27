@@ -13,3 +13,9 @@ export enum HazardType {
   drought = 'drought',
   tropicalCyclone = 'tropicalCyclone',
 }
+
+/** Layer names as used in the `layers` URL parameter. */
+export enum LayerName {
+  exposedPopulation = 'exposedPopulation',
+  floodDepth = 'floodDepth',
+}

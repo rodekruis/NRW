@@ -42,7 +42,21 @@ export const singleEvent = {
   viewTime,
   event: {
     eventName: 'Chikwawa',
+    heading: 'Flood - Chikwawa - 24 Sep 2026',
+    chips: ['High', 'Imminent', 'Trigger reached'],
+    start: 'In 2 days, 24 Sep 2026',
+    timestamps: 'Event created: 22 Sep 2026, Last updated: 22 Sep 2026',
     advisory: 'Trigger - activate EAP',
+    riverDischarge: {
+      returnPeriod: '20 year return period',
+      stationCode: 'G5694',
+    },
+    dataSourceTitles: [
+      'Forecast river discharge',
+      'Flood depth maps',
+      'Population counts',
+    ],
+    defaultLayerLabels: ['Exposed population', 'Flood depth'],
     exposedAdminAreas: {
       label: 'traditional authorities',
       rowCount: 3,
@@ -66,6 +80,7 @@ export const drillDown = {
     } satisfies ExposedAdminAreaLevel,
     drilledInto: {
       name: 'Twic East',
+      placeCode: 'SS0310',
       selectedAreaLabel: 'Twic East County',
       level: {
         label: 'payams',
@@ -73,13 +88,36 @@ export const drillDown = {
         firstRow: { name: 'Kongor', exposedPopulation: '50,365' },
       } satisfies ExposedAdminAreaLevel,
     },
+    // A payam has no exposed admin areas below it, so drilling into one selects it.
+    deepestLevel: { name: 'Kongor', placeCode: 'SS031002' },
   },
+} satisfies Scenario & Record<string, unknown>;
+
+export const multipleEvents = {
+  countryCodes: ['UGA'],
+  mockScenario: MockScenario.events,
+  hazardTypes: [HazardType.floods],
+  viewTime,
+  // In display order: by start date.
+  events: [
+    {
+      eventName: 'Mayanja (83218)',
+      chips: ['High', 'Ongoing', 'Trigger reached'],
+    },
+    { eventName: 'Mitano (84267)', chips: ['Low', 'Imminent'] },
+    {
+      eventName: 'Mpologoma at Budumba (82217)',
+      chips: ['Medium', 'Imminent'],
+    },
+    // High, but beyond the trigger lead time, so it does not trigger.
+    { eventName: 'Manafwa at Butaleja (82212)', chips: ['High', 'Imminent'] },
+  ],
 } satisfies Scenario & Record<string, unknown>;
 
 /** Every country any scenario needs, so the database is reset only once per run. */
 export const allScenarioCountryCodes = [
   ...new Set(
-    [noEvents, singleEvent, drillDown].flatMap(
+    [noEvents, singleEvent, drillDown, multipleEvents].flatMap(
       (scenario) => scenario.countryCodes,
     ),
   ),

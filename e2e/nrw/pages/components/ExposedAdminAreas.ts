@@ -19,6 +19,11 @@ export class ExposedAdminAreas {
     return this.rows.first().getByRole('cell');
   }
 
+  /** At the deepest admin level, the selected area is a row instead of a level. */
+  get selectedRow(): Locator {
+    return this.rows.and(this.page.locator('[aria-current="location"]'));
+  }
+
   get selectedAdminArea(): Locator {
     return this.root.locator('[class*="selected-admin-area-value"]');
   }
