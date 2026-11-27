@@ -25,7 +25,7 @@ uv run python -m data_management.seed_data_management.flood.convert_flood_depth_
 
 # Flood GloFAS station spatial extents
 
-`build_station_spatial_extents.py` builds `hazard/flood/glofas-stations/{ISO3}_station_spatial_extents.geojson` in the seed repo: one area per GloFAS station, derived from river basins. It comes next to the `pcodes` of the station; nothing reads it yet.
+`build_station_spatial_extents.py` builds `hazard/flood/glofas-stations/{ISO3}_station_spatial_extents.geojson` in the seed repo: one area per GloFAS station, derived from river basins. The API seeds it as the station's alert-config geometry, and the flood pipeline uses it as the area of an alert.
 
 For each station, the script:
 
@@ -33,7 +33,12 @@ For each station, the script:
 2. Adds the polygons downstream of it along the river (`NEXT_DOWN`), up to 200 km. It stops before a polygon that holds another station, of any country.
 3. Clips the result to the country and simplifies it to about 100 m.
 
-Stations in the same polygon get the same area. A station whose area lies entirely outside its country gets none; the script names those stations. The level and the distance are a candidate from the station basin analysis of spike AB#42674, not a decision.
+Stations in the same polygon get the same area. A station whose area lies entirely outside its country gets none; the script names those stations.
+
+Why level 7 and 200 km: they come from the station basin analysis of spike AB#42674 (`data/analysis/station_basins/`, PR #553), which compared 56 variants of the rule on all 73 stations. They are a candidate, not a final choice.
+
+- **Level 7, not "the largest basin with the station alone"** (draft PR #99). Coarser levels gave basins of up to 49,000 km² for small rivers. The basin's size also depended on where the other stations happen to be. At level 7 no area is larger than about 20,000 km², and the station no longer has to be alone in its polygon.
+- **200 km downstream.** A station's own polygon lies mostly upstream of it, so the floodplain below the station dropped out. Following the river 200 km downstream brings it back: 37% of the flooded area covered by today's admin areas stays covered, against 35% for the rule of PR #99, with half the land (10% against 21%). Beyond 200 km the gain is small, and more areas cross a border.
 
 The HydroBASINS archives (v1.c, standard variant) go in `data/data/hydrobasins/`, which is not tracked. The Philippines is in the Australasia archive.
 

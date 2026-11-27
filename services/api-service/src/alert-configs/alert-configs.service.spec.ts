@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { Polygon } from 'geojson';
 
 import { AlertConfigsRepository } from '@api-service/src/alert-configs/alert-configs.repository';
 import { AlertConfigsService } from '@api-service/src/alert-configs/alert-configs.service';
@@ -22,20 +23,22 @@ const alertConfigWithoutGeometry: AlertConfigCreateDto = {
   ],
 };
 
+const spatialExtentGeometry: Polygon = {
+  type: 'Polygon',
+  coordinates: [
+    [
+      [34.0, -14.0],
+      [34.5, -14.0],
+      [34.5, -13.5],
+      [34.0, -14.0],
+    ],
+  ],
+};
+
 const alertConfigWithGeometry: AlertConfigCreateDto = {
   ...alertConfigWithoutGeometry,
   spatialExtentName: 'G2',
-  spatialExtentGeometry: {
-    type: 'Polygon',
-    coordinates: [
-      [
-        [34.0, -14.0],
-        [34.5, -14.0],
-        [34.5, -13.5],
-        [34.0, -14.0],
-      ],
-    ],
-  },
+  spatialExtentGeometry,
 };
 
 describe('AlertConfigsService', () => {
@@ -48,7 +51,10 @@ describe('AlertConfigsService', () => {
         AlertConfigsService,
         {
           provide: AlertConfigsRepository,
-          useValue: { createAlertConfigs: jest.fn().mockResolvedValue([]) },
+          useValue: {
+            createAlertConfigs: jest.fn().mockResolvedValue([]),
+            updateAlertConfigOrThrow: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -96,6 +102,48 @@ describe('AlertConfigsService', () => {
         ),
       );
       expect(repository.createAlertConfigs).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateAlertConfigOrThrow', () => {
+    it.each([
+      { label: 'a geometry', alertConfigUpdateDto: { spatialExtentGeometry } },
+      { label: 'null', alertConfigUpdateDto: { spatialExtentGeometry: null } },
+    ])(
+      'should update the spatial extent geometry to $label',
+      async ({ alertConfigUpdateDto }) => {
+        // Arrange
+        const id = 1;
+
+        // Act
+        await service.updateAlertConfigOrThrow({ id, alertConfigUpdateDto });
+
+        // Assert
+        expect(repository.updateAlertConfigOrThrow).toHaveBeenCalledWith({
+          id,
+          alertConfigUpdateDto,
+        });
+      },
+    );
+
+    it('should not update when the spatial extent geometry is not a Polygon or MultiPolygon', async () => {
+      // Arrange
+      const point = { type: 'Point', coordinates: [34.0, -14.0] };
+
+      // Act
+      const act = service.updateAlertConfigOrThrow({
+        id: 1,
+        // The request body can have any JSON object
+        alertConfigUpdateDto: { spatialExtentGeometry: point as never },
+      });
+
+      // Assert
+      await expect(act).rejects.toThrow(
+        new BadRequestException(
+          'Invalid spatialExtentGeometry for alert config with id 1: the geometry type is not one of: Polygon, MultiPolygon',
+        ),
+      );
+      expect(repository.updateAlertConfigOrThrow).not.toHaveBeenCalled();
     });
   });
 });

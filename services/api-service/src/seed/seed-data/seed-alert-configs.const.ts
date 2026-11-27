@@ -33,6 +33,8 @@ interface SeedAlertConfigSpatialExtentFeature {
   readonly geometry: Polygon | MultiPolygon;
 }
 
+// The drought and compound-flood geometries live in code for now.
+// They should probably move to the seed-data repo, like the flood ones.
 const SEED_ALERT_CONFIG_SPATIAL_EXTENT_FEATURES = (
   seedAlertConfigSpatialExtents as unknown as {
     readonly features: SeedAlertConfigSpatialExtentFeature[];

@@ -14,6 +14,10 @@ The scripts here are for fetching and processing data, with the end goal of stor
 
 See the summary in each script for the purpose.
 
+### api_data_management/
+
+The scripts here write seeded data into a deployed API, for environments that cannot be reseeded (production). See [api_data_management/README.md](api_data_management/README.md).
+
 ## Admin areas update process
 
 Admin-area source retrieval, processing, population enrichment, and validation are documented in [seed_data_management/admin_areas/README.md](seed_data_management/admin_areas/README.md).

@@ -18,6 +18,9 @@ import {
   HazardType,
 } from '@api-service/src/shared-enums';
 
+export const SPATIAL_EXTENT_GEOMETRY_DESCRIPTION =
+  "GeoJSON Polygon or MultiPolygon geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member";
+
 export class AlertConfigCreateDto {
   @ApiProperty({ example: 'KEN' })
   @IsString()
@@ -32,8 +35,7 @@ export class AlertConfigCreateDto {
   public readonly spatialExtentName: string;
 
   @ApiPropertyOptional({
-    description:
-      "GeoJSON Polygon or MultiPolygon geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member",
+    description: SPATIAL_EXTENT_GEOMETRY_DESCRIPTION,
     type: () => SpatialExtentGeometryDto,
     nullable: true,
   })

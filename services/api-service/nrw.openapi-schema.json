@@ -732,6 +732,57 @@
       }
     },
     "/alert-configs/{id}": {
+      "patch": {
+        "operationId": "AlertConfigsController_updateAlertConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertConfigUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Alert config updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertConfigResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid alert config properties"
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "403": {
+            "description": "User does not have the right permission to access this endpoint. \n (User must be an admin.)"
+          },
+          "404": {
+            "description": "Alert config not found"
+          }
+        },
+        "summary": "Update an alert config. Admin endpoint for managing configuration.",
+        "tags": [
+          "alert-configs"
+        ]
+      },
       "delete": {
         "operationId": "AlertConfigsController_deleteAlertConfig",
         "parameters": [
@@ -3103,6 +3154,89 @@
           "severityClassLevels",
           "probabilityClassLevels"
         ]
+      },
+      "AlertConfigUpdateDto": {
+        "type": "object",
+        "properties": {
+          "spatialExtentGeometry": {
+            "description": "GeoJSON Polygon or MultiPolygon geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SpatialExtentGeometryDto"
+              }
+            ]
+          },
+          "temporalExtents": {
+            "example": [
+              {
+                "lead-time-spectrum": [
+                  "0-day",
+                  "1-day",
+                  "2-day",
+                  "3-day",
+                  "4-day",
+                  "5-day",
+                  "6-day",
+                  "7-day"
+                ]
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "severityClassLevels": {
+            "example": [
+              {
+                "label": "low",
+                "threshold": 100
+              },
+              {
+                "label": "medium",
+                "threshold": 200
+              },
+              {
+                "label": "high",
+                "threshold": 400
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClassLevelDto"
+            }
+          },
+          "probabilityClassLevels": {
+            "example": [
+              {
+                "label": "low",
+                "threshold": 0.5
+              },
+              {
+                "label": "medium",
+                "threshold": 0.65
+              },
+              {
+                "label": "high",
+                "threshold": 0.85
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClassLevelDto"
+            }
+          },
+          "triggerAlertClass": {
+            "type": "object",
+            "example": "high"
+          },
+          "triggerLeadTimeDuration": {
+            "type": "object",
+            "example": "P7D"
+          }
+        }
       },
       "GeoJsonGeometryDto": {
         "type": "object",

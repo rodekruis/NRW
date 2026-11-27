@@ -65,7 +65,7 @@ interface StationSpatialExtentFeatureCollection {
   readonly crs?: unknown;
 }
 
-// TODO: Point back at refs/heads/main once rodekruis/NRW-seed-data#26 is merged.
+// ##TODO: Point back at refs/heads/main once rodekruis/NRW-seed-data#26 is merged.
 const SEED_REPO_RAW_BASE_URL =
   'https://raw.githubusercontent.com/rodekruis/NRW-seed-data/refs/heads/jannisvisser/feat.station-spatial-extents';
 

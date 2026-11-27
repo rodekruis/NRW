@@ -9,6 +9,7 @@ import {
   Param,
   ParseArrayPipe,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -18,6 +19,7 @@ import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AlertConfigsService } from '@api-service/src/alert-configs/alert-configs.service';
 import { AlertConfigCreateDto } from '@api-service/src/alert-configs/dto/alert-config-create.dto';
 import { AlertConfigResponseDto } from '@api-service/src/alert-configs/dto/alert-config-response.dto';
+import { AlertConfigUpdateDto } from '@api-service/src/alert-configs/dto/alert-config-update.dto';
 import { AuthenticatedUser } from '@api-service/src/guards/authenticated-user.decorator';
 import { AuthenticatedUserGuard } from '@api-service/src/guards/authenticated-user.guard';
 import { HazardType } from '@api-service/src/shared-enums';
@@ -79,6 +81,35 @@ export class AlertConfigsController {
     dtos: AlertConfigCreateDto[],
   ): Promise<AlertConfigResponseDto[]> {
     return this.alertConfigsService.createAlertConfigs(dtos);
+  }
+
+  @Patch(':id')
+  @AuthenticatedUser({ isGuarded: true, isAdmin: true })
+  @ApiOperation({
+    summary:
+      'Update an alert config. Admin endpoint for managing configuration.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Alert config updated successfully',
+    type: AlertConfigResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Alert config not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid alert config properties',
+  })
+  public async updateAlertConfig(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() alertConfigUpdateDto: AlertConfigUpdateDto,
+  ): Promise<AlertConfigResponseDto> {
+    return this.alertConfigsService.updateAlertConfigOrThrow({
+      id,
+      alertConfigUpdateDto,
+    });
   }
 
   @Delete(':id')

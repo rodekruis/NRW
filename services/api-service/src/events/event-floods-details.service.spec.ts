@@ -55,7 +55,7 @@ describe('EventFloodsDetailsService', () => {
         {
           provide: AlertConfigsService,
           useValue: {
-            getAlertConfigs: jest.fn(),
+            getAlertConfigsWithoutGeometry: jest.fn(),
           },
         },
       ],
@@ -68,7 +68,7 @@ describe('EventFloodsDetailsService', () => {
       new Map(),
     );
     repository.getGloFasStationDetails.mockResolvedValue(new Map());
-    alertConfigsService.getAlertConfigs.mockResolvedValue([]);
+    alertConfigsService.getAlertConfigsWithoutGeometry.mockResolvedValue([]);
   });
 
   describe('buildDetails', () => {
@@ -160,7 +160,7 @@ describe('EventFloodsDetailsService', () => {
           ],
         ]),
       );
-      alertConfigsService.getAlertConfigs.mockResolvedValue([
+      alertConfigsService.getAlertConfigsWithoutGeometry.mockResolvedValue([
         {
           id: 1,
           created: new Date(),
@@ -363,7 +363,7 @@ describe('EventFloodsDetailsService', () => {
           ],
         ]),
       );
-      alertConfigsService.getAlertConfigs.mockResolvedValue([
+      alertConfigsService.getAlertConfigsWithoutGeometry.mockResolvedValue([
         {
           id: 1,
           created: new Date(),
@@ -429,7 +429,7 @@ describe('EventFloodsDetailsService', () => {
           ],
         ]),
       );
-      alertConfigsService.getAlertConfigs.mockResolvedValue([
+      alertConfigsService.getAlertConfigsWithoutGeometry.mockResolvedValue([
         {
           id: 1,
           created: new Date(),
@@ -561,7 +561,7 @@ describe('EventFloodsDetailsService', () => {
           ],
         ]),
       );
-      alertConfigsService.getAlertConfigs.mockResolvedValue([
+      alertConfigsService.getAlertConfigsWithoutGeometry.mockResolvedValue([
         {
           id: 1,
           created: new Date(),
