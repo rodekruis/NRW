@@ -5,11 +5,14 @@ through PATCH /api/alert-configs/{id}:
 - floods: from {ISO3}_station_spatial_extents.geojson in the seed-data repo, per station code;
 - drought and compound floods: from seed-alert-config-spatial-extents.json in the api-service seed.
 
+A station with an area but no alert config gets one, through POST /api/alert-configs, with the
+settings of the other flood alert configs of its country, as the seed does.
+
 Run it right after deploying the migration that adds the geometry column. Reports first: which
-alert configs get a geometry, which already have it, and which have none in these files (tropical
-cyclone and national drought, which cover the whole country, and a station without an area, which
-the flood pipeline skips). Writes only with --apply, which asks for a typed confirmation of the
-target host.
+alert configs get a geometry, which already have it, which are created, and which have none in
+these files (tropical cyclone and national drought, which cover the whole country, and a station
+without an area, which the flood pipeline skips). Writes only with --apply, which asks for a typed
+confirmation of the target host.
 
 Usage, from the data directory (add --apply to write):
     uv run python -m data_management.api_data_management.update_alert_config_spatial_extents_in_api \\
@@ -39,6 +42,15 @@ CODE_SPATIAL_EXTENTS_FILE = (
     / "services/api-service/src/seed/seed-data/seed-alert-config-spatial-extents.json"
 )
 
+# Copied from the other flood alert configs of the country when a station gets an alert config
+FLOOD_SETTING_FIELDS = (
+    "temporalExtents",
+    "severityClassLevels",
+    "probabilityClassLevels",
+    "triggerAlertClass",
+    "triggerLeadTimeDuration",
+)
+
 # (hazard type, country, spatial extent name)
 AlertConfigKey = tuple[str, str, str]
 
@@ -63,25 +75,34 @@ def main() -> None:
     }
     alert_configs = fetch_alert_configs(session, api_url)
     updates, unchanged_count, without_geometry = plan_updates(alert_configs, geometries)
-    configured_keys = {get_key(alert_config) for alert_config in alert_configs}
-    not_in_api = sorted(set(geometries) - configured_keys)
+    creations, not_created = plan_creations(alert_configs, geometries)
 
     print(
         f"Alert configs: {len(alert_configs)}, to update {len(updates)}, "
-        f"unchanged {unchanged_count}, without a geometry in the files {len(without_geometry)}"
+        f"unchanged {unchanged_count}, without a geometry in the files {len(without_geometry)}, "
+        f"to create {len(creations)}"
     )
     for key in without_geometry:
         print(f"  no geometry in the files: {format_key(key)}")
-    for key in not_in_api:
-        print(f"  geometry without an alert config in the API: {format_key(key)}")
+    for creation in creations:
+        print(f"  to create: {format_key(get_key(creation))}")
+    for key, reason in not_created:
+        print(
+            f"  geometry without an alert config, not created: {format_key(key)}: {reason}"
+        )
 
-    if not arguments.apply or not updates:
+    if not arguments.apply or not (updates or creations):
         return
     confirm_target(api_url)
     failed_count = sum(
         not patch_alert_config(session, api_url, update) for update in updates
     )
     print(f"Updated {len(updates) - failed_count}, failed {failed_count}")
+    if creations:
+        if create_alert_configs(session, api_url, creations):
+            print(f"Created {len(creations)}")
+        else:
+            failed_count += len(creations)
     sys.exit(1 if failed_count else 0)
 
 
@@ -193,6 +214,48 @@ def plan_updates(
     return updates, unchanged_count, sorted(without_geometry)
 
 
+def plan_creations(
+    alert_configs: list[dict], geometries: dict[AlertConfigKey, dict]
+) -> tuple[list[dict], list[tuple[AlertConfigKey, str]]]:
+    """New flood alert configs for the stations with a geometry but no alert config, with the
+    settings of the other flood alert configs of the country, and the ones that can't be made.
+    """
+    configured_keys = {get_key(alert_config) for alert_config in alert_configs}
+    creations: list[dict] = []
+    not_created: list[tuple[AlertConfigKey, str]] = []
+    for key in sorted(set(geometries) - configured_keys):
+        hazard_type, country, name = key
+        if hazard_type != FLOODS_HAZARD_TYPE:
+            not_created.append((key, "only flood alert configs are created"))
+            continue
+        country_settings = {
+            json.dumps(
+                {field: alert_config[field] for field in FLOOD_SETTING_FIELDS},
+                sort_keys=True,
+            )
+            for alert_config in alert_configs
+            if get_key(alert_config)[:2] == (FLOODS_HAZARD_TYPE, country)
+        }
+        if len(country_settings) != 1:
+            reason = (
+                f"the flood alert configs of {country} differ in their settings"
+                if country_settings
+                else f"{country} has no flood alert configs to copy the settings from"
+            )
+            not_created.append((key, reason))
+            continue
+        creations.append(
+            {
+                "countryCodeIso3": country,
+                "hazardType": hazard_type,
+                "spatialExtentName": name,
+                "spatialExtentGeometry": geometries[key],
+                **json.loads(country_settings.pop()),
+            }
+        )
+    return creations, not_created
+
+
 def confirm_target(api_url: str) -> None:
     host = urlparse(api_url).netloc
     if input(f"Type '{host}' to write these updates: ").strip() != host:
@@ -210,6 +273,20 @@ def patch_alert_config(
     if response.ok:
         return True
     print(f"  {format_key(update.key)}: {response.status_code} {response.text[:200]}")
+    return False
+
+
+def create_alert_configs(
+    session: requests.Session, api_url: str, creations: list[dict]
+) -> bool:
+    response = session.post(
+        f"{api_url}{ALERT_CONFIGS_PATH}",
+        json=creations,
+        timeout=REQUEST_TIMEOUT_SECONDS,
+    )
+    if response.ok:
+        return True
+    print(f"  create: {response.status_code} {response.text[:200]}")
     return False
 
 

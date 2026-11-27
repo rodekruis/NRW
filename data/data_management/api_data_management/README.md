@@ -17,6 +17,8 @@ Try a script on a local API or on test/staging before production.
 - **floods:** per station, from `hazard/flood/glofas-stations/{ISO3}_station_spatial_extents.geojson` in the seed-data repo;
 - **drought and compound floods:** per region, from `services/api-service/src/seed/seed-data/seed-alert-config-spatial-extents.json`.
 
+A station with an area but no alert config gets one, through `POST /api/alert-configs`, with the lead times, class levels and trigger settings of the other flood alert configs of its country, as the seed does. If those differ within the country, the station is reported and not created.
+
 Run it right after deploying a release with the migration that adds `spatialExtentGeometry`. Rerun it whenever the spatial extents change. The report lists the alert configs that have no geometry in these files: tropical cyclone and national drought (they cover the whole country), and stations without an area (the flood pipeline skips them).
 
 ```bash
