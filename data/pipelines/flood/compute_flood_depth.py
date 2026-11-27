@@ -182,10 +182,15 @@ def _determine_pixel_return_periods(
     regridding_method: RegriddingMethod,
 ) -> np.ndarray:
     if cell_return_periods is None or not np.isfinite(cell_return_periods.array).any():
+        reason = (
+            "no gridded forecast on the grid of the curves"
+            if cell_return_periods is None
+            else "no GloFAS cell in the country has a return period on this day, so the forecast is likely missing discharge"
+        )
         log_warning(
             logger,
             LogTag.FLOOD_LOGIC,
-            "No return period per GloFAS cell: using the station's return period for its whole area",
+            f"No return period per GloFAS cell ({reason}): using the station's return period for its whole area",
         )
         return np.full(
             clipper.mask_array.shape,
