@@ -35,5 +35,6 @@ The map is a canvas, so screenshots are the only way to check what it draws.
 - Put a screenshot in its own test, tagged with `visualTest` (`@visual`), in the spec of the flow it captures — not at the end of a functional test. A design change then fails only the screenshot test.
 - Scope screenshots to the map element by default; assert everything else functionally.
 - Keep full-page screenshots to the few states that guard the overall layout (currently "all events" and "event opened"). Every frontend design change breaks them, so do not add more lightly.
+- To check an exported PDF, render its pages with `renderPdfPages()` (`nrw/helpers/pdf.ts`) and screenshot those. Open the event by link, not by clicking: a click animates the map zoom, and the export captures the map only once.
 
 Reference screenshots are committed under `__screenshots__/`. Run `npm run test:update-snapshots` to regenerate all baselines after intentional UI changes (see the README for per-file and per-test updates).

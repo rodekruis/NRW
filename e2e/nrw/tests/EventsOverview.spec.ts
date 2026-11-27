@@ -1,40 +1,83 @@
 import { expect, test, useScenario, visualTest } from '@nrw-e2e/nrw/fixtures';
-import { singleEvent } from '@nrw-e2e/nrw/scenarios';
+import { multipleEvents, singleEvent } from '@nrw-e2e/nrw/scenarios';
 
-const { eventName } = singleEvent.event;
+test.describe('single event', () => {
+  const { eventName } = singleEvent.event;
 
-useScenario(singleEvent);
+  useScenario(singleEvent);
 
-test.beforeEach(async ({ nrwPage }) => {
-  await nrwPage.goto({ countryCodes: singleEvent.countryCodes });
+  test.beforeEach(async ({ nrwPage }) => {
+    await nrwPage.goto({ countryCodes: singleEvent.countryCodes });
+  });
+
+  test('shows event markers for active events', async ({ nrwPage }) => {
+    // Assert
+    await expect(nrwPage.map.eventMarkers.first()).toBeVisible();
+  });
+
+  test('hovering an event card highlights its event marker', async ({
+    nrwPage,
+  }) => {
+    // Act
+    await nrwPage.eventsPanel.eventCard(eventName).hover();
+
+    // Assert
+    await expect(nrwPage.map.hoveredEventMarkers).toHaveCount(1);
+  });
+
+  test('hovering an event marker highlights its event card', async ({
+    nrwPage,
+  }) => {
+    // Act
+    await nrwPage.map.eventMarkerButton(eventName).hover();
+
+    // Assert
+    await expect(nrwPage.eventsPanel.hoveredEventCards).toHaveCount(1);
+  });
+
+  test('page layout with the event marker', visualTest, async ({ nrwPage }) => {
+    // Assert
+    await expect(nrwPage.page).toHaveScreenshot('all-events.png');
+  });
 });
 
-test('shows event markers for active events', async ({ nrwPage }) => {
-  // Assert
-  await expect(nrwPage.map.eventMarkers.first()).toBeVisible();
-});
+test.describe('multiple events', () => {
+  useScenario(multipleEvents);
 
-test('hovering an event card highlights its event marker', async ({
-  nrwPage,
-}) => {
-  // Act
-  await nrwPage.eventsPanel.eventCard(eventName).hover();
+  test.beforeEach(async ({ nrwPage }) => {
+    await nrwPage.goto({ countryCodes: multipleEvents.countryCodes });
+  });
 
-  // Assert
-  await expect(nrwPage.map.hoveredEventMarkers).toHaveCount(1);
-});
+  test('shows an event card and an event marker per event, with its chips', async ({
+    nrwPage,
+  }) => {
+    // Assert
+    await expect(nrwPage.eventsPanel.eventCards).toHaveCount(
+      multipleEvents.events.length,
+    );
+    await expect(nrwPage.map.eventMarkers).toHaveCount(
+      multipleEvents.events.length,
+    );
+    for (const event of multipleEvents.events) {
+      const eventCard = nrwPage.eventsPanel.eventCard(event.eventName);
+      for (const chip of event.chips) {
+        await expect(eventCard.getByText(chip, { exact: true })).toBeVisible();
+      }
+    }
+  });
 
-test('hovering an event marker highlights its event card', async ({
-  nrwPage,
-}) => {
-  // Act
-  await nrwPage.map.eventMarkerButton(eventName).hover();
+  test('opening an event shows only that event', async ({ nrwPage }) => {
+    // Arrange
+    const [, secondEvent] = multipleEvents.events;
 
-  // Assert
-  await expect(nrwPage.eventsPanel.hoveredEventCards).toHaveCount(1);
-});
+    // Act
+    await nrwPage.eventsPanel.openEvent(secondEvent.eventName);
 
-test('page layout with the event marker', visualTest, async ({ nrwPage }) => {
-  // Assert
-  await expect(nrwPage.page).toHaveScreenshot('all-events.png');
+    // Assert
+    await expect(nrwPage.eventsPanel.eventCards).toHaveCount(1);
+    await expect(
+      nrwPage.eventsPanel.eventCard(secondEvent.eventName),
+    ).toBeVisible();
+    await expect(nrwPage.map.eventMarkers).toHaveCount(0);
+  });
 });
