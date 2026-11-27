@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 import numpy as np
+from shapely.geometry.base import BaseGeometry
+from shapely.ops import unary_union
 
 from pipelines.infra.data_types.admin_area_types import AdminAreasSet
 from pipelines.infra.data_types.loaded_data_types import RasterData
-from pipelines.infra.data_types.location_point import LocationPoint
-from pipelines.infra.utils.exposure import clip_raster_to_admin_areas
+from pipelines.infra.utils.exposure import aggregate_population_exposed
 
 
 def determine_spatial_extent(
-    station: LocationPoint,
     station_place_codes: list[str],
     admin_areas: AdminAreasSet,
-    flood_depth_raster: RasterData,
-) -> tuple[RasterData | None, list[str]]:
+) -> tuple[BaseGeometry | None, list[str]]:
     """
-    Determine spatial extent by filtering station place codes to valid admin areas, clipping the flood depth raster.
-    Return a tuple of (clipped_raster_data, place_codes).
+    Determine the area of an alert: the station place codes that are valid admin areas, and the
+    boundary around them, inside which the footprint is computed.
+    Return a tuple of (boundary, place_codes).
     """
     valid_place_codes = [
         place_code
@@ -27,14 +27,14 @@ def determine_spatial_extent(
     if not valid_place_codes:
         return None, []
 
-    clipped_flood_depth = clip_flood_depth_to_admin_areas(
-        place_codes=valid_place_codes,
-        admin_areas=admin_areas,
-        flood_depth_raster=flood_depth_raster,
-        station_code=station.id,
+    boundary = unary_union(
+        [
+            admin_areas.admin_areas[place_code].to_geometry()
+            for place_code in valid_place_codes
+        ]
     )
 
-    return clipped_flood_depth, valid_place_codes
+    return boundary, valid_place_codes
 
 
 def has_flooded_cells(flood_depth: RasterData) -> bool:
@@ -43,15 +43,16 @@ def has_flooded_cells(flood_depth: RasterData) -> bool:
     )
 
 
-def clip_flood_depth_to_admin_areas(
-    place_codes: list[str],
+def aggregate_alert_population_exposed(
+    population_exposed_raster: RasterData,
+    place_codes_exposed: list[str],
     admin_areas: AdminAreasSet,
-    flood_depth_raster: RasterData,
-    station_code: str,
-) -> RasterData:
-    return clip_raster_to_admin_areas(
-        place_codes=place_codes,
-        admin_areas=admin_areas,
-        raster=flood_depth_raster,
-        label=f"station {station_code}",
+) -> dict[str, float]:
+    """
+    Population exposed per place code. With an empty footprint, every place code of the alert
+    gets 0, because an alert needs admin areas.
+    """
+    population_exposed = aggregate_population_exposed(
+        population_exposed_raster, place_codes_exposed, admin_areas
     )
+    return population_exposed or dict.fromkeys(place_codes_exposed, 0.0)
