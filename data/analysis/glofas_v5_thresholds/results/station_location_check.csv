@@ -1,0 +1,18 @@
+priority,country,station_code,station_name,seed_latitude,seed_longitude,proposed_cell_latitude,proposed_cell_longitude,proposed_cell_upstream_area_km2,viewer_river_network_latitude,viewer_river_network_longitude,viewer_catchment_area_km2,viewer_river_name,matches_proposed_cell,notes
+1 off the river,KEN,G5142,ATHI MUNYU (3DA02),-1.095,37.194,-1.075,37.225,5568,-1.075,37.225,5568,Athi,yes,"GloFAS station coordinates -1.092, 37.194; real drainage area 5,724 km2"
+1 off the river,PHL,G1966,Na,14.894,120.73,14.825,120.675,7866,14.925,120.725,7806,Pampanga Delta,no,"GloFAS uses the cell north of the station, not ours (south-west); same river"
+1 off the river,PHL,G1967,Na,15.344,120.465,15.375,120.475,267,15.375,120.475,267,Tarlac,yes,small fixed reporting point (267 km2)
+1 off the river,PHL,G5368,Nia Pumping Station,8.886,125.541,8.925,125.575,11696,8.875,125.575,11514,Agustan,no,GloFAS uses the cell one row south of ours; same river
+2 on a boundary,ETH,G1045,Tendaho,11.6833,40.95,11.675,40.975,58322,11.675,40.975,58322,Awash,yes,
+2 on a boundary,ETH,G1603,Gambella,8.25,34.57,8.225,34.575,23601,8.225,34.625,23235,Baro,no,GloFAS cell one column east of ours; same river; threshold -0%
+2 on a boundary,ETH,G4954,Na,11.05000019,41.65000153,11.075,41.675,21064,,,,,not found,not a fixed reporting point in the GloFAS v4 viewer
+2 on a boundary,ETH,G4979,Na,10.05000019,35.75,10.025,35.725,110541,,,,,not found,not a fixed reporting point in the GloFAS v4 viewer
+2 on a boundary,ETH,G5068,Na,8.7,38.6,8.675,38.625,4411,8.725,38.625,4319,Awash Wenz,no,GloFAS cell one row north of ours; same river; threshold -1%
+2 on a boundary,ETH,G5141,Na,4.349999905,41.95000076,4.325,41.975,56670,,,,,not found,not a fixed reporting point in the GloFAS v4 viewer
+2 on a boundary,ETH,G5173,Na,2.849999905,37.45000076,2.825,37.475,31687,,,,,not found,not a fixed reporting point in the GloFAS v4 viewer
+2 on a boundary,ETH,G6108,Woltkite (G6108),8.25,37.7666,8.225,37.775,1919,8.225,37.775,1919,Wabi,yes,
+2 on a boundary,KEN,G5305,TANA HOLA (4G04),-1.5,40.05,-1.525,40.075,54125,-1.475,40.025,52340,Tana,no,GloFAS cell north-west of ours; same river; threshold +0%
+2 on a boundary,ZMB,G1312,Mpatamato,-13.25,28.1333,-13.275,28.125,16490,-13.225,28.175,11575,Kafue,no,"GloFAS cell upstream of a confluence (11,575 vs our 16,490 km2; real 12,001): threshold 402 -> 330"
+2 on a boundary,ZMB,G1323,KelongwaSchool60334550,-13.7,26.3333,-13.725,26.325,19697,-13.725,26.325,19697,Lunga,yes,
+2 on a boundary,ZMB,G1361,Senanga60370001,-16.1167,23.25,-16.125,23.275,288813,-16.075,23.275,288784,Zambezi,no,GloFAS cell one row north of the touching cells; same river; threshold -0%
+2 on a boundary,ZMB,G5696,Na,-16.35000038,23.45000076,-16.375,23.425,1627,,,,,not found,not a fixed reporting point in the GloFAS v4 viewer
