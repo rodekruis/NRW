@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 
+import { LayerName } from '@nrw-e2e/nrw/helpers/enums';
 import { EventDetail } from '@nrw-e2e/nrw/pages/components/EventDetail';
 import { EventsPanel } from '@nrw-e2e/nrw/pages/components/EventsPanel';
 import { ExposedAdminAreas } from '@nrw-e2e/nrw/pages/components/ExposedAdminAreas';
@@ -31,15 +32,20 @@ export class NrwPage {
   async goto({
     countryCodes,
     eventId,
+    layers,
   }: {
     countryCodes: string[];
     eventId?: number;
+    layers?: LayerName[];
   }): Promise<void> {
     const searchParams = new URLSearchParams({
       countries: countryCodes.join(','),
     });
     if (eventId !== undefined) {
       searchParams.set('event', String(eventId));
+    }
+    if (layers !== undefined) {
+      searchParams.set('layers', layers.join(','));
     }
     await this.page.goto(`/?${searchParams.toString()}`);
     await this.waitForMapLoaded();
