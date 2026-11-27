@@ -243,6 +243,23 @@ def test_flood_depth_is_none_when_the_flood_map_does_not_cover_the_boundary():
     assert flood_depth is None
 
 
+def test_flood_depth_covers_an_area_that_only_a_higher_flood_map_floods():
+    # Arrange: dry in the 10-year map, wet in the 20-year map; the station is at 2 years, the cells at 15
+    provider = _make_provider({10: 0.0, 20: 1.0})
+
+    # Act
+    flood_depth = compute_flood_depth(
+        time_interval_severities=_make_severities(2.0),
+        cell_return_periods=_make_cell_return_periods(15.0, 15.0),
+        boundary=_WHOLE_MAP,
+        flood_depth_provider=provider,
+    )
+
+    # Assert: halfway between the maps in return period, so halfway in depth
+    assert flood_depth is not None
+    np.testing.assert_allclose(flood_depth.array, 0.5)
+
+
 def test_cell_return_periods_use_the_curve_of_each_cell():
     # Arrange: the west cell is at its 2-year discharge, the east cell far below its curve
     two_year_discharge = 1000.0 - 100.0 * np.log(-np.log(0.5))

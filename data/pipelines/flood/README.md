@@ -40,7 +40,7 @@ The station decides whether there is an alert. The footprint of that alert comes
 2. **Onto the flood map grid.** Each flood map pixel takes the return period of the nearest cell (`REGRIDDING_METHOD`). Small streams (`MINIMUM_UPSTREAM_AREA_SQUARE_KILOMETRES`) do not drive the footprint, and neither do cells whose curve is so flat that no water reads as a flood (`MINIMUM_GUMBEL_SCALE_CUBIC_METRES_PER_SECOND`); their pixels take the nearest cell that does.
 3. **Depth.** Depth is interpolated linearly in return period between the flood maps, from zero depth at 1 year. Pixels below `MINIMUM_RETURN_PERIOD` stay dry, and depths below `MINIMUM_FLOOD_DEPTH_METRES` are left out.
 
-The footprint is computed inside the boundary of the alert's admin areas. If the flood map for the station's return period shows no flooding there, the flood maps do not cover the area and there is no alert.
+The footprint is computed inside the boundary of the alert's admin areas. If even the highest flood map shows no flooding there, the flood maps do not cover the area and there is no alert.
 
 A triggered station keeps its alert when its footprint is empty: the alert then reports its whole area with nobody exposed. Without a gridded forecast on the grid of the curves, as with the mock forecasts, the whole area takes the station's return period.
 
