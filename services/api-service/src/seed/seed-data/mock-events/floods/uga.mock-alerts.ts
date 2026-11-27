@@ -1329,16 +1329,17 @@ export function buildUgandaFloodAlerts(issuedAt: Date): MockFloodAlert[] {
           buildBasicGlofasStationGeoFeature({
             issuedAt,
             geoFeatureId: 'G5160',
-            // Scenario 'receding': peaks on day 0 and declines through the lower return periods until the alert ends
+            // Scenario 'receding': peaks on its first alert day and declines through the lower return periods until the alert ends.
+            // Reaches 'high' at exactly the UGA trigger lead time (P5D), so that it triggers.
             waterDischarge: [
-              { day: 0, median: 123.98 },
-              { day: 1, median: 118 },
-              { day: 2, median: 108 },
-              { day: 3, median: 97 },
-              { day: 4, median: 86 },
-              { day: 5, median: 80 },
-              { day: 6, median: 68 },
-              { day: 7, median: 62 },
+              { day: 0, median: 49.1 },
+              { day: 1, median: 51.27 },
+              { day: 2, median: 53.43 },
+              { day: 3, median: 55.6 },
+              { day: 4, median: 57.76 },
+              { day: 5, median: 123.98 },
+              { day: 6, median: 97 },
+              { day: 7, median: 70 },
             ],
           }),
         ],

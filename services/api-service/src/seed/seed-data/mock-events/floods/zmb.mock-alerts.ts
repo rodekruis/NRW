@@ -3,6 +3,7 @@ import {
   MockFloodAlert,
 } from '@api-service/src/seed/seed-data/mock-events/floods/mock-flood-alert-builders.helper';
 import {
+  ZMB_CHUNGA_RANCH_FLOOD_DEPTH_BASE64,
   ZMB_ITEZHI_TEZHI_FLOOD_DEPTH_BASE64,
   ZMB_KELONGWA_SCHOOL_FLOOD_DEPTH_BASE64,
   ZMB_SENANGA_FLOOD_DEPTH_BASE64,
@@ -1819,6 +1820,156 @@ export function buildZambiaFloodAlerts(issuedAt: Date): MockFloodAlert[] {
               ymin: -18.077933333316892,
               xmax: 29.341251348020663,
               ymax: -15.235433333319477,
+            },
+          },
+        ],
+      },
+    },
+    {
+      eventName: 'ChungaRanch',
+      centroid: { latitude: -9.8959, longitude: 31.7317 },
+      stationThresholds: {
+        1.5: 214.58,
+        2: 255.34,
+        5: 355.65,
+        10: 422.07,
+        20: 485.78,
+        50: 568.24,
+        100: 630.04,
+        200: 691.61,
+        500: 772.84,
+      },
+      exposure: {
+        adminAreas: [
+          {
+            placeCode: 'ZM107008106001',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 22,
+          },
+          {
+            placeCode: 'ZM107008106002',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 29,
+          },
+          {
+            placeCode: 'ZM107008106003',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 74,
+          },
+          {
+            placeCode: 'ZM107008106004',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 1082,
+          },
+          {
+            placeCode: 'ZM107008106005',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 173,
+          },
+          {
+            placeCode: 'ZM107008106006',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 440,
+          },
+          {
+            placeCode: 'ZM107008106007',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 172,
+          },
+          {
+            placeCode: 'ZM107008106008',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 19,
+          },
+          {
+            placeCode: 'ZM107008106009',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 9,
+          },
+          {
+            placeCode: 'ZM107008106010',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 10,
+          },
+          {
+            placeCode: 'ZM107008106011',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 2,
+          },
+          {
+            placeCode: 'ZM107008106012',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 1,
+          },
+          {
+            placeCode: 'ZM107008106014',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 238,
+          },
+          {
+            placeCode: 'ZM107008106015',
+            adminLevel: 4,
+            layer: LayerName.exposedPopulation,
+            value: 193,
+          },
+          {
+            placeCode: 'ZM107008106',
+            adminLevel: 3,
+            layer: LayerName.exposedPopulation,
+            value: 2464,
+          },
+          {
+            placeCode: 'ZM107008',
+            adminLevel: 2,
+            layer: LayerName.exposedPopulation,
+            value: 2464,
+          },
+          {
+            placeCode: 'ZM107',
+            adminLevel: 1,
+            layer: LayerName.exposedPopulation,
+            value: 2464,
+          },
+          {
+            placeCode: 'ZM',
+            adminLevel: 0,
+            layer: LayerName.exposedPopulation,
+            value: 2464,
+          },
+        ],
+        geoFeatures: [
+          buildBasicGlofasStationGeoFeature({
+            issuedAt,
+            geoFeatureId: 'G1265',
+            medianDischarge: 453.92,
+            // Starts at exactly the ZMB trigger lead time (P7D), so that it triggers
+            onset: { startDay: 7, dischargeBeforeStart: 193.12 },
+            // Narrower than default, to stay above ZMB's high exceedance probability (80%)
+            rangeScale: 0.5,
+          }),
+        ],
+        rasters: [
+          {
+            layer: LayerName.floodDepth,
+            valueGreyscale: ZMB_CHUNGA_RANCH_FLOOD_DEPTH_BASE64,
+            extent: {
+              xmin: 31.12208468627209,
+              ymin: -10.574599999990383,
+              xmax: 32.357084689682765,
+              ymax: -9.407099999991445,
             },
           },
         ],

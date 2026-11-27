@@ -15,6 +15,10 @@ const FORECAST_INTERVAL_HOURS: Record<HazardType, number> = {
 // Tolerance on top of the forecast interval, covering day-to-day variation in data availability and processing time.
 const FORECAST_INTERVAL_TOLERANCE_FACTOR = 1.1;
 
+export function getForecastIntervalHours(hazardType: HazardType): number {
+  return FORECAST_INTERVAL_HOURS[hazardType];
+}
+
 // forecastStaleAt: the moment a newer forecast is overdue, i.e. issuedAt + 110% of the hazard's forecast interval.
 export function getForecastStaleAt({
   hazardType,
@@ -24,6 +28,6 @@ export function getForecastStaleAt({
   issuedAt: Date;
 }): Date {
   const staleAfterHours =
-    FORECAST_INTERVAL_HOURS[hazardType] * FORECAST_INTERVAL_TOLERANCE_FACTOR;
+    getForecastIntervalHours(hazardType) * FORECAST_INTERVAL_TOLERANCE_FACTOR;
   return addHours(issuedAt, staleAfterHours);
 }

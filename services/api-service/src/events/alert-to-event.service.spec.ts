@@ -323,5 +323,44 @@ describe('AlertToEventService', () => {
         }),
       });
     });
+
+    it('should keep the trigger of an existing event when the latest alert does not trigger', async () => {
+      // Arrange
+      classificationService.classifyAlert.mockResolvedValue(
+        buildClassificationResult({ trigger: false }),
+      );
+      const existingEvent = {
+        id: 42,
+        created: new Date(),
+        updated: new Date(),
+        countryCodeIso3: 'ETH',
+        eventName: 'station-A',
+        hazardType: HazardType.floods,
+        forecastSources: [ForecastSource.glofasRiverDischarge],
+        alertClass: AlertClass.high,
+        trigger: true,
+        centroid: { latitude: 0.35, longitude: 32.6 },
+        startAt: new Date('2026-04-01T00:00:00Z'),
+        reachesPeakAlertClassAt: new Date('2026-04-01T00:00:00Z'),
+        endAt: new Date('2026-04-02T00:00:00Z'),
+        firstIssuedAt: new Date('2026-03-25T00:00:00Z'),
+        lastUpdatedAt: new Date('2026-03-29T00:00:00Z'),
+        closedAt: null,
+      };
+      repository.getOpenEventByName.mockResolvedValue(existingEvent);
+      repository.getAlertHistoryForEvent.mockResolvedValue([]);
+
+      // Act
+      await service.matchAndStore({
+        alert: buildAlert(),
+        forecast: buildForecastMetadata(),
+      });
+
+      // Assert
+      expect(repository.updateEvent).toHaveBeenCalledWith({
+        id: 42,
+        data: expect.objectContaining({ trigger: true }),
+      });
+    });
   });
 });

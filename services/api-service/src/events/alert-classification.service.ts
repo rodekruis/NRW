@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { subHours } from 'date-fns';
 
 import { AlertConfigsService } from '@api-service/src/alert-configs/alert-configs.service';
 import { AlertConfigResponseDto } from '@api-service/src/alert-configs/dto/alert-config-response.dto';
 import { ClassLevelDto } from '@api-service/src/alert-configs/dto/class-level.dto';
 import { SeverityDto } from '@api-service/src/alerts/dto/severity.dto';
+import { getForecastIntervalHours } from '@api-service/src/events/const/forecast-staleness.const';
 import { ClassificationResult } from '@api-service/src/events/interfaces/classification-result';
 import {
   AlertClass,
@@ -367,16 +369,44 @@ export class AlertClassificationService {
     }
 
     if (config.triggerLeadTimeDuration) {
-      const deadline = this.addIsoDuration({
-        base: issuedAt,
-        duration: config.triggerLeadTimeDuration,
+      return this.isWithinTriggerLeadTimeWindow({
+        reachesPeakAlertClassAt,
+        issuedAt,
+        triggerLeadTimeDuration: config.triggerLeadTimeDuration,
+        hazardType: config.hazardType,
       });
-      if (reachesPeakAlertClassAt > deadline) {
-        return false;
-      }
     }
 
     return true;
+  }
+
+  // Only the forecast at the exact trigger lead time gives a trigger, so that the lead time the user sees matches the EAP.
+  // The window spans one forecast interval before the trigger lead time (e.g. more than 6 and at most 7 days ahead for daily floods with P7D;
+  // more than 66 and at most 72 hours ahead for 6-hourly tropical cyclones with P3D), so a steadily approaching peak falls in it in exactly one forecast.
+  // Peaks first forecast closer than the window never trigger.
+  private isWithinTriggerLeadTimeWindow({
+    reachesPeakAlertClassAt,
+    issuedAt,
+    triggerLeadTimeDuration,
+    hazardType,
+  }: {
+    reachesPeakAlertClassAt: Date;
+    issuedAt: Date;
+    triggerLeadTimeDuration: string;
+    hazardType: HazardType;
+  }): boolean {
+    const windowEnd = this.addIsoDuration({
+      base: issuedAt,
+      duration: triggerLeadTimeDuration,
+    });
+    const windowStart = subHours(
+      windowEnd,
+      getForecastIntervalHours(hazardType),
+    );
+    return (
+      reachesPeakAlertClassAt > windowStart &&
+      reachesPeakAlertClassAt <= windowEnd
+    );
   }
 
   private addIsoDuration({

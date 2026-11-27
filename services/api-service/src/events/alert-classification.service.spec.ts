@@ -1,3 +1,5 @@
+import { addDays, addHours } from 'date-fns';
+
 import { AlertConfigsService } from '@api-service/src/alert-configs/alert-configs.service';
 import { AlertConfigResponseDto } from '@api-service/src/alert-configs/dto/alert-config-response.dto';
 import {
@@ -41,7 +43,7 @@ const {
 
 // Severity thresholds: low >= 1.5, med >= 5, high >= 20 (return period)
 // Probability thresholds: low >= 50%, med >= 65%, high >= 85% (fraction of runs exceeding severity threshold)
-// Trigger: alertClass must be 'high' and peak must be within 7 days of issuedAt
+// Trigger: alertClass must be 'high' and reached at the trigger lead time of 7 days (see trigger tests)
 const testFloodConfig: Partial<AlertConfigResponseDto> = {
   hazardType: HazardType.floods,
   severityClassLevels: [
@@ -58,6 +60,14 @@ const testFloodConfig: Partial<AlertConfigResponseDto> = {
   triggerLeadTimeDuration: 'P7D',
 };
 
+const testTropicalCycloneConfig: Partial<AlertConfigResponseDto> = {
+  hazardType: HazardType.tropicalCyclone,
+  severityClassLevels: [{ label: single, threshold: 0 }],
+  probabilityClassLevels: [{ label: single, threshold: 0 }],
+  triggerAlertClass: AlertClass.high,
+  triggerLeadTimeDuration: 'P3D',
+};
+
 const testDroughtConfig: Partial<AlertConfigResponseDto> = {
   hazardType: HazardType.drought,
   severityClassLevels: [{ label: single, threshold: 0.2 }],
@@ -72,6 +82,8 @@ describe('AlertClassificationService', () => {
     const configsByHazardType: Record<string, AlertConfigResponseDto> = {
       [HazardType.floods]: testFloodConfig as AlertConfigResponseDto,
       [HazardType.drought]: testDroughtConfig as AlertConfigResponseDto,
+      [HazardType.tropicalCyclone]:
+        testTropicalCycloneConfig as AlertConfigResponseDto,
     };
 
     alertConfigsService = new AlertConfigsService(null as never);
@@ -233,46 +245,62 @@ describe('AlertClassificationService', () => {
       });
 
       describe('trigger', () => {
-        it('should be true when high alertClass peaks within lead time duration', async () => {
-          const alert = buildAlert({
-            severity: buildSeverityData({
-              start: new Date('2026-04-01T00:00:00Z'),
-              end: new Date('2026-04-02T00:00:00Z'),
-              medianValue: 25,
-              runValues: [25, 25, 25],
-            }),
-          });
+        // Trigger lead time window for daily floods with P7D: 6 days < peak - issuedAt <= 7 days
+        it.each([
+          {
+            leadTime: 'exactly the trigger lead time',
+            peakAt: '2026-04-06T00:00:00Z',
+            expected: true,
+          },
+          {
+            leadTime:
+              'within one forecast interval before the trigger lead time',
+            peakAt: '2026-04-05T12:00:00Z',
+            expected: true,
+          },
+          {
+            leadTime: 'one forecast interval before the trigger lead time',
+            peakAt: '2026-04-05T00:00:00Z',
+            expected: false,
+          },
+          {
+            leadTime: 'too short',
+            peakAt: '2026-04-01T00:00:00Z',
+            expected: false,
+          },
+          {
+            leadTime: 'too long',
+            peakAt: '2026-04-07T00:00:00Z',
+            expected: false,
+          },
+        ])(
+          'should be $expected when high alertClass is reached at $leadTime',
+          async ({ peakAt, expected }) => {
+            // Arrange
+            const start = new Date(peakAt);
+            const alert = buildAlert({
+              severity: buildSeverityData({
+                start,
+                end: addDays(start, 1),
+                medianValue: 25,
+                runValues: [25, 25, 25],
+              }),
+            });
 
-          const result = await service.classifyAlert(
-            toClassificationInput({
-              alert,
-              hazardType: HazardType.floods,
-              issuedAt: new Date('2026-03-30T00:00:00Z'),
-            }),
-          );
-          expect(result.trigger).toBe(true);
-        });
+            // Act
+            const result = await service.classifyAlert(
+              toClassificationInput({
+                alert,
+                hazardType: HazardType.floods,
+                issuedAt: new Date('2026-03-30T00:00:00Z'),
+              }),
+            );
 
-        it('should be false when peak exceeds trigger lead time duration', async () => {
-          const alert = buildAlert({
-            severity: buildSeverityData({
-              start: new Date('2026-04-10T00:00:00Z'),
-              end: new Date('2026-04-11T00:00:00Z'),
-              medianValue: 25,
-              runValues: [25, 25, 25],
-            }),
-          });
-
-          const result = await service.classifyAlert(
-            toClassificationInput({
-              alert,
-              hazardType: HazardType.floods,
-              issuedAt: new Date('2026-03-30T00:00:00Z'),
-            }),
-          );
-          expect(result.alertClass).toBe(AlertClassificationLevel.high);
-          expect(result.trigger).toBe(false);
-        });
+            // Assert
+            expect(result.alertClass).toBe(AlertClassificationLevel.high);
+            expect(result.trigger).toBe(expected);
+          },
+        );
 
         it('should be false when alertClass is below trigger threshold', async () => {
           const alert = buildAlert({
@@ -291,6 +319,44 @@ describe('AlertClassificationService', () => {
           expect(result.trigger).toBe(false);
         });
       });
+    });
+
+    describe('tropicalCyclone', () => {
+      // Trigger lead time window for 6-hourly tropical cyclones with P3D: 66 hours < peak - issuedAt <= 72 hours
+      it.each([
+        { hoursAhead: 72, expected: true },
+        { hoursAhead: 69, expected: true },
+        { hoursAhead: 66, expected: false },
+        { hoursAhead: 75, expected: false },
+      ])(
+        'should give trigger $expected when high alertClass is reached $hoursAhead hours ahead',
+        async ({ hoursAhead, expected }) => {
+          // Arrange
+          const issuedAt = new Date('2026-03-30T00:00:00Z');
+          const start = addHours(issuedAt, hoursAhead);
+          const alert = buildAlert({
+            severity: buildSeverityData({
+              start,
+              end: addHours(start, 3),
+              medianValue: 1,
+              runValues: [1, 1, 1],
+            }),
+          });
+
+          // Act
+          const result = await service.classifyAlert(
+            toClassificationInput({
+              alert,
+              hazardType: HazardType.tropicalCyclone,
+              issuedAt,
+            }),
+          );
+
+          // Assert
+          expect(result.alertClass).toBe(AlertClassificationLevel.high);
+          expect(result.trigger).toBe(expected);
+        },
+      );
     });
 
     describe('drought', () => {
@@ -355,9 +421,10 @@ describe('AlertClassificationService with ZMB flood config', () => {
       countryCodeIso3: 'ZMB',
       hazardType: HazardType.floods,
       issuedAt,
+      // At the ZMB trigger lead time (P7D)
       severity: buildSeverityData({
-        start: new Date('2026-04-03T00:00:00Z'),
-        end: new Date('2026-04-04T00:00:00Z'),
+        start: new Date('2026-04-08T00:00:00Z'),
+        end: new Date('2026-04-09T00:00:00Z'),
         medianValue,
         runValues,
       }),

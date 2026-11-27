@@ -5,6 +5,7 @@ import {
 import {
   ETH_ADAITU_FLOOD_DEPTH_BASE64,
   ETH_G1904_FLOOD_DEPTH_BASE64,
+  ETH_GAMBELLA_FLOOD_DEPTH_BASE64,
   ETH_TENDAHO_FLOOD_DEPTH_BASE64,
 } from '@api-service/src/seed/seed-data/mock-events/floods/mock-flood-rasters.const';
 import { LayerName } from '@api-service/src/shared-enums';
@@ -116,8 +117,8 @@ export function buildEthiopiaFloodAlerts(issuedAt: Date): MockFloodAlert[] {
           buildBasicGlofasStationGeoFeature({
             issuedAt,
             geoFeatureId: 'G1053',
+            // Ongoing: above its return period from day 0
             medianDischarge: 1251.16,
-            onset: { startDay: 4, dischargeBeforeStart: 958.77 },
             // Narrower than default, to stay above ETH's minimum exceedance probability on all alert days
             rangeScale: 0.4,
           }),
@@ -330,6 +331,8 @@ export function buildEthiopiaFloodAlerts(issuedAt: Date): MockFloodAlert[] {
             // Raised from the sweep value (1426.93) towards the top of the narrow 10-year band (1370.77-1483.08),
             // so that with a narrower range all days stay above ETH's minimum exceedance probability
             medianDischarge: 1470,
+            // Starts at exactly the ETH trigger lead time (P7D), so that it triggers
+            onset: { startDay: 7, dischargeBeforeStart: 904.52 },
             rangeScale: 0.2,
           }),
         ],
@@ -342,6 +345,103 @@ export function buildEthiopiaFloodAlerts(issuedAt: Date): MockFloodAlert[] {
               ymin: 4.902066666680398,
               xmax: 45.3795847258077,
               ymax: 6.819566666678654,
+            },
+          },
+        ],
+      },
+    },
+    {
+      eventName: 'Gambella',
+      centroid: { latitude: 8.345, longitude: 34.0627 },
+      stationThresholds: {
+        1.5: 1641.08,
+        2: 1768.61,
+        5: 2082.44,
+        10: 2290.23,
+        20: 2489.55,
+        50: 2747.54,
+        100: 2940.87,
+        200: 3133.49,
+        500: 3387.62,
+      },
+      exposure: {
+        adminAreas: [
+          {
+            placeCode: 'ET120102',
+            adminLevel: 3,
+            layer: LayerName.exposedPopulation,
+            value: 3386,
+          },
+          {
+            placeCode: 'ET120103',
+            adminLevel: 3,
+            layer: LayerName.exposedPopulation,
+            value: 35401,
+          },
+          {
+            placeCode: 'ET120206',
+            adminLevel: 3,
+            layer: LayerName.exposedPopulation,
+            value: 5786,
+          },
+          {
+            placeCode: 'ET120407',
+            adminLevel: 3,
+            layer: LayerName.exposedPopulation,
+            value: 4368,
+          },
+          {
+            placeCode: 'ET1201',
+            adminLevel: 2,
+            layer: LayerName.exposedPopulation,
+            value: 38787,
+          },
+          {
+            placeCode: 'ET1202',
+            adminLevel: 2,
+            layer: LayerName.exposedPopulation,
+            value: 5786,
+          },
+          {
+            placeCode: 'ET1204',
+            adminLevel: 2,
+            layer: LayerName.exposedPopulation,
+            value: 4368,
+          },
+          {
+            placeCode: 'ET12',
+            adminLevel: 1,
+            layer: LayerName.exposedPopulation,
+            value: 48941,
+          },
+          {
+            placeCode: 'ET',
+            adminLevel: 0,
+            layer: LayerName.exposedPopulation,
+            value: 48941,
+          },
+        ],
+        geoFeatures: [
+          buildBasicGlofasStationGeoFeature({
+            issuedAt,
+            geoFeatureId: 'G1603',
+            // Raised from the sweep value (2389.89) towards the top of the narrow 10-year band (2290.23-2489.55),
+            // so that with a narrower range all days stay above ETH's minimum exceedance probability
+            medianDischarge: 2470,
+            // Reaches 'high' 6 days ahead, just closer than the ETH trigger lead time (P7D), so that it does not trigger
+            onset: { startDay: 6, dischargeBeforeStart: 1476.97 },
+            rangeScale: 0.3,
+          }),
+        ],
+        rasters: [
+          {
+            layer: LayerName.floodDepth,
+            valueGreyscale: ETH_GAMBELLA_FLOOD_DEPTH_BASE64,
+            extent: {
+              xmin: 33.46125135955974,
+              ymin: 8.027900000010888,
+              xmax: 34.60875136272877,
+              ymax: 8.709566666676935,
             },
           },
         ],
