@@ -34,7 +34,6 @@ from pipelines.flood import forecast as flood_forecast
 from pipelines.flood.compute_flood_depth import (
     compute_flood_depth,
     determine_cell_return_periods,
-    resolve_station_flood_map,
 )
 from pipelines.flood.constants import (
     GLOFAS_VERSION,
@@ -565,9 +564,24 @@ def compute_footprints(
 def compute_todays_flood_depth(
     triggered_station: TriggeredStation, inputs: Inputs, minimum_flood_depth: float
 ) -> RasterData:
-    """Today's footprint: the one flood map for the station's return period, clipped to its area."""
-    station_flood_map = resolve_station_flood_map(
-        triggered_station.time_interval_severities, inputs.flood_depth_provider
+    """
+    Today's footprint: the one flood map for the station's return period, clipped to its area.
+    That is the highest map at or below it, or the lowest map below all of them.
+    """
+    station_return_period = max(
+        severity.median_return_period
+        for severity in triggered_station.time_interval_severities
+    )
+    available_return_periods = inputs.flood_depth_provider.available_return_periods
+    station_flood_map = inputs.flood_depth_provider.get_raster(
+        max(
+            (
+                return_period
+                for return_period in available_return_periods
+                if return_period <= station_return_period
+            ),
+            default=min(available_return_periods),
+        )
     )
     flood_depth = create_raster_geometry_clipper(
         triggered_station.boundary, station_flood_map
