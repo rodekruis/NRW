@@ -1,66 +1,53 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, useScenario } from '@nrw-e2e/nrw/fixtures';
+import { drillDown } from '@nrw-e2e/nrw/scenarios';
 
-import { MockScenario } from '@nrw-e2e/nrw/helpers/enums';
-import { mockDb } from '@nrw-e2e/nrw/helpers/mock';
-import { resetDb } from '@nrw-e2e/nrw/helpers/reset';
-import { freezeEventsViewTime } from '@nrw-e2e/nrw/helpers/view-time';
-import { NrwMapPage } from '@nrw-e2e/nrw/pages/NrwMapPage';
+const { eventName, initialLevel, drilledInto } = drillDown.event;
 
-// The exposure of the South Sudan event splits into two states, so the event
-// card opens at the states and can drill down into their counties.
-const COUNTRIES = ['SSD'];
-const ALERT_ISSUED_AT = new Date('2026-09-22T00:00:00Z');
+useScenario(drillDown);
 
-test.describe('exposed admin areas', () => {
-  test.beforeAll(async () => {
-    await resetDb(COUNTRIES);
-    await mockDb({
-      scenario: MockScenario.events,
-      countryCodes: COUNTRIES,
-      issuedAt: ALERT_ISSUED_AT,
-    });
-  });
+test('drilling down into a row shows its exposed admin areas, and back returns', async ({
+  nrwPage,
+}) => {
+  // Arrange
+  const { exposedAdminAreas } = nrwPage;
+  await nrwPage.goto({ countryCodes: drillDown.countryCodes });
+  await nrwPage.eventsPanel.openEvent(eventName);
+  await expect(
+    exposedAdminAreas.totalAreasText(initialLevel.label),
+  ).toBeVisible();
+  await expect(exposedAdminAreas.rows).toHaveCount(initialLevel.rowCount);
+  await expect(exposedAdminAreas.firstRowCells).toHaveText([
+    initialLevel.firstRow.name,
+    initialLevel.firstRow.exposedPopulation,
+  ]);
+  await expect(exposedAdminAreas.backButton).toHaveCount(0);
 
-  test.beforeEach(async ({ page }) => {
-    await freezeEventsViewTime(page, ALERT_ISSUED_AT);
-  });
+  // Act
+  await exposedAdminAreas.drillDown(drilledInto.name);
 
-  test('drilling down into a row shows its exposed admin areas, and back returns', async ({
-    page,
-  }) => {
-    // Arrange
-    const nrwMapPage = new NrwMapPage(page);
-    await nrwMapPage.goto(COUNTRIES);
-    await nrwMapPage.waitForMapLoaded();
-    await nrwMapPage.eventCardToggle(nrwMapPage.eventCards.first()).click();
-    await expect(nrwMapPage.eventDetail).toContainText('Total exposed States');
-    await expect(nrwMapPage.exposedAdminAreaRows).toHaveCount(2);
-    await expect(
-      nrwMapPage.exposedAdminAreaRows.first().getByRole('cell'),
-    ).toHaveText(['Jonglei', '258,439']);
-    await expect(nrwMapPage.exposedAdminAreasBackButton).toHaveCount(0);
+  // Assert
+  await expect(exposedAdminAreas.selectedAdminArea).toHaveText(
+    drilledInto.selectedAreaLabel,
+  );
+  await expect(
+    exposedAdminAreas.totalAreasText(drilledInto.level.label),
+  ).toBeVisible();
+  await expect(exposedAdminAreas.rows).toHaveCount(drilledInto.level.rowCount);
+  await expect(exposedAdminAreas.firstRowCells).toHaveText([
+    drilledInto.level.firstRow.name,
+    drilledInto.level.firstRow.exposedPopulation,
+  ]);
 
-    // Act
-    await nrwMapPage.exposedAdminAreaRows.first().click();
+  // Act
+  await exposedAdminAreas.drillUp();
 
-    // Assert
-    await expect(nrwMapPage.selectedAdminArea).toHaveText('Jonglei State');
-    await expect(nrwMapPage.eventDetail).toContainText(
-      'Total exposed Counties',
-    );
-    await expect(nrwMapPage.exposedAdminAreaRows).toHaveCount(2);
-    await expect(
-      nrwMapPage.exposedAdminAreaRows.first().getByRole('cell'),
-    ).toHaveText(['Bor South', '135,195']);
-
-    // Act
-    await nrwMapPage.exposedAdminAreasBackButton.click();
-
-    // Assert
-    await expect(nrwMapPage.selectedAdminArea).toHaveCount(0);
-    await expect(nrwMapPage.eventDetail).toContainText('Total exposed States');
-    await expect(
-      nrwMapPage.exposedAdminAreaRows.first().getByRole('cell'),
-    ).toHaveText(['Jonglei', '258,439']);
-  });
+  // Assert
+  await expect(exposedAdminAreas.selectedAdminArea).toHaveCount(0);
+  await expect(
+    exposedAdminAreas.totalAreasText(initialLevel.label),
+  ).toBeVisible();
+  await expect(exposedAdminAreas.firstRowCells).toHaveText([
+    initialLevel.firstRow.name,
+    initialLevel.firstRow.exposedPopulation,
+  ]);
 });
