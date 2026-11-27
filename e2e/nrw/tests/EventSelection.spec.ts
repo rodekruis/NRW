@@ -1,4 +1,5 @@
 import { expect, test, useScenario, visualTest } from '@nrw-e2e/nrw/fixtures';
+import { LayerName } from '@nrw-e2e/nrw/helpers/enums';
 import { getEvents } from '@nrw-e2e/nrw/helpers/events';
 import { singleEvent } from '@nrw-e2e/nrw/scenarios';
 
@@ -74,11 +75,16 @@ test(
   visualTest,
   async ({ nrwPage }) => {
     // Arrange
-    await nrwPage.goto({ countryCodes });
+    const [event] = await getEvents(countryCodes, viewTime);
 
     // Act
-    await nrwPage.eventsPanel.openEvent(eventName);
-    await nrwPage.page.waitForLoadState('networkidle');
+    // A link opens the map at the event directly; a click animates the zoom,
+    // which may not settle in time for the screenshot.
+    await nrwPage.goto({
+      countryCodes,
+      eventId: event.eventId,
+      layers: [LayerName.exposedPopulation, LayerName.floodDepth],
+    });
 
     // Assert
     await expect(nrwPage.page).toHaveScreenshot('event-opened.png');
