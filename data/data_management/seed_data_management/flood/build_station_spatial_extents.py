@@ -247,11 +247,11 @@ def _locate_stations(
     station_codes = list(station_points)
     point_indices, basin_indices = tree.query(
         [station_points[station_code] for station_code in station_codes],
-        predicate="within",
+        predicate="covered_by",
     )
     located: dict[str, int] = {}
     for point_index, basin_index in zip(point_indices, basin_indices, strict=True):
-        # A point on a shared edge is within both basins; the first one is kept.
+        # A point on a shared edge is covered by both basins; the first one is kept.
         located.setdefault(station_codes[int(point_index)], basin_ids[int(basin_index)])
     return located
 

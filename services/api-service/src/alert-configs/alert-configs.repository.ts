@@ -211,6 +211,21 @@ export class AlertConfigsRepository {
     };
   }
 
+  // Why PostGIS considers the geometry invalid, for example 'Self-intersection[34.25 -13.75]';
+  // undefined when it is valid
+  public async getGeometryTopologyError(
+    geometry: Polygon | MultiPolygon,
+  ): Promise<string | undefined> {
+    const geojson = JSON.stringify(geometry);
+    const [result] = await this.prisma.$queryRaw<
+      { invalidReason: string | null }[]
+    >`
+      SELECT CASE WHEN public.ST_IsValid(geometry) THEN NULL
+        ELSE public.ST_IsValidReason(geometry) END AS "invalidReason"
+      FROM (SELECT public.ST_GeomFromGeoJSON(${geojson}) AS geometry) AS input`;
+    return result?.invalidReason ?? undefined;
+  }
+
   private toSpatialExtentGeometryInput(
     spatialExtentGeometry: Polygon | MultiPolygon | null | undefined,
   ): Prisma.InputJsonValue | Prisma.NullTypes.DbNull {

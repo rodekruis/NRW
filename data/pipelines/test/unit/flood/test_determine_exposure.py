@@ -282,3 +282,48 @@ def test_alert_config_from_api_without_spatial_extent_geometry_has_none():
 
     # Assert
     assert config.spatial_extent_geometry is None
+
+
+def test_alert_config_from_api_repairs_a_self_intersecting_geometry():
+    # Arrange
+    raw = {
+        "spatialExtentName": "station-1",
+        "temporalExtents": [],
+        "spatialExtentGeometry": {
+            "type": "Polygon",
+            "coordinates": [[[0, 0], [1, 1], [1, 0], [0, 1], [0, 0]]],
+        },
+    }
+
+    # Act
+    config = AlertConfig.from_api(raw)
+
+    # Assert
+    assert config.spatial_extent_geometry is not None
+    assert config.spatial_extent_geometry.is_valid
+    assert config.spatial_extent_geometry.geom_type == "MultiPolygon"
+    assert config.spatial_extent_geometry.area == 0.5
+
+
+def test_determine_spatial_extent_works_on_a_repaired_self_intersecting_geometry():
+    # Arrange
+    raw = {
+        "spatialExtentName": "station-1",
+        "temporalExtents": [],
+        "spatialExtentGeometry": {
+            "type": "Polygon",
+            "coordinates": [[[0, 0], [1, 2], [1, 0], [0, 2], [0, 0]]],
+        },
+    }
+    config = AlertConfig.from_api(raw)
+    assert config.spatial_extent_geometry is not None
+
+    # Act
+    _, place_codes = determine_spatial_extent(
+        spatial_extent_geometry=config.spatial_extent_geometry,
+        admin_areas=_build_two_admin_areas(),
+        flood_depth_raster=_build_flood_depth_two_by_two(),
+    )
+
+    # Assert
+    assert place_codes == ["PC001"]

@@ -54,6 +54,7 @@ describe('AlertConfigsService', () => {
           useValue: {
             createAlertConfigs: jest.fn().mockResolvedValue([]),
             updateAlertConfigOrThrow: jest.fn(),
+            getGeometryTopologyError: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
@@ -102,6 +103,41 @@ describe('AlertConfigsService', () => {
         ),
       );
       expect(repository.createAlertConfigs).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('topology', () => {
+    it('should create no alert configs when PostGIS finds a spatial extent geometry invalid', async () => {
+      // Arrange
+      repository.getGeometryTopologyError.mockResolvedValue(
+        'Self-intersection[34.25 -13.75]',
+      );
+
+      // Act
+      const act = service.createAlertConfigs([alertConfigWithGeometry]);
+
+      // Assert
+      await expect(act).rejects.toThrow(
+        new BadRequestException(
+          "Invalid spatialExtentGeometry for alert config 'G2': Self-intersection[34.25 -13.75]",
+        ),
+      );
+      expect(repository.createAlertConfigs).not.toHaveBeenCalled();
+    });
+
+    it('should not ask PostGIS about a geometry that is already structurally invalid', async () => {
+      // Arrange
+      const point = { type: 'Point', coordinates: [34.0, -14.0] };
+
+      // Act
+      const act = service.updateAlertConfigOrThrow({
+        id: 1,
+        alertConfigUpdateDto: { spatialExtentGeometry: point as never },
+      });
+
+      // Assert
+      await expect(act).rejects.toThrow(BadRequestException);
+      expect(repository.getGeometryTopologyError).not.toHaveBeenCalled();
     });
   });
 

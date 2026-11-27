@@ -45,7 +45,7 @@ export class AlertConfigsService {
     dtos: AlertConfigCreateDto[],
   ): Promise<AlertConfigResponseDto[]> {
     for (const { spatialExtentGeometry, spatialExtentName } of dtos) {
-      this.validateSpatialExtentGeometryOrThrow({
+      await this.validateSpatialExtentGeometryOrThrow({
         spatialExtentGeometry,
         name: `'${spatialExtentName}'`,
       });
@@ -60,7 +60,7 @@ export class AlertConfigsService {
     id: number;
     alertConfigUpdateDto: AlertConfigUpdateDto;
   }): Promise<AlertConfigResponseDto> {
-    this.validateSpatialExtentGeometryOrThrow({
+    await this.validateSpatialExtentGeometryOrThrow({
       spatialExtentGeometry: alertConfigUpdateDto.spatialExtentGeometry,
       name: `with id ${id}`,
     });
@@ -70,17 +70,23 @@ export class AlertConfigsService {
     });
   }
 
-  private validateSpatialExtentGeometryOrThrow({
+  private async validateSpatialExtentGeometryOrThrow({
     spatialExtentGeometry,
     name,
   }: {
     spatialExtentGeometry: Polygon | MultiPolygon | null | undefined;
     name: string;
-  }): void {
+  }): Promise<void> {
     if (spatialExtentGeometry === undefined || spatialExtentGeometry === null) {
       return;
     }
-    const error = getPolygonGeometryError(spatialExtentGeometry);
+    // The topology check (self-intersections, holes outside their shell) needs PostGIS,
+    // so it only runs when the structure is fine
+    const error =
+      getPolygonGeometryError(spatialExtentGeometry) ??
+      (await this.alertConfigsRepository.getGeometryTopologyError(
+        spatialExtentGeometry,
+      ));
     if (error) {
       throw new BadRequestException(
         `Invalid spatialExtentGeometry for alert config ${name}: ${error}`,

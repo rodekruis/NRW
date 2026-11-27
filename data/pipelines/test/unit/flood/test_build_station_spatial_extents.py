@@ -81,6 +81,20 @@ def test_stations_in_the_same_basin_get_the_same_trace():
     assert chains == {"FIRST": [1, 2], "SECOND": [1, 2]}
 
 
+def test_station_on_the_edge_between_two_basins_gets_one_of_them():
+    # Arrange
+    station_points = {"ON_EDGE": Point(1.0, 0.5), "ON_CORNER": Point(2.0, 1.0)}
+
+    # Act
+    chains = trace_station_basins(
+        station_points, create_river_basins(), downstream_distance_km=0.0
+    )
+
+    # Assert
+    assert chains["ON_EDGE"][0] in (1, 2)
+    assert chains["ON_CORNER"][0] in (2, 3)
+
+
 def test_station_outside_every_basin_gets_no_trace():
     # Arrange
     station_points = {"AT_SEA": Point(10.0, 10.0)}

@@ -59,6 +59,32 @@ describe('/ Alert Configs', () => {
       .set('Cookie', [accessToken]);
   }
 
+  // Closed and in range, but invalid in PostGIS: the edges of the ring cross at (34.25, -13.75)
+  const bowTiePolygon = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [34.0, -14.0],
+        [34.5, -13.5],
+        [34.5, -14.0],
+        [34.0, -13.5],
+        [34.0, -14.0],
+      ],
+    ],
+  };
+  const polygonWithHoleOutsideShell = {
+    type: 'Polygon',
+    coordinates: [
+      spatialExtentGeometry.coordinates[0],
+      [
+        [35.0, -14.0],
+        [35.1, -14.0],
+        [35.1, -13.9],
+        [35.0, -14.0],
+      ],
+    ],
+  };
+
   describe('POST /alert-configs', () => {
     it('should create alert configs', async () => {
       const response = await getServer()
@@ -158,6 +184,11 @@ describe('/ Alert Configs', () => {
         },
       },
       { name: 'a string', invalidGeometry: 'Polygon' },
+      { name: 'a self-intersecting Polygon', invalidGeometry: bowTiePolygon },
+      {
+        name: 'a Polygon with a hole outside its shell',
+        invalidGeometry: polygonWithHoleOutsideShell,
+      },
     ])(
       'should reject a spatial extent geometry that is $name',
       async ({ invalidGeometry }) => {
@@ -321,6 +352,10 @@ describe('/ Alert Configs', () => {
         },
       },
       { name: 'a string', body: { spatialExtentGeometry: 'Polygon' } },
+      {
+        name: 'self-intersecting',
+        body: { spatialExtentGeometry: bowTiePolygon },
+      },
     ])(
       'should return 400 when the spatial extent geometry is $name',
       async ({ body }) => {

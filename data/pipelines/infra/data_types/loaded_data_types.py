@@ -4,10 +4,12 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 import numpy as np
+import shapely
 from pipelines.infra.data_types.data_config_types import DataSource
 from rasterio.transform import Affine, xy
-from shapely.geometry import shape
+from shapely.geometry import MultiPolygon, Polygon, shape
 from shapely.geometry.base import BaseGeometry
+from shapely.validation import make_valid
 from shared.crs_helpers import is_in_longitude_latitude_range, validate_crs
 
 
@@ -24,11 +26,27 @@ class AlertConfig:
             spatial_extent_name=str(raw["spatialExtentName"]),
             temporal_extents=raw.get("temporalExtents", []),
             spatial_extent_geometry=(
-                shape(raw["spatialExtentGeometry"])
+                _to_valid_area(shape(raw["spatialExtentGeometry"]))
                 if raw.get("spatialExtentGeometry")
                 else None
             ),
         )
+
+
+def _to_valid_area(geometry: BaseGeometry) -> BaseGeometry | None:
+    """Repair an invalid polygon (a self-intersection, a hole outside its shell), so that
+    intersections with it cannot fail. The API rejects such polygons; this guards older data.
+    A repair can leave lines or points behind, which are not part of an area."""
+    if geometry.is_valid:
+        return geometry
+    polygons = [
+        part
+        for part in shapely.get_parts(make_valid(geometry))
+        if isinstance(part, Polygon) and not part.is_empty
+    ]
+    if not polygons:
+        return None
+    return polygons[0] if len(polygons) == 1 else MultiPolygon(polygons)
 
 
 class DataType(StrEnum):
