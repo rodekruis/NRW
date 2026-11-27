@@ -1,5 +1,5 @@
 import { AlertConfigsService } from '@api-service/src/alert-configs/alert-configs.service';
-import { AlertConfigResponseDto } from '@api-service/src/alert-configs/dto/alert-config-response.dto';
+import { AlertConfigWithoutGeometryDto } from '@api-service/src/alert-configs/dto/alert-config-without-geometry.dto';
 import {
   AlertClassificationInput,
   AlertClassificationService,
@@ -42,7 +42,7 @@ const {
 // Severity thresholds: low >= 1.5, med >= 5, high >= 20 (return period)
 // Probability thresholds: low >= 50%, med >= 65%, high >= 85% (fraction of runs exceeding severity threshold)
 // Trigger: alertClass must be 'high' and peak must be within 7 days of issuedAt
-const testFloodConfig: Partial<AlertConfigResponseDto> = {
+const testFloodConfig: Partial<AlertConfigWithoutGeometryDto> = {
   hazardType: HazardType.floods,
   severityClassLevels: [
     { label: low, threshold: 1.5 },
@@ -58,7 +58,7 @@ const testFloodConfig: Partial<AlertConfigResponseDto> = {
   triggerLeadTimeDuration: 'P7D',
 };
 
-const testDroughtConfig: Partial<AlertConfigResponseDto> = {
+const testDroughtConfig: Partial<AlertConfigWithoutGeometryDto> = {
   hazardType: HazardType.drought,
   severityClassLevels: [{ label: single, threshold: 0.2 }],
   probabilityClassLevels: [{ label: single, threshold: 0 }],
@@ -69,15 +69,15 @@ describe('AlertClassificationService', () => {
   let alertConfigsService: AlertConfigsService;
 
   beforeEach(() => {
-    const configsByHazardType: Record<string, AlertConfigResponseDto> = {
-      [HazardType.floods]: testFloodConfig as AlertConfigResponseDto,
-      [HazardType.drought]: testDroughtConfig as AlertConfigResponseDto,
+    const configsByHazardType: Record<string, AlertConfigWithoutGeometryDto> = {
+      [HazardType.floods]: testFloodConfig as AlertConfigWithoutGeometryDto,
+      [HazardType.drought]: testDroughtConfig as AlertConfigWithoutGeometryDto,
     };
 
     alertConfigsService = new AlertConfigsService(null as never);
 
     jest
-      .spyOn(alertConfigsService, 'getAlertConfigs')
+      .spyOn(alertConfigsService, 'getAlertConfigsWithoutGeometry')
       .mockImplementation(({ hazardType }) =>
         Promise.resolve(
           hazardType && configsByHazardType[hazardType]
@@ -100,7 +100,7 @@ describe('AlertClassificationService', () => {
       );
     });
 
-    it('should pass countryCodeIso3 to getAlertConfigs', async () => {
+    it('should pass countryCodeIso3 to getAlertConfigsWithoutGeometry', async () => {
       const alert = buildAlert();
       const input: AlertClassificationInput = {
         countryCodeIso3: 'UGA',
@@ -111,7 +111,9 @@ describe('AlertClassificationService', () => {
 
       await service.classifyAlert(input);
 
-      expect(alertConfigsService.getAlertConfigs).toHaveBeenCalledWith({
+      expect(
+        alertConfigsService.getAlertConfigsWithoutGeometry,
+      ).toHaveBeenCalledWith({
         countryCodeIso3: 'UGA',
         hazardType: HazardType.floods,
       });
@@ -317,7 +319,7 @@ describe('AlertClassificationService', () => {
 // Uses the real ZMB seed config (single severity RP10, probability low/medium/high at 0.6/0.7/0.8).
 // GloFAS delivers between 34 and 51 ensemble runs; probability is relative to the runs available.
 describe('AlertClassificationService with ZMB flood config', () => {
-  const zambiaFloodConfig: Partial<AlertConfigResponseDto> = {
+  const zambiaFloodConfig: Partial<AlertConfigWithoutGeometryDto> = {
     hazardType: HazardType.floods,
     ...FLOOD_CLASSIFICATION_BY_COUNTRY.ZMB,
   };
@@ -330,8 +332,8 @@ describe('AlertClassificationService with ZMB flood config', () => {
   beforeEach(() => {
     const alertConfigsService = new AlertConfigsService(null as never);
     jest
-      .spyOn(alertConfigsService, 'getAlertConfigs')
-      .mockResolvedValue([zambiaFloodConfig as AlertConfigResponseDto]);
+      .spyOn(alertConfigsService, 'getAlertConfigsWithoutGeometry')
+      .mockResolvedValue([zambiaFloodConfig as AlertConfigWithoutGeometryDto]);
     service = new AlertClassificationService(alertConfigsService);
   });
 

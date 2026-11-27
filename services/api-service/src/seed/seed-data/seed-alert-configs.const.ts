@@ -1,3 +1,6 @@
+import type { MultiPolygon, Polygon } from 'geojson';
+
+import seedAlertConfigSpatialExtents from '@api-service/src/seed/seed-data/seed-alert-config-spatial-extents.json';
 import {
   AlertClass,
   AlertClassificationLevel,
@@ -13,12 +16,47 @@ export interface SeedAlertConfig {
   readonly countryCodeIso3: string;
   readonly hazardType: HazardType;
   readonly spatialExtentName: string;
-  readonly spatialExtentPlaceCodes: string[];
+  readonly spatialExtentGeometry: Polygon | MultiPolygon | null;
   readonly temporalExtents: Record<string, string[] | number[]>[];
   readonly severityClassLevels: ClassLevel[];
   readonly probabilityClassLevels: ClassLevel[];
   readonly triggerAlertClass: AlertClass | null;
   readonly triggerLeadTimeDuration: string | null;
+}
+
+interface SeedAlertConfigSpatialExtentFeature {
+  readonly properties: {
+    readonly hazardType: HazardType;
+    readonly countryCodeIso3: string;
+    readonly spatialExtentName: string;
+  };
+  readonly geometry: Polygon | MultiPolygon;
+}
+
+// The drought and compound-flood geometries live in code for now.
+// They should probably move to the seed-data repo, like the flood ones.
+const SEED_ALERT_CONFIG_SPATIAL_EXTENT_FEATURES = (
+  seedAlertConfigSpatialExtents as unknown as {
+    readonly features: SeedAlertConfigSpatialExtentFeature[];
+  }
+).features;
+
+function getSpatialExtentGeometry({
+  hazardType,
+  countryCodeIso3,
+  spatialExtentName,
+}: {
+  hazardType: HazardType;
+  countryCodeIso3: string;
+  spatialExtentName: string;
+}): Polygon | MultiPolygon | null {
+  const feature = SEED_ALERT_CONFIG_SPATIAL_EXTENT_FEATURES.find(
+    ({ properties }) =>
+      properties.hazardType === hazardType &&
+      properties.countryCodeIso3 === countryCodeIso3 &&
+      properties.spatialExtentName === spatialExtentName,
+  );
+  return feature?.geometry ?? null;
 }
 
 // --- FLOODS: in-code config ---
@@ -121,19 +159,21 @@ const DROUGHT_PROBABILITY_CLASS_LEVELS: ClassLevel[] = [
 function createDroughtAlertConfig({
   countryCodeIso3,
   regionName,
-  placeCodes,
   seasons,
 }: {
   countryCodeIso3: string;
   regionName: string;
-  placeCodes: string[];
   seasons: Record<string, number[]>[];
 }): SeedAlertConfig {
   return {
     countryCodeIso3,
     hazardType: HazardType.drought,
     spatialExtentName: regionName,
-    spatialExtentPlaceCodes: placeCodes,
+    spatialExtentGeometry: getSpatialExtentGeometry({
+      hazardType: HazardType.drought,
+      countryCodeIso3,
+      spatialExtentName: regionName,
+    }),
     temporalExtents: seasons,
     severityClassLevels: DROUGHT_SEVERITY_CLASS_LEVELS,
     probabilityClassLevels: DROUGHT_PROBABILITY_CLASS_LEVELS,
@@ -144,144 +184,28 @@ function createDroughtAlertConfig({
 
 // --- DROUGHT: ETH  ---
 
-// Climate-region placeCodes from v1 were migrated onto the updated admin-area dataset with
-// data/data_management/seed_data_management/drought/migrate_drought_region_area_mapping.py
-// Note that UGA had no changes resulting from updated admin-area data.
+// The climate regions of ETH and UGA are geometries in seed-alert-config-spatial-extents.json.
+// The pipeline derives their admin areas from these geometries. 'National' regions have no geometry.
 
 const ETH_DROUGHT_CONFIGS: SeedAlertConfig[] = [
   createDroughtAlertConfig({
     countryCodeIso3: 'ETH',
     regionName: 'Belg',
-    placeCodes: [
-      'ET0104',
-      'ET0106',
-      'ET0107',
-      'ET0303',
-      'ET0304',
-      'ET0305',
-      'ET0310',
-      'ET0406',
-      'ET0407',
-      'ET0408',
-      'ET0409',
-      'ET0410',
-      'ET0415',
-      'ET0417',
-      'ET0700',
-      'ET0701',
-      'ET0702',
-      'ET0703',
-      'ET0704',
-      'ET0714',
-      'ET0720',
-      'ET0724',
-      'ET0725',
-      'ET0726',
-      'ET0801',
-      'ET0802',
-      'ET0803',
-      'ET0805',
-      'ET0807',
-      'ET0808',
-      'ET0809',
-      'ET0810',
-      'ET0811',
-      'ET0812',
-      'ET1104',
-      'ET1301',
-      'ET1601',
-      'ET1602',
-      'ET1603',
-      'ET1604',
-      'ET1605',
-      'ET9903',
-    ],
     seasons: [{ MAM: [2, 3, 4, 5] }, { JAS: [6, 7, 8, 9] }],
   }),
   createDroughtAlertConfig({
     countryCodeIso3: 'ETH',
     regionName: 'Meher',
-    placeCodes: [
-      'ET0101',
-      'ET0102',
-      'ET0301',
-      'ET0302',
-      'ET0306',
-      'ET0307',
-      'ET0308',
-      'ET0309',
-      'ET0311',
-      'ET0312',
-      'ET0313',
-      'ET0314',
-      'ET0401',
-      'ET0402',
-      'ET0403',
-      'ET0404',
-      'ET0405',
-      'ET0413',
-      'ET0416',
-      'ET0418',
-      'ET0419',
-      'ET0420',
-      'ET0602',
-      'ET0603',
-      'ET0604',
-      'ET0605',
-      'ET0804',
-      'ET1101',
-      'ET1102',
-      'ET1103',
-      'ET1105',
-      'ET1106',
-      'ET1201',
-      'ET1202',
-      'ET1203',
-      'ET1204',
-      'ET1401',
-      'ET9901',
-      'ET9902',
-    ],
     seasons: [{ JAS: [6, 7, 8, 9] }],
   }),
   createDroughtAlertConfig({
     countryCodeIso3: 'ETH',
     regionName: 'Northern',
-    placeCodes: [
-      'ET0103',
-      'ET0201',
-      'ET0202',
-      'ET0203',
-      'ET0204',
-      'ET0205',
-      'ET0206',
-      'ET0501',
-      'ET1501',
-      'ET1502',
-    ],
     seasons: [{ MAM: [3, 4, 5] }, { JAS: [7, 8, 9] }],
   }),
   createDroughtAlertConfig({
     countryCodeIso3: 'ETH',
     regionName: 'Southern',
-    placeCodes: [
-      'ET0411',
-      'ET0412',
-      'ET0414',
-      'ET0421',
-      'ET0422',
-      'ET0502',
-      'ET0503',
-      'ET0504',
-      'ET0505',
-      'ET0506',
-      'ET0507',
-      'ET0508',
-      'ET0509',
-      'ET0510',
-      'ET0511',
-      'ET0806',
-    ],
     seasons: [{ MAM: [3, 4, 5] }, { OND: [10, 11, 12] }],
   }),
 ];
@@ -292,7 +216,6 @@ const KEN_DROUGHT_CONFIGS: SeedAlertConfig[] = [
   createDroughtAlertConfig({
     countryCodeIso3: 'KEN',
     regionName: 'National',
-    placeCodes: [],
     seasons: [{ MAM: [3, 4, 5] }, { OND: [10, 11, 12] }],
   }),
 ];
@@ -303,143 +226,11 @@ const UGA_DROUGHT_CONFIGS: SeedAlertConfig[] = [
   createDroughtAlertConfig({
     countryCodeIso3: 'UGA',
     regionName: 'Karamoja',
-    placeCodes: [
-      'UG3066',
-      'UG3070',
-      'UG3074',
-      'UG3077',
-      'UG3082',
-      'UG3097',
-      'UG3064',
-      'UG3069',
-      'UG3075',
-      'UG3080',
-      'UG3086',
-      'UG3088',
-      'UG3089',
-      'UG3090',
-      'UG3065',
-      'UG3072',
-      'UG3078',
-      'UG3085',
-      'UG3093',
-      'UG3099',
-    ],
     seasons: [{ Karamoja: [4, 5, 6, 7, 8, 9, 10] }],
   }),
   createDroughtAlertConfig({
     countryCodeIso3: 'UGA',
     regionName: 'Central',
-    placeCodes: [
-      'UG3092',
-      'UG3094',
-      'UG4101',
-      'UG4105',
-      'UG4107',
-      'UG4108',
-      'UG4119',
-      'UG4126',
-      'UG4127',
-      'UG4129',
-      'UG4131',
-      'UG4135',
-      'UG2028',
-      'UG2035',
-      'UG2036',
-      'UG2037',
-      'UG2048',
-      'UG2059',
-      'UG2063',
-      'UG4102',
-      'UG4106',
-      'UG4111',
-      'UG4112',
-      'UG4117',
-      'UG4118',
-      'UG4120',
-      'UG4125',
-      'UG2030',
-      'UG2031',
-      'UG2038',
-      'UG2039',
-      'UG2040',
-      'UG2043',
-      'UG2044',
-      'UG2051',
-      'UG2053',
-      'UG2055',
-      'UG2057',
-      'UG2029',
-      'UG2033',
-      'UG2034',
-      'UG2045',
-      'UG2050',
-      'UG2052',
-      'UG2054',
-      'UG2056',
-      'UG2061',
-      'UG1008',
-      'UG4109',
-      'UG4114',
-      'UG4121',
-      'UG4130',
-      'UG4132',
-      'UG4133',
-      'UG3067',
-      'UG3068',
-      'UG3071',
-      'UG3073',
-      'UG3079',
-      'UG3081',
-      'UG3083',
-      'UG3095',
-      'UG3096',
-      'UG1001',
-      'UG1004',
-      'UG1009',
-      'UG1010',
-      'UG1011',
-      'UG1012',
-      'UG1014',
-      'UG1018',
-      'UG1020',
-      'UG1021',
-      'UG1022',
-      'UG1023',
-      'UG1026',
-      'UG1002',
-      'UG1003',
-      'UG1005',
-      'UG1006',
-      'UG1007',
-      'UG1013',
-      'UG1015',
-      'UG1016',
-      'UG1017',
-      'UG1019',
-      'UG1024',
-      'UG1025',
-      'UG2027',
-      'UG2032',
-      'UG2041',
-      'UG2046',
-      'UG2047',
-      'UG2049',
-      'UG2058',
-      'UG2060',
-      'UG2062',
-      'UG4103',
-      'UG4104',
-      'UG4110',
-      'UG4113',
-      'UG4115',
-      'UG4123',
-      'UG4124',
-      'UG4128',
-      'UG3091',
-      'UG3098',
-      'UG3100',
-    ],
     seasons: [{ MAM: [3, 4, 5] }, { OND: [9, 10, 11] }],
   }),
 ];
@@ -450,7 +241,6 @@ const ZMB_DROUGHT_CONFIGS: SeedAlertConfig[] = [
   createDroughtAlertConfig({
     countryCodeIso3: 'ZMB',
     regionName: 'National',
-    placeCodes: [],
     seasons: [{ OND: [10, 11, 12, 1, 2, 3] }],
   }),
 ];
@@ -461,7 +251,6 @@ const ZWE_DROUGHT_CONFIGS: SeedAlertConfig[] = [
   createDroughtAlertConfig({
     countryCodeIso3: 'ZWE',
     regionName: 'National',
-    placeCodes: [],
     seasons: [{ MAM: [4, 5, 6, 7, 8] }],
   }),
 ];
@@ -472,7 +261,6 @@ const LSO_DROUGHT_CONFIGS: SeedAlertConfig[] = [
   createDroughtAlertConfig({
     countryCodeIso3: 'LSO',
     regionName: 'National',
-    placeCodes: [],
     seasons: [{ Drought: [10, 11, 12, 1, 2, 3] }],
   }),
 ];
@@ -529,7 +317,7 @@ export const SEED_TROPICAL_CYCLONE_ALERT_CONFIGS: SeedAlertConfig[] =
       countryCodeIso3,
       hazardType: HazardType.tropicalCyclone,
       spatialExtentName: 'National',
-      spatialExtentPlaceCodes: [],
+      spatialExtentGeometry: null,
       temporalExtents: [
         { 'lead-time-spectrum': TROPICAL_CYCLONE_LEAD_TIME_SPECTRUM },
       ],
@@ -575,96 +363,24 @@ const COMPOUND_FLOODS_CLASSIFICATION_BY_COUNTRY: Record<
   },
 };
 
-interface CompoundFloodsArea {
-  readonly spatialExtentName: string;
-  readonly spatialExtentPlaceCodes: string[];
-}
-
-const COMPOUND_FLOODS_AREAS_BY_COUNTRY: Record<string, CompoundFloodsArea[]> = {
-  PHL: [
-    {
-      spatialExtentName: 'Pasig River',
-      spatialExtentPlaceCodes: [
-        'PH1303901',
-        'PH1307401',
-        'PH1307402',
-        'PH1307403',
-        'PH1307404',
-        'PH1307405',
-        'PH1307501',
-        'PH1307502',
-        'PH1307503',
-        'PH1307504',
-        'PH1307601',
-        'PH1307602',
-        'PH1307604',
-        'PH1307605',
-        'PH1307606',
-        'PH1307607',
-      ],
-    },
-    {
-      spatialExtentName: 'Santa Maria River',
-      spatialExtentPlaceCodes: [
-        'PH0301402',
-        'PH0301404',
-        'PH0301405',
-        'PH0301408',
-        'PH0301410',
-        'PH0301411',
-        'PH0301412',
-        'PH0301414',
-        'PH0301415',
-        'PH0301417',
-        'PH0301423',
-      ],
-    },
-    {
-      spatialExtentName: 'Bicol River',
-      spatialExtentPlaceCodes: [
-        'PH0501704',
-        'PH0501707',
-        'PH0501708',
-        'PH0501709',
-        'PH0501710',
-        'PH0501713',
-        'PH0501718',
-        'PH0501720',
-        'PH0501721',
-        'PH0501722',
-        'PH0501724',
-        'PH0501726',
-        'PH0501728',
-        'PH0501732',
-        'PH0501734',
-        'PH0501737',
-      ],
-    },
-    {
-      spatialExtentName: 'Panay River',
-      spatialExtentPlaceCodes: [
-        'PH0601905',
-        'PH0601907',
-        'PH0601909',
-        'PH0601910',
-        'PH0601911',
-        'PH0601912',
-        'PH0601913',
-        'PH0601914',
-      ],
-    },
-  ],
+// The areas are geometries in seed-alert-config-spatial-extents.json
+const COMPOUND_FLOODS_AREA_NAMES_BY_COUNTRY: Record<string, string[]> = {
+  PHL: ['Pasig River', 'Santa Maria River', 'Bicol River', 'Panay River'],
 };
 
 export const SEED_COMPOUND_FLOODS_ALERT_CONFIGS: SeedAlertConfig[] =
   Object.entries(COMPOUND_FLOODS_CLASSIFICATION_BY_COUNTRY).flatMap(
     ([countryCodeIso3, config]) =>
-      (COMPOUND_FLOODS_AREAS_BY_COUNTRY[countryCodeIso3] ?? []).map(
-        (area): SeedAlertConfig => ({
+      (COMPOUND_FLOODS_AREA_NAMES_BY_COUNTRY[countryCodeIso3] ?? []).map(
+        (spatialExtentName): SeedAlertConfig => ({
           countryCodeIso3,
           hazardType: HazardType.compoundFloods,
-          spatialExtentName: area.spatialExtentName,
-          spatialExtentPlaceCodes: area.spatialExtentPlaceCodes,
+          spatialExtentName,
+          spatialExtentGeometry: getSpatialExtentGeometry({
+            hazardType: HazardType.compoundFloods,
+            countryCodeIso3,
+            spatialExtentName,
+          }),
           temporalExtents: [
             { 'lead-time-spectrum': COMPOUND_FLOODS_LEAD_TIME_SPECTRUM },
           ],

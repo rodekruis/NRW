@@ -1,7 +1,7 @@
 import { differenceInCalendarDays } from 'date-fns';
 
 import { AlertConfigsService } from '@api-service/src/alert-configs/alert-configs.service';
-import { AlertConfigResponseDto } from '@api-service/src/alert-configs/dto/alert-config-response.dto';
+import { AlertConfigWithoutGeometryDto } from '@api-service/src/alert-configs/dto/alert-config-without-geometry.dto';
 import { AlertClassificationService } from '@api-service/src/events/alert-classification.service';
 import {
   buildMockForecasts,
@@ -180,12 +180,14 @@ describe('mock flood alerts classified with the seeded alert configs', () => {
     async (_, countryCodeIso3, alert) => {
       // Arrange
       const alertConfigsService = new AlertConfigsService(null as never);
-      jest.spyOn(alertConfigsService, 'getAlertConfigs').mockResolvedValue([
-        {
-          hazardType: HazardType.floods,
-          ...FLOOD_CLASSIFICATION_BY_COUNTRY[countryCodeIso3],
-        } as AlertConfigResponseDto,
-      ]);
+      jest
+        .spyOn(alertConfigsService, 'getAlertConfigsWithoutGeometry')
+        .mockResolvedValue([
+          {
+            hazardType: HazardType.floods,
+            ...FLOOD_CLASSIFICATION_BY_COUNTRY[countryCodeIso3],
+          } as AlertConfigWithoutGeometryDto,
+        ]);
       const service = new AlertClassificationService(alertConfigsService);
 
       // Act

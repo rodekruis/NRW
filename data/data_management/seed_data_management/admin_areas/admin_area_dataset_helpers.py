@@ -39,10 +39,6 @@ def get_pcode(feature: dict, level: int) -> str:
     return feature["properties"][f"ADM{level}_PCODE"]
 
 
-def get_area_name(feature: dict, level: int) -> str | None:
-    return feature["properties"].get(f"ADM{level}_EN")
-
-
 def union_geometries(geometries: list[BaseGeometry]) -> BaseGeometry | None:
     if not geometries:
         return None

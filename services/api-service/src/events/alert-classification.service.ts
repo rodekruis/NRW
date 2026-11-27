@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { AlertConfigsService } from '@api-service/src/alert-configs/alert-configs.service';
-import { AlertConfigResponseDto } from '@api-service/src/alert-configs/dto/alert-config-response.dto';
+import { AlertConfigWithoutGeometryDto } from '@api-service/src/alert-configs/dto/alert-config-without-geometry.dto';
 import { ClassLevelDto } from '@api-service/src/alert-configs/dto/class-level.dto';
 import { SeverityDto } from '@api-service/src/alerts/dto/severity.dto';
 import { ClassificationResult } from '@api-service/src/events/interfaces/classification-result';
@@ -87,10 +87,11 @@ export class AlertClassificationService {
   public async classifyAlert(
     classificationInput: AlertClassificationInput,
   ): Promise<ClassificationResult> {
-    const config = await this.alertConfigsService.getAlertConfigs({
-      countryCodeIso3: classificationInput.countryCodeIso3,
-      hazardType: classificationInput.hazardType,
-    });
+    const config =
+      await this.alertConfigsService.getAlertConfigsWithoutGeometry({
+        countryCodeIso3: classificationInput.countryCodeIso3,
+        hazardType: classificationInput.hazardType,
+      });
     if (!config[0]) {
       throw new NotFoundException(
         `No classification config found for hazard type '${classificationInput.hazardType}'`,
@@ -111,7 +112,7 @@ export class AlertClassificationService {
   }: {
     severityData: SeverityDto[];
     issuedAt: Date;
-    config: AlertConfigResponseDto;
+    config: AlertConfigWithoutGeometryDto;
   }): ClassificationResult {
     const timeIntervalGroups = this.groupByTimeInterval(severityData);
     const alertClassPerTimeInterval = new Map<string, AlertClass | null>();
@@ -353,7 +354,7 @@ export class AlertClassificationService {
     alertClass: AlertClass | null;
     reachesPeakAlertClassAt: Date;
     issuedAt: Date;
-    config: AlertConfigResponseDto;
+    config: AlertConfigWithoutGeometryDto;
   }): boolean {
     if (!config.triggerAlertClass || alertClass === null) {
       return false;

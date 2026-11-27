@@ -55,7 +55,7 @@ describe('EventFloodsDetailsService', () => {
         {
           provide: AlertConfigsService,
           useValue: {
-            getAlertConfigs: jest.fn(),
+            getAlertConfigsWithoutGeometry: jest.fn(),
           },
         },
       ],
@@ -68,7 +68,7 @@ describe('EventFloodsDetailsService', () => {
       new Map(),
     );
     repository.getGloFasStationDetails.mockResolvedValue(new Map());
-    alertConfigsService.getAlertConfigs.mockResolvedValue([]);
+    alertConfigsService.getAlertConfigsWithoutGeometry.mockResolvedValue([]);
   });
 
   describe('buildDetails', () => {
@@ -160,7 +160,7 @@ describe('EventFloodsDetailsService', () => {
           ],
         ]),
       );
-      alertConfigsService.getAlertConfigs.mockResolvedValue([
+      alertConfigsService.getAlertConfigsWithoutGeometry.mockResolvedValue([
         {
           id: 1,
           created: new Date(),
@@ -168,7 +168,6 @@ describe('EventFloodsDetailsService', () => {
           countryCodeIso3: 'ETH',
           hazardType: HazardType.floods,
           spatialExtentName: 'G1',
-          spatialExtentPlaceCodes: [],
           temporalExtents: [],
           severityClassLevels: [
             { label: AlertClassificationLevel.low, threshold: 2 },
@@ -364,7 +363,7 @@ describe('EventFloodsDetailsService', () => {
           ],
         ]),
       );
-      alertConfigsService.getAlertConfigs.mockResolvedValue([
+      alertConfigsService.getAlertConfigsWithoutGeometry.mockResolvedValue([
         {
           id: 1,
           created: new Date(),
@@ -372,7 +371,6 @@ describe('EventFloodsDetailsService', () => {
           countryCodeIso3: 'ETH',
           hazardType: HazardType.floods,
           spatialExtentName: 'G1',
-          spatialExtentPlaceCodes: [],
           temporalExtents: [],
           severityClassLevels: [
             { label: AlertClassificationLevel.low, threshold: 2 },
@@ -431,7 +429,7 @@ describe('EventFloodsDetailsService', () => {
           ],
         ]),
       );
-      alertConfigsService.getAlertConfigs.mockResolvedValue([
+      alertConfigsService.getAlertConfigsWithoutGeometry.mockResolvedValue([
         {
           id: 1,
           created: new Date(),
@@ -439,7 +437,6 @@ describe('EventFloodsDetailsService', () => {
           countryCodeIso3: 'ETH',
           hazardType: HazardType.floods,
           spatialExtentName: 'G1',
-          spatialExtentPlaceCodes: [],
           temporalExtents: [],
           severityClassLevels: [
             { label: AlertClassificationLevel.low, threshold: 2 },
@@ -564,7 +561,7 @@ describe('EventFloodsDetailsService', () => {
           ],
         ]),
       );
-      alertConfigsService.getAlertConfigs.mockResolvedValue([
+      alertConfigsService.getAlertConfigsWithoutGeometry.mockResolvedValue([
         {
           id: 1,
           created: new Date(),
@@ -572,7 +569,6 @@ describe('EventFloodsDetailsService', () => {
           countryCodeIso3: 'ETH',
           hazardType: HazardType.floods,
           spatialExtentName: 'G1',
-          spatialExtentPlaceCodes: [],
           temporalExtents: [],
           severityClassLevels: [
             { label: AlertClassificationLevel.low, threshold: 2 },

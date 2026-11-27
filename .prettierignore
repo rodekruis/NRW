@@ -9,6 +9,9 @@ package-lock.json
 **/nrw.openapi-schema.json
 **/module-dependencies.md
 
+# Generated polygons, written one feature per line by a script
+services/api-service/src/seed/seed-data/seed-alert-config-spatial-extents.json
+
 # Exclude pipeline data and venv files
 data/data
 data/.venv

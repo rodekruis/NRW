@@ -167,10 +167,11 @@ export class EventFloodsDetailsService {
         continue;
       }
       seen.add(key);
-      const configs = await this.alertConfigsService.getAlertConfigs({
-        countryCodeIso3: event.countryCodeIso3,
-        hazardType: event.hazardType,
-      });
+      const configs =
+        await this.alertConfigsService.getAlertConfigsWithoutGeometry({
+          countryCodeIso3: event.countryCodeIso3,
+          hazardType: event.hazardType,
+        });
       if (configs[0]) {
         result.set(key, configs[0].severityClassLevels);
       }

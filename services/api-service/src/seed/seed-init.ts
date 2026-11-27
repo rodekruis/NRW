@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import type { MultiPolygon, Polygon } from 'geojson';
 
 import { AdminAreasService } from '@api-service/src/admin-areas/admin-areas.service';
 import { AdminAreaCreateDto } from '@api-service/src/admin-areas/dto/admin-area-create.dto';
@@ -52,11 +53,24 @@ interface StationThresholdEntry {
   readonly thresholds: { return_period: number; threshold_value: number }[];
 }
 
+interface StationSpatialExtentFeature {
+  readonly properties: { readonly station_code?: string } | null;
+  readonly geometry: Polygon | MultiPolygon | null;
+  readonly crs?: unknown;
+}
+
+interface StationSpatialExtentFeatureCollection {
+  readonly type: string;
+  readonly features: StationSpatialExtentFeature[];
+  readonly crs?: unknown;
+}
+
+// ##TODO: Point back at refs/heads/main once rodekruis/NRW-seed-data#26 is merged.
 const SEED_REPO_RAW_BASE_URL =
-  'https://raw.githubusercontent.com/rodekruis/NRW-seed-data/refs/heads/main';
+  'https://raw.githubusercontent.com/rodekruis/NRW-seed-data/refs/heads/jannisvisser/feat.station-spatial-extents';
 
 const ADMIN_AREAS_PATH = '/admin-areas/processed';
-const STATION_THRESHOLDS_PATH = '/hazard/flood/glofas-stations';
+const GLOFAS_STATIONS_PATH = '/hazard/flood/glofas-stations';
 const POPULATION_RASTER_PATH = '/exposure/population/data-png';
 
 function getAdminAreaFilePath({
@@ -70,7 +84,11 @@ function getAdminAreaFilePath({
 }
 
 function getStationThresholdsFilePath(countryCodeIso3: string): string {
-  return `${STATION_THRESHOLDS_PATH}/${countryCodeIso3}_station_thresholds.json`;
+  return `${GLOFAS_STATIONS_PATH}/${countryCodeIso3}_station_thresholds.json`;
+}
+
+function getStationSpatialExtentsFilePath(countryCodeIso3: string): string {
+  return `${GLOFAS_STATIONS_PATH}/${countryCodeIso3}_station_spatial_extents.geojson`;
 }
 
 function getSeedRepoLocation(seedRepoPath: string): string {
@@ -95,6 +113,18 @@ async function readSeedRepoBuffer(
     return undefined;
   }
   return Buffer.from(await response.arrayBuffer());
+}
+
+// GeoJSON of 2008 lets the collection and each feature give a CRS in a 'crs' member.
+// The seed does not use these members, so a different CRS would get no check
+function hasCrsMember(geojson: {
+  readonly crs?: unknown;
+  readonly features: { readonly crs?: unknown }[];
+}): boolean {
+  return (
+    geojson.crs !== undefined ||
+    geojson.features.some((feature) => feature.crs !== undefined)
+  );
 }
 
 @Injectable()
@@ -235,12 +265,7 @@ export class SeedInit {
       this.logger.warn(`${filename} is not a valid FeatureCollection`);
       return;
     }
-    // GeoJSON of 2008 lets the collection and each feature give a CRS in a 'crs' member.
-    // These members are not used below, so a different CRS would get no check
-    const hasCrsMember =
-      geojson.crs !== undefined ||
-      geojson.features.some((feature) => feature.crs !== undefined);
-    if (hasCrsMember) {
+    if (hasCrsMember(geojson)) {
       throw new Error(
         `${filename} has a 'crs' member: admin areas must be in EPSG:4326 without a 'crs' member`,
       );
@@ -341,7 +366,7 @@ export class SeedInit {
       )
     ).flat();
 
-    // Drought: spatial extents are climate regions defined in code (seed-alert-configs.const.ts)
+    // Drought: spatial extents are climate regions defined in code (seed-alert-configs.const.ts and seed-alert-config-spatial-extents.json)
     // TODO: move drought alert configs to an external source (seed-data repo or similar)
     const droughtConfigs = SEED_DROUGHT_ALERT_CONFIGS.filter((c) =>
       countryCodesForHazard(HazardType.drought).includes(c.countryCodeIso3),
@@ -375,7 +400,7 @@ export class SeedInit {
         countryCodeIso3: config.countryCodeIso3,
         hazardType: config.hazardType as HazardType,
         spatialExtentName: config.spatialExtentName,
-        spatialExtentPlaceCodes: config.spatialExtentPlaceCodes,
+        spatialExtentGeometry: config.spatialExtentGeometry,
         temporalExtents: config.temporalExtents,
         severityClassLevels: config.severityClassLevels,
         probabilityClassLevels: config.probabilityClassLevels,
@@ -389,29 +414,6 @@ export class SeedInit {
   private async loadFloodAlertConfigsFromSeedRepo(
     country: SeedCountry,
   ): Promise<SeedAlertConfig[]> {
-    // Each GloFAS station becomes one alert-config spatial extent.
-    // The station_thresholds.json maps stations to downstream admin-area place codes.
-    const seedRepoPath = getStationThresholdsFilePath(country.countryCodeIso3);
-    this.logger.log(
-      `Load GloFAS station thresholds for ${country.countryCodeIso3} from ${getSeedRepoLocation(seedRepoPath)}...`,
-    );
-
-    const entries =
-      await readSeedRepoJson<StationThresholdEntry[]>(seedRepoPath);
-    if (!entries) {
-      this.logger.warn(`No station thresholds for ${country.countryCodeIso3}`);
-      return [];
-    }
-    const targetAdminLevel = String(country.deepestAdminLevel);
-
-    const stationMap = new Map<string, string[]>();
-    for (const entry of entries) {
-      if (!stationMap.has(entry.station_code)) {
-        const placeCodes = entry.pcodes[targetAdminLevel] ?? [];
-        stationMap.set(entry.station_code, placeCodes);
-      }
-    }
-
     const classificationConfig =
       FLOOD_CLASSIFICATION_BY_COUNTRY[country.countryCodeIso3];
     if (!classificationConfig) {
@@ -421,28 +423,73 @@ export class SeedInit {
       return [];
     }
 
-    const configs: SeedAlertConfig[] = [];
-    for (const [stationCode, placeCodes] of stationMap) {
-      if (placeCodes.length === 0) {
-        continue;
-      }
-      configs.push({
+    // Each GloFAS station with a spatial extent becomes one alert config
+    const spatialExtentGeometries =
+      await this.loadStationSpatialExtentGeometries(country.countryCodeIso3);
+
+    const configs: SeedAlertConfig[] = [...spatialExtentGeometries].map(
+      ([stationCode, spatialExtentGeometry]) => ({
         countryCodeIso3: country.countryCodeIso3,
         hazardType: HazardType.floods,
         spatialExtentName: stationCode,
-        spatialExtentPlaceCodes: placeCodes,
+        spatialExtentGeometry,
         temporalExtents: [{ 'lead-time-spectrum': FLOOD_LEAD_TIME_SPECTRUM }],
         severityClassLevels: classificationConfig.severityClassLevels,
         probabilityClassLevels: classificationConfig.probabilityClassLevels,
         triggerAlertClass: classificationConfig.triggerAlertClass,
         triggerLeadTimeDuration: classificationConfig.triggerLeadTimeDuration,
-      });
-    }
+      }),
+    );
 
     this.logger.log(
       `Loaded ${configs.length} flood alert configs for ${country.countryCodeIso3}`,
     );
     return configs;
+  }
+
+  private async loadStationSpatialExtentGeometries(
+    countryCodeIso3: string,
+  ): Promise<Map<string, Polygon | MultiPolygon>> {
+    const geometries = new Map<string, Polygon | MultiPolygon>();
+    const seedRepoPath = getStationSpatialExtentsFilePath(countryCodeIso3);
+    this.logger.log(
+      `Load GloFAS station spatial extents for ${countryCodeIso3} from ${getSeedRepoLocation(seedRepoPath)}...`,
+    );
+
+    const geojson =
+      await readSeedRepoJson<StationSpatialExtentFeatureCollection>(
+        seedRepoPath,
+      );
+    if (!geojson) {
+      this.logger.warn(
+        `No station spatial extents for ${countryCodeIso3} — skipping flood alert configs`,
+      );
+      return geometries;
+    }
+    if (geojson.type !== 'FeatureCollection' || !geojson.features) {
+      this.logger.warn(`${seedRepoPath} is not a valid FeatureCollection`);
+      return geometries;
+    }
+    if (hasCrsMember(geojson)) {
+      throw new Error(
+        `${seedRepoPath} has a 'crs' member: station spatial extents must be in EPSG:4326 without a 'crs' member`,
+      );
+    }
+
+    for (const feature of geojson.features) {
+      const stationCode = feature.properties?.station_code;
+      if (stationCode && feature.geometry) {
+        geometries.set(stationCode, feature.geometry);
+      } else {
+        this.logger.warn(
+          `Skipping a feature in ${seedRepoPath} without a station code or geometry`,
+        );
+      }
+    }
+    this.logger.log(
+      `Loaded ${geometries.size} station spatial extents for ${countryCodeIso3}`,
+    );
+    return geometries;
   }
 
   private async seedGeoFeatures(countries: SeedCountry[]): Promise<void> {

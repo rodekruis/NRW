@@ -8,13 +8,18 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
+import type { MultiPolygon, Polygon } from 'geojson';
 
 import { ClassLevelDto } from '@api-service/src/alert-configs/dto/class-level.dto';
+import { SpatialExtentGeometryDto } from '@api-service/src/alert-configs/dto/spatial-extent-geometry.dto';
 import {
   AlertClass,
   AlertClassificationLevel,
   HazardType,
 } from '@api-service/src/shared-enums';
+
+const SPATIAL_EXTENT_GEOMETRY_DESCRIPTION =
+  "GeoJSON Polygon or MultiPolygon geometry in EPSG:4326, as [longitude, latitude], without a 'crs' member";
 
 export class AlertConfigCreateDto {
   @ApiProperty({ example: 'KEN' })
@@ -29,10 +34,14 @@ export class AlertConfigCreateDto {
   @IsString()
   public readonly spatialExtentName: string;
 
-  @ApiProperty({ type: [String], example: ['KEN.10_1'] })
-  @IsArray()
-  @IsString({ each: true })
-  public readonly spatialExtentPlaceCodes: string[];
+  @ApiPropertyOptional({
+    description: SPATIAL_EXTENT_GEOMETRY_DESCRIPTION,
+    type: () => SpatialExtentGeometryDto,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsObject()
+  public readonly spatialExtentGeometry?: Polygon | MultiPolygon | null;
 
   @ApiProperty({
     example: [
