@@ -87,6 +87,8 @@ test('river discharge chart', visualTest, async ({ nrwPage }) => {
   // Assert
   await expect(nrwPage.eventDetail.riverDischargeChart).toHaveScreenshot(
     'river-discharge-chart.png',
+    // Text anti-aliasing differs between macOS and Linux, which weighs more on a small element.
+    { maxDiffPixelRatio: 0.005 },
   );
 });
 
